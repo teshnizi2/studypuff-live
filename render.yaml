@@ -1,0 +1,7 @@
+services:
+  - type: static
+    name: studypuff-live
+    plan: free
+    rootDir: .
+    buildCommand: ""
+    staticPublishPath: .

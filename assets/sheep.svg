@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300" width="240" height="300" aria-label="StudyPuff sheep mascot">
+  <defs>
+    <style>
+      .wool { fill: #ffffff; }
+      .face { fill: #fbe9d4; }
+      .ink  { fill: none; stroke: #5b8159; stroke-width: 4.5; stroke-linejoin: round; stroke-linecap: round; }
+      .green { fill: #5b8159; }
+      .blush { fill: #f3c6c2; }
+      .book  { fill: #9a7a4a; }
+      .pages { fill: #fbf3df; }
+      .book-edge { fill: #826238; }
+    </style>
+  </defs>
+
+  <!-- ============ BODY (lower wool cloud) ============ -->
+  <!-- One unified path for the body silhouette so the outline is single-line -->
+  <path d="
+    M 60 215
+    Q 38 200 48 178
+    Q 35 155 60 148
+    Q 70 130 92 138
+    L 148 138
+    Q 170 130 180 148
+    Q 205 155 192 178
+    Q 202 200 180 215
+    Q 200 240 175 252
+    Q 188 275 158 270
+    Q 145 282 128 278
+    Q 110 282 95 274
+    Q 80 282 65 270
+    Q 40 275 53 252
+    Q 28 240 60 215 Z"
+    class="wool"/>
+  <path d="
+    M 60 215
+    Q 38 200 48 178
+    Q 35 155 60 148
+    Q 70 130 92 138
+    L 148 138
+    Q 170 130 180 148
+    Q 205 155 192 178
+    Q 202 200 180 215
+    Q 200 240 175 252
+    Q 188 275 158 270
+    Q 145 282 128 278
+    Q 110 282 95 274
+    Q 80 282 65 270
+    Q 40 275 53 252
+    Q 28 240 60 215 Z"
+    class="ink"/>
+
+  <!-- Front cream belly behind book -->
+  <ellipse cx="120" cy="195" rx="44" ry="34" class="face"/>
+
+  <!-- ============ BOOK ============ -->
+  <!-- Outer book back (covers) -->
+  <path d="M 60 188 L 120 178 L 180 188 L 178 250 L 120 258 L 62 250 Z" class="book"/>
+  <path d="M 60 188 L 120 178 L 180 188 L 178 250 L 120 258 L 62 250 Z" class="ink"/>
+  <!-- Inner pages -->
+  <path d="M 70 192 L 120 184 L 170 192 L 168 246 L 120 252 L 72 246 Z" class="pages"/>
+  <path d="M 70 192 L 120 184 L 170 192 L 168 246 L 120 252 L 72 246 Z" class="ink"/>
+  <!-- Center crease -->
+  <line x1="120" y1="184" x2="120" y2="252" stroke="#5b8159" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Page lines (subtle) -->
+  <path d="M 84 205 Q 100 202 116 205 M 84 218 Q 100 215 114 218 M 84 230 Q 100 227 116 230" class="ink" stroke-width="1.5" opacity=".35"/>
+  <path d="M 124 205 Q 140 202 156 205 M 126 218 Q 140 215 156 218 M 124 230 Q 140 227 156 230" class="ink" stroke-width="1.5" opacity=".35"/>
+
+  <!-- Hooves holding the book (front feet) -->
+  <ellipse cx="58" cy="220" rx="11" ry="11" class="green"/>
+  <ellipse cx="182" cy="220" rx="11" ry="11" class="green"/>
+
+  <!-- Back feet (peeking from bottom) -->
+  <ellipse cx="80" cy="282" rx="14" ry="9" class="green"/>
+  <ellipse cx="160" cy="282" rx="14" ry="9" class="green"/>
+
+  <!-- ============ EARS (drooping) ============ -->
+  <path d="M 52 78 Q 32 90 40 122 Q 50 132 62 122 Q 72 102 70 80 Z" class="face"/>
+  <path d="M 52 78 Q 32 90 40 122 Q 50 132 62 122 Q 72 102 70 80 Z" class="ink"/>
+
+  <path d="M 188 78 Q 208 90 200 122 Q 190 132 178 122 Q 168 102 170 80 Z" class="face"/>
+  <path d="M 188 78 Q 208 90 200 122 Q 190 132 178 122 Q 168 102 170 80 Z" class="ink"/>
+
+  <!-- ============ HEAD WOOL (top puffs) ============ -->
+  <path d="
+    M 40 80
+    Q 28 60 50 50
+    Q 50 28 78 36
+    Q 86 16 110 22
+    Q 130 16 145 36
+    Q 170 30 175 55
+    Q 200 65 188 88
+    Q 200 102 180 108
+    L 60 108
+    Q 38 100 40 80 Z"
+    class="wool"/>
+  <path d="
+    M 40 80
+    Q 28 60 50 50
+    Q 50 28 78 36
+    Q 86 16 110 22
+    Q 130 16 145 36
+    Q 170 30 175 55
+    Q 200 65 188 88
+    Q 200 102 180 108
+    L 60 108
+    Q 38 100 40 80 Z"
+    class="ink"/>
+
+  <!-- ============ FACE (cream area) ============ -->
+  <path d="
+    M 60 100
+    Q 55 130 80 152
+    Q 100 165 120 165
+    Q 140 165 160 152
+    Q 185 130 180 100
+    Q 175 90 160 92
+    L 80 92
+    Q 65 90 60 100 Z"
+    class="face"/>
+  <path d="
+    M 60 100
+    Q 55 130 80 152
+    Q 100 165 120 165
+    Q 140 165 160 152
+    Q 185 130 180 100"
+    class="ink"/>
+
+  <!-- ============ EYES ============ -->
+  <ellipse cx="92" cy="120" rx="6.5" ry="9" class="green"/>
+  <ellipse cx="148" cy="120" rx="6.5" ry="9" class="green"/>
+  <!-- highlights -->
+  <ellipse cx="90" cy="115" rx="1.8" ry="2.6" fill="#ffffff"/>
+  <ellipse cx="146" cy="115" rx="1.8" ry="2.6" fill="#ffffff"/>
+
+  <!-- ============ BLUSH ============ -->
+  <ellipse cx="74" cy="138" rx="7" ry="5" class="blush"/>
+  <ellipse cx="166" cy="138" rx="7" ry="5" class="blush"/>
+
+  <!-- ============ NOSE + MOUTH ============ -->
+  <!-- Tiny vertical line for nose -->
+  <path d="M 120 138 L 120 144" class="ink" stroke-width="3"/>
+  <!-- Smiley mouth: two curves forming a soft 'w' / smile -->
+  <path d="M 120 144 Q 113 152 106 148" class="ink" stroke-width="3" fill="none"/>
+  <path d="M 120 144 Q 127 152 134 148" class="ink" stroke-width="3" fill="none"/>
+</svg>

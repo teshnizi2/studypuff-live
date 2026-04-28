@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Study with us · Free livestreams · StudyPuff</title>
+<meta name="description" content="Co-study with a digital room full of international classmates. Weekly free livestreams on YouTube and Twitch." />
+<link rel="icon" href="../assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          display: ['Fraunces', 'ui-serif', 'Georgia'],
+        },
+        colors: {
+          cream: { 50: '#fbf7f0', 100: '#f6efe2', 200: '#efe4cf' },
+          ink:   { 600: '#7a6d5f', 700: '#58504a', 800: '#3e3730', 900: '#1f1c18' },
+          brand: {
+            sage:   '#5b8159',
+            sageDk: '#3f5d3e',
+            pink:   '#f3c6c2',
+            peach:  '#f6d4b7',
+            butter: '#fbe9a5',
+            mint:   '#c7e2c7',
+            sky:    '#c6dceb',
+            lilac:  '#d9cdea',
+          }
+        },
+        boxShadow: { soft: '0 10px 40px -12px rgba(34,31,27,0.18)', lift: '0 30px 60px -24px rgba(34,31,27,0.28)' },
+        keyframes: {
+          float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-18px)' } },
+          bobble: { '0%,100%': { transform: 'translateY(0) rotate(-1deg)' }, '50%': { transform: 'translateY(-10px) rotate(1deg)' } },
+          marquee: { from: { transform: 'translateX(0)' }, to: { transform: 'translateX(-50%)' } },
+          shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+        },
+        animation: {
+          float:  'float 7s ease-in-out infinite',
+          bobble: 'bobble 5s ease-in-out infinite',
+          marquee:'marquee 35s linear infinite',
+        },
+      }
+    }
+  }
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    color: #1f1c18;
+    background: #fbf7f0;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .display { font-family: Fraunces, ui-serif, Georgia; font-weight: 500; letter-spacing: -0.015em; line-height: 1.04; }
+  .gradient-surface {
+    background:
+      radial-gradient(55% 40% at 10% 6%, #f6d4b7 0%, transparent 60%),
+      radial-gradient(50% 40% at 92% 18%, #c6dceb 0%, transparent 60%),
+      radial-gradient(55% 45% at 85% 95%, #d9cdea 0%, transparent 60%),
+      radial-gradient(55% 40% at 12% 92%, #c7e2c7 0%, transparent 60%),
+      #fbf7f0;
+  }
+  .grain::before {
+    content: "";
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.13 0 0 0 0 0.12 0 0 0 0 0.11 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: .5; mix-blend-mode: multiply;
+  }
+  /* keep content above grain */
+  main > * { position: relative; z-index: 1; }
+  .blob { position: absolute; border-radius: 9999px; filter: blur(28px); opacity: .65; z-index: 0; }
+
+  /* Focus-visible — keyboard accessibility */
+  :where(a, button, input, select, textarea, summary, [role="button"]):focus { outline: none; }
+  :where(a, button, input, select, textarea, summary, [role="button"]):focus-visible {
+    outline: 2px solid #1f1c18;
+    outline-offset: 3px;
+    border-radius: 10px;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: .6rem;
+    background: #1f1c18; color: #fbf7f0;
+    padding: .95rem 1.5rem; border-radius: 9999px;
+    font-weight: 600; letter-spacing: .005em;
+    transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+    min-height: 44px;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 28px -10px rgba(34,31,27,.35); background:#3e3730; }
+  .btn-primary .arrow { transition: transform .25s ease; }
+  .btn-primary:hover .arrow { transform: translateX(3px); }
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: .6rem;
+    border: 1px solid rgba(34,31,27,.25); color: #1f1c18;
+    padding: .9rem 1.4rem; border-radius: 9999px;
+    font-weight: 600; background: transparent;
+    transition: background .25s ease, border-color .25s ease, transform .25s ease;
+    min-height: 44px;
+  }
+  .btn-outline:hover { background: rgba(34,31,27,.06); border-color: rgba(34,31,27,.45); transform: translateY(-1px); }
+
+  .nav-link { position: relative; color: #58504a; font-weight: 500; padding: .5rem .1rem; }
+  .nav-link::after {
+    content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px;
+    background:#1f1c18; transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+    border-radius: 2px;
+  }
+  .nav-link:hover { color: #1f1c18; }
+  .nav-link:hover::after, .nav-link.active::after { transform: scaleX(1); }
+  .nav-link.active { color: #1f1c18; }
+
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  .marquee-track {
+    display: flex; gap: 3rem; animation: marquee 45s linear infinite;
+    width: max-content;
+  }
+
+  .card {
+    background: #fbf7f0;
+    border: 1px solid rgba(34,31,27,.09);
+    border-radius: 28px;
+    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 22px 55px -24px rgba(34,31,27,.28); border-color: rgba(34,31,27,.16); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .35rem .8rem; border-radius: 9999px;
+    background: rgba(31,28,24,.06);
+    font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+    color: #3e3730; font-weight: 600;
+  }
+
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .faq-icon { transform: rotate(45deg); }
+  .faq-icon { transition: transform .25s ease; }
+
+  input, textarea, select { font-family: inherit; }
+  input[type="email"]:focus, input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none; box-shadow: 0 0 0 3px rgba(31,28,24,.12);
+    border-color: rgba(31,28,24,.4) !important;
+  }
+
+  /* Avatar stack (social proof) */
+  .avatar-stack > * { margin-left: -12px; border: 2px solid #fbf7f0; }
+  .avatar-stack > *:first-child { margin-left: 0; }
+
+  /* Star row */
+  .stars { display:inline-flex; gap:2px; color:#d4a44a; }
+
+  /* Product illustration canvas */
+  .prod-art { aspect-ratio: 1/1; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .prod-art > svg { width: 64%; height: 64%; filter: drop-shadow(0 10px 20px rgba(31,28,24,.15)); }
+
+  /* Floating label chip on top-right of cards */
+  .card-tag {
+    position:absolute; top:14px; right:14px;
+    background:#1f1c18; color:#fbf7f0;
+    padding:.25rem .6rem; border-radius: 9999px;
+    font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; font-weight:600;
+  }
+
+  /* Mobile menu */
+  .mobile-menu { display:none; }
+  .mobile-menu[data-open="true"] { display:flex; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity:1; transform:none; transition:none; }
+    .animate-float, .animate-bobble, .marquee-track { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main class="gradient-surface relative grain">
+<!-- HEADER -->
+  <header class="relative z-20">
+    <div class="mx-auto max-w-[1240px] px-6 lg:px-10">
+      <div class="flex items-center justify-between gap-6 pt-6">
+        <a href="../index.html" class="flex items-center">
+          <img src="../assets/studypuff-logo.png" alt="StudyPuff Academy" class="h-28 w-auto object-contain" />
+        </a>
+        <nav aria-label="Primary" class="hidden items-center gap-7 md:flex">
+          <a href="../index.html" class="nav-link">Home</a>
+          <a href="../study/index.html" class="nav-link active">Study with us</a>
+          <a href="../workshops/index.html" class="nav-link">Workshops</a>
+          <a href="../resources/index.html" class="nav-link">Free Resources</a>
+          <a href="../store/index.html" class="nav-link">Store</a>
+          <a href="../about/index.html" class="nav-link">About</a>
+          <a href="../contact/index.html" class="nav-link">Contact</a>
+        </nav>
+        <div class="hidden items-center gap-2 md:flex">
+          <a href="../workshops/index.html" class="btn-primary text-sm">Join next cohort <span class="arrow">→</span></a>
+        </div>
+        <button aria-label="Open menu" class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink-900/15" onclick="const m=document.getElementById('m-menu'); m.dataset.open = m.dataset.open === 'true' ? 'false' : 'true';">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+      <div id="m-menu" class="mobile-menu flex-col gap-3 pt-5 md:hidden" data-open="false">
+        <a href="../index.html" class="nav-link">Home</a>
+        <a href="../study/index.html" class="nav-link active">Study with us</a>
+        <a href="../workshops/index.html" class="nav-link">Workshops</a>
+        <a href="../resources/index.html" class="nav-link">Free Resources</a>
+        <a href="../store/index.html" class="nav-link">Store</a>
+        <a href="../about/index.html" class="nav-link">About</a>
+        <a href="../contact/index.html" class="nav-link">Contact</a>
+      </div>
+    </div>
+  </header>
+
+<section class="relative overflow-x-hidden pb-12 pt-16 lg:pb-20 lg:pt-24">
+  <span class="blob animate-float" style="left:-60px; top:40px; width:280px; height:280px; background:#f3c6c2;"></span>
+  <span class="blob animate-bobble" style="right:-80px; top:20%; width:240px; height:240px; background:#d9cdea;"></span>
+  <div class="relative mx-auto max-w-4xl px-6 text-center lg:px-10">
+    <span class="chip reveal">Study with us · Free</span>
+    <h1 class="display reveal mt-5 text-[clamp(2.6rem,5.2vw,4.5rem)] text-ink-900">Co-study with a digital room full of international classmates.</h1>
+    <p class="reveal mx-auto mt-6 max-w-2xl text-lg text-ink-700">Weekly livestreams on YouTube and Twitch. Your structured focus time, good company, and accountability.</p>
+    <div class="reveal mt-8 flex flex-wrap justify-center gap-3">
+      <a href="https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20" target="_blank" rel="noopener" class="btn-primary">See this week's schedule <span class="arrow">→</span></a>
+      <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" class="btn-outline">Subscribe on YouTube</a>
+    </div>
+  </div>
+</section>
+
+<section id="schedule" class="relative mx-auto max-w-[1100px] px-6 pb-12 lg:px-10">
+  <div class="reveal mb-10 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="chip">This week</p>
+      <h2 class="display mt-3 text-3xl text-ink-900 sm:text-4xl">Live sessions</h2>
+    </div>
+    <a href="https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20" target="_blank" rel="noopener" class="text-sm font-semibold text-ink-900 underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900">Add to your calendar →</a>
+  </div>
+  <ul class="overflow-hidden rounded-3xl border border-ink-900/10 bg-cream-50">
+    <li class="grid grid-cols-1 gap-3 px-6 py-6 sm:grid-cols-[120px_130px_110px_1fr_auto] sm:items-center sm:gap-6">
+      <span class="display text-xl text-ink-900">Monday</span>
+      <span class="text-sm text-ink-700">7:00 PM CET</span>
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-butter px-3 py-1 text-xs font-semibold text-ink-900"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> YouTube</span>
+      <span class="text-ink-700">Slow-start focus · 50/10 Pomodoros · 2 hrs</span>
+      <a href="https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20" target="_blank" rel="noopener" class="text-sm font-semibold text-ink-900 underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900">Set reminder →</a>
+    </li>
+    <li class="grid grid-cols-1 gap-3 border-t border-ink-900/10 px-6 py-6 sm:grid-cols-[120px_130px_110px_1fr_auto] sm:items-center sm:gap-6">
+      <span class="display text-xl text-ink-900">Wednesday</span>
+      <span class="text-sm text-ink-700">4:00 PM CET</span>
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-sky px-3 py-1 text-xs font-semibold text-ink-900"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> Twitch</span>
+      <span class="text-ink-700">Deep-work block · single 90-min focus</span>
+      <a href="https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20" target="_blank" rel="noopener" class="text-sm font-semibold text-ink-900 underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900">Set reminder →</a>
+    </li>
+    <li class="grid grid-cols-1 gap-3 border-t border-ink-900/10 px-6 py-6 sm:grid-cols-[120px_130px_110px_1fr_auto] sm:items-center sm:gap-6">
+      <span class="display text-xl text-ink-900">Saturday</span>
+      <span class="text-sm text-ink-700">10:00 AM CET</span>
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-butter px-3 py-1 text-xs font-semibold text-ink-900"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span> YouTube</span>
+      <span class="text-ink-700">Weekend reset · light planning + study</span>
+      <a href="https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20" target="_blank" rel="noopener" class="text-sm font-semibold text-ink-900 underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900">Set reminder →</a>
+    </li>
+  </ul>
+  <p class="mt-8 mx-auto max-w-2xl text-center text-ink-700">All livestreams are free to join. You are free to support the cause by becoming a member to get access to special emojis. If you miss a livestream, you can always watch it back later.</p>
+</section>
+
+<section class="relative py-20 lg:py-24">
+  <div class="mx-auto max-w-[1200px] px-6 lg:px-10">
+    <div class="reveal mb-14 text-center">
+      <p class="chip">How it works</p>
+    </div>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div class="card p-8 reveal">
+        <span class="display text-4xl text-ink-900/30">01</span>
+        <h3 class="display mt-2 text-xl text-ink-900">Pick a session</h3>
+        <p class="mt-3 text-ink-700">Scroll through the week's schedule and choose whichever sessions fits. All free to join.</p>
+      </div>
+      <div class="card p-8 reveal" style="transition-delay:.08s">
+        <span class="display text-4xl text-ink-900/30">02</span>
+        <h3 class="display mt-2 text-xl text-ink-900">Set your intention</h3>
+        <p class="mt-3 text-ink-700">Write your tasks in the chat for each session. Be as specific as possible, so we can cheer you on.</p>
+      </div>
+      <div class="card p-8 reveal" style="transition-delay:.16s">
+        <span class="display text-4xl text-ink-900/30">03</span>
+        <h3 class="display mt-2 text-xl text-ink-900">Work in rounds</h3>
+        <p class="mt-3 text-ink-700">Structured focus rounds, using the StudyPuff app. Timer, cozy company, and guidance.</p>
+      </div>
+      <div class="card p-8 reveal" style="transition-delay:.24s">
+        <span class="display text-4xl text-ink-900/30">04</span>
+        <h3 class="display mt-2 text-xl text-ink-900">Close the loop</h3>
+        <p class="mt-3 text-ink-700">Celebrate your progress in the chat, mark what's done in the app, and head off feeling lighter and less stressed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="relative py-20 lg:py-28">
+  <div class="mx-auto flex max-w-[1000px] flex-col items-center gap-8 rounded-[32px] border border-ink-900/10 bg-cream-50 px-8 py-16 text-center shadow-soft lg:flex-row lg:text-left">
+    <img src="../assets/studypuff-logo.png" alt="StudyPuff logo" class="h-56 w-auto shrink-0 object-contain" />
+    <div>
+      <h2 class="display text-3xl text-ink-900 sm:text-4xl">See you at the next session.</h2>
+      <p class="mt-4 max-w-xl text-ink-700">Subscribe to the channel, turn on notifications, and we'll nudge you when each session starts.</p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" class="btn-primary">Subscribe on YouTube <span class="arrow">→</span></a>
+        <a href="https://www.twitch.tv/studypuffacademy" target="_blank" rel="noopener" class="btn-outline">Follow on Twitch</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+  <footer class="relative mt-10 border-t border-ink-900/10 bg-cream-50/80">
+    <div class="mx-auto grid max-w-[1240px] grid-cols-2 gap-10 px-6 py-14 md:grid-cols-5 lg:px-10">
+      <div class="col-span-2">
+        <a href="../index.html" class="display text-2xl text-ink-900">StudyPuff</a>
+        <p class="mt-3 max-w-sm text-sm text-ink-700">A calm, science-based home for students who want to focus, learn, and live well — without the hustle.</p>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".9" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" aria-label="YouTube" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.85C18.2 5 12 5 12 5s-6.2 0-7.8.35A2.6 2.6 0 0 0 2.4 7.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 4.8 2.6 2.6 0 0 0 1.8 1.85C5.8 19 12 19 12 19s6.2 0 7.8-.35a2.6 2.6 0 0 0 1.8-1.85A27 27 0 0 0 22 12a27 27 0 0 0-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></a>
+          <a href="https://www.twitch.tv/studypuffacademy" target="_blank" rel="noopener" aria-label="Twitch" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M4 3v14l4 4v-4h4l5-5V3H4zm12 9l-3 3h-3l-2 2v-2H5V4h11v8zm-4-6h2v4h-2V6zm-4 0h2v4H8V6z"/></svg></a>
+          <a href="https://discord.gg/hb8bKpbjEz" target="_blank" rel="noopener" aria-label="Discord" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19.6 5.3a16.7 16.7 0 0 0-4-1.2l-.2.4a14 14 0 0 0-7 0l-.2-.4a16.7 16.7 0 0 0-4 1.2C1.5 9 .9 12.7 1.2 16.3a16.7 16.7 0 0 0 5 2.5l.4-.6a10.7 10.7 0 0 1-1.7-.8l.4-.3a11.5 11.5 0 0 0 9.6 0l.4.3-1.7.8.4.6a16.7 16.7 0 0 0 5-2.5c.4-4-.6-7.7-2.4-11zM8.7 14c-1 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2zm6.6 0c-1 0-1.7-.9-1.7-2s.7-2 1.7-2 1.7.9 1.7 2-.7 2-1.7 2z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <p class="mb-3 text-xs uppercase tracking-[0.18em] text-ink-700 font-semibold">Explore</p>
+        <ul class="space-y-2 text-sm">
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../study/index.html">Study with us</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../workshops/index.html">Workshops</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../resources/index.html">Free resources</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../store/index.html">Store</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="mb-3 text-xs uppercase tracking-[0.18em] text-ink-700 font-semibold">Company</p>
+        <ul class="space-y-2 text-sm">
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../about/index.html">About</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="../contact/index.html">Contact</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Press kit</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Careers</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="mb-3 text-xs uppercase tracking-[0.18em] text-ink-700 font-semibold">Legal</p>
+        <ul class="space-y-2 text-sm">
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Privacy</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Terms</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Cookies</a></li>
+          <li><a class="text-ink-700 hover:text-ink-900 transition" href="#">Accessibility</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-ink-900/10">
+      <div class="mx-auto flex max-w-[1240px] flex-col items-center justify-between gap-2 px-6 py-5 text-xs text-ink-700 md:flex-row lg:px-10">
+        <p>© 2026 StudyPuff · Made with care in the Netherlands</p>
+        <p>Designed for calm minds and curious students.</p>
+      </div>
+    </div>
+  </footer>
+</main>
+<script>
+  // Intersection-observer reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
