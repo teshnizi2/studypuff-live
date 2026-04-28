@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPuff – Productivity Level</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .charts-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      padding: 28px 24px 60px;
+      max-width: 960px;
+      width: 100%;
+    }
+    .big-chart-card {
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      flex: 1 1 360px;
+      max-width: 450px;
+      min-width: 260px;
+    }
+    .big-chart-card h3 {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 14px;
+    }
+    .canvas-wrap {
+      position: relative;
+      height: 240px;
+    }
+    .stress-note {
+      font-size: .78rem;
+      color: var(--text-light);
+      margin-top: 10px;
+      font-style: italic;
+      text-align: center;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .85rem; color: var(--text-light);
+      text-decoration: none; margin-bottom: 8px; padding: 6px 0;
+    }
+    .back-link:hover { color: var(--circle-bg); }
+
+    /* Stress input row */
+    .stress-input-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 0 24px;
+    }
+    .stress-input-row label {
+      font-size: .85rem;
+      color: var(--text-light);
+      white-space: nowrap;
+    }
+    .stress-input-row input[type="range"] {
+      -webkit-appearance: none;
+      flex: 1;
+      max-width: 200px;
+      height: 6px;
+      border-radius: 3px;
+      background: #ddd;
+      outline: none;
+      cursor: pointer;
+    }
+    .stress-input-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid #e8724a;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .stress-submit-btn {
+      background: #e8724a;
+      color: white;
+      border: none;
+      border-radius: var(--btn-radius);
+      padding: 8px 18px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .stress-submit-btn:hover { background: #c85530; }
+  </style>
+</head>
+<body>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
+    <span>StudyPuff</span>
+  </div>
+  <nav>
+    <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
+    <a href="task-list.html"><span class="nav-icon">📋</span> Task List</a>
+    <a href="statistics.html"><span class="nav-icon">📊</span> Statistics</a>
+    <a href="rewards.html"><span class="nav-icon">🪙</span> Rewards</a>
+    <a href="settings.html"><span class="nav-icon">⚙</span> Settings</a>
+  </nav>
+</div>
+
+<div class="top-bar">
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <span class="page-title">Productivity Level</span>
+  <a class="coin-badge" href="rewards.html">
+    <div class="coin-icon">🪙</div>
+    <span class="coin-count">0</span>
+    <div class="coin-plus">+</div>
+  </a>
+</div>
+
+<div class="page">
+  <div style="width:100%;max-width:960px;padding:20px 24px 0;">
+    <a href="statistics.html" class="back-link">← Back to Statistics</a>
+  </div>
+
+  <!-- Stress input row -->
+  <div class="stress-input-row">
+    <label>Today's stress (0–10):</label>
+    <input type="range" id="stressSlider" min="0" max="10" value="5">
+    <span id="stressVal" style="font-weight:700;min-width:20px;">5</span>
+    <button class="stress-submit-btn" id="stressSubmit">Log</button>
+  </div>
+
+  <div class="charts-row">
+
+    <!-- Focus Level -->
+    <div class="big-chart-card">
+      <h3>Focus Level</h3>
+      <div class="canvas-wrap">
+        <canvas id="focusChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Stress Level -->
+    <div class="big-chart-card">
+      <h3>Stress Level</h3>
+      <div class="canvas-wrap">
+        <canvas id="stressChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+  function buildData(key) {
+    const log = getProductivityLog();
+    const thisWeek = getWeekDates(0);
+    return thisWeek.map(d => {
+      const e = log.find(x => x.date === d);
+      return e ? +(parseFloat(e[key]) || 0).toFixed(1) : 0;
+    });
+  }
+
+  const barOptions = (color) => ({
+    type: 'bar',
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 9 } }, grid: { display: false } },
+        y: { min: 0, max: 10, ticks: { stepSize: 2, font: { size: 9 } } }
+      }
+    }
+  });
+
+  let focusChart, stressChart;
+
+  function drawCharts() {
+    const focusData  = buildData('focusScore');
+    const stressData = buildData('stressScore');
+
+    if (focusChart)  focusChart.destroy();
+    if (stressChart) stressChart.destroy();
+
+    focusChart = new Chart(document.getElementById('focusChart'), {
+      type: 'bar',
+      data: {
+        labels: DAYS,
+        datasets: [{ data: focusData, backgroundColor: '#2e6a9e', borderRadius: 4 }]
+      },
+      options: barOptions('#2e6a9e').options
+    });
+
+    stressChart = new Chart(document.getElementById('stressChart'), {
+      type: 'bar',
+      data: {
+        labels: DAYS,
+        datasets: [{ data: stressData, backgroundColor: '#2e6a9e', borderRadius: 4 }]
+      },
+      options: barOptions('#e8724a').options
+    });
+  }
+
+  // Stress slider live value
+  const stressSlider = document.getElementById('stressSlider');
+  const stressVal    = document.getElementById('stressVal');
+  stressSlider.addEventListener('input', () => { stressVal.textContent = stressSlider.value; });
+
+  document.getElementById('stressSubmit').addEventListener('click', (e) => {
+    const score = parseInt(stressSlider.value, 10);
+    const log   = getProductivityLog();
+    const today = todayStr();
+    const idx   = log.findIndex(e => e.date === today);
+    if (idx >= 0) {
+      log[idx].stressScore = score;
+    } else {
+      log.push({ date: today, stressScore: score });
+    }
+    SP.set('productivity', log);
+    addCoins(1, { from: e.currentTarget });
+    drawCharts();
+    const msg = score <= 3 ? 'Nice and calm today' : score <= 6 ? 'Fair enough — keep moving' : 'Deep breath. Small steps.';
+    SPFeedback.toast(`Logged stress ${score}/10 — ${msg}`, { icon: '📝', kind: 'success' });
+  });
+
+  drawCharts();
+</script>
+</body>
+</html>

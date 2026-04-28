@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPuff – Topic</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Topic header ─────────────────────────── */
+    .topic-header {
+      width: 100%;
+      max-width: 560px;
+      padding: 20px 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .8rem;
+      color: var(--text-light);
+      text-decoration: none;
+      padding: 4px 0 8px;
+      transition: color .12s;
+    }
+    .breadcrumb:hover { color: var(--circle-bg); }
+
+    .topic-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topic-color-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .topic-title-input {
+      border: none;
+      background: transparent;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+      outline: none;
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+    }
+    .topic-title-input::placeholder { color: #aaa; }
+
+    /* ── Progress bar ─────────────────────────── */
+    .progress-section {
+      width: 100%;
+      max-width: 560px;
+      padding: 16px 24px 0;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .8rem;
+      color: var(--text-light);
+      margin-bottom: 7px;
+    }
+    .progress-label strong { color: var(--text); }
+    .progress-track {
+      height: 8px;
+      background: var(--chip-bg, rgba(255,255,255,.5));
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--circle-bg);
+      transition: width .4s ease;
+      min-width: 0;
+    }
+
+    /* ── Filter bar ───────────────────────────── */
+    .filter-bar {
+      width: 100%;
+      max-width: 560px;
+      padding: 14px 24px 4px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .fchip {
+      font-size: .75rem;
+      background: var(--chip-bg, rgba(255,255,255,.6));
+      border: 1px solid var(--chip-border, transparent);
+      color: var(--text-light);
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .fchip:hover { color: var(--text); }
+    .fchip.active {
+      background: var(--circle-bg);
+      color: white;
+      border-color: var(--circle-bg);
+    }
+    .sort-sel {
+      font-size: .75rem;
+      border: 1px solid var(--chip-border, var(--border));
+      background: var(--chip-bg, var(--white));
+      color: var(--text);
+      border-radius: 20px;
+      padding: 4px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── Task rows ────────────────────────────── */
+    .task-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: box-shadow .15s, opacity .2s;
+      animation: slideIn .2s ease both;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .task-row:hover { box-shadow: 0 4px 14px rgba(0,0,0,.14); }
+    .task-row.done-row { opacity: .55; }
+
+    .task-num {
+      background: var(--chip-bg, #f5f5f5);
+      border-right: 1.5px solid var(--border);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      min-width: 44px;
+    }
+    .task-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 4px 10px 0;
+      min-width: 0;
+    }
+    .task-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .task-check {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin: 0 6px 0 14px;
+      position: relative;
+      transition: border-color .15s, background .15s, transform .12s;
+    }
+    .task-check:hover { transform: scale(1.1); }
+    .task-check:checked {
+      background: var(--circle-bg);
+      border-color: var(--circle-bg);
+    }
+    .task-check:checked::after {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: .7rem;
+      font-weight: 900;
+    }
+
+    .task-text-input {
+      flex: 1;
+      border: none;
+      padding: 8px 6px;
+      font-size: .93rem;
+      color: var(--text);
+      background: transparent;
+      outline: none;
+      min-width: 0;
+    }
+    .task-text-input.strikethrough {
+      text-decoration: line-through;
+      color: var(--text-light);
+    }
+    .task-text-input::placeholder { color: #bbb; }
+
+    .task-bottom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 10px 0 44px;
+      flex-wrap: wrap;
+    }
+    .priority-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: var(--chip-bg, rgba(0,0,0,.04));
+      color: var(--text-light);
+      transition: all .12s;
+    }
+    .priority-chip[data-priority="low"]  { background: rgba(91,166,160,.18); color: #2e7f7a; border-color: rgba(91,166,160,.3); }
+    .priority-chip[data-priority="med"]  { background: rgba(200,140,60,.18);  color: #a26a1f; border-color: rgba(200,140,60,.3); }
+    .priority-chip[data-priority="high"] { background: rgba(204,68,68,.18);   color: #a83333; border-color: rgba(204,68,68,.3); }
+    .priority-chip:hover { transform: translateY(-1px); }
+
+    .due-input {
+      font-size: .72rem;
+      color: var(--text-light);
+      background: var(--chip-bg, rgba(0,0,0,.03));
+      border: 1px solid var(--chip-border, transparent);
+      border-radius: 8px;
+      padding: 2px 8px;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+      min-width: 118px;
+    }
+    .due-input:focus { border-color: var(--circle-bg); }
+    .due-badge {
+      font-size: .7rem; font-weight: 700;
+      padding: 3px 8px; border-radius: 20px;
+    }
+    .due-badge.overdue { background: rgba(204,68,68,.15); color: #b53232; }
+    .due-badge.today   { background: rgba(200,140,60,.18); color: #a26a1f; }
+    .due-badge.soon    { background: rgba(91,127,166,.18); color: #345d8c; }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      padding-right: 8px;
+    }
+    .task-timer-btn {
+      background: var(--accent-bg-10, rgba(74,124,89,.1));
+      border: none;
+      cursor: pointer;
+      color: var(--circle-bg);
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 6px 11px;
+      border-radius: 8px;
+      margin-right: 6px;
+      white-space: nowrap;
+      transition: background .12s, transform .12s;
+      flex-shrink: 0;
+    }
+    .task-timer-btn:hover { background: var(--accent-bg-10, rgba(74,124,89,.2)); transform: translateY(-1px); }
+    .task-del-btn {
+      background: none; border: none; cursor: pointer;
+      color: #ccc; font-size: .85rem; padding: 8px 10px;
+      border-radius: 6px; transition: color .12s, background .12s;
+      flex-shrink: 0;
+    }
+    .task-del-btn:hover { color: #cc4444; background: #ffeaea; }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      padding: 40px 20px; text-align: center;
+    }
+    .empty-state img { width: 80px; opacity: .65; }
+    .empty-state h3 { font-size: .95rem; font-weight: 700; color: var(--text); }
+    .empty-state p  { font-size: .83rem; color: var(--text-light); max-width: 240px; line-height: 1.6; }
+
+    .add-row {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      margin-top: 8px; padding-bottom: 80px;
+    }
+    .add-hint { font-size: .78rem; color: var(--text-light); }
+
+    .stats-strip {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .stat-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-size: .75rem; color: var(--text-light);
+    }
+    .stat-pill strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
+    <span>StudyPuff</span>
+  </div>
+  <nav>
+    <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
+    <a href="task-list.html"><span class="nav-icon">📋</span> Task List</a>
+    <a href="statistics.html"><span class="nav-icon">📊</span> Statistics</a>
+    <a href="rewards.html"><span class="nav-icon">🪙</span> Rewards</a>
+    <a href="settings.html"><span class="nav-icon">⚙</span> Settings</a>
+  </nav>
+</div>
+
+<div class="top-bar">
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <span class="page-title" id="pageTitle" style="display:none"></span>
+  <a class="coin-badge" href="rewards.html">
+    <div class="coin-icon">🪙</div>
+    <span class="coin-count">0</span>
+    <div class="coin-plus">+</div>
+  </a>
+</div>
+
+<div class="page">
+  <!-- Topic header with inline editable name -->
+  <div class="topic-header">
+    <a href="task-list.html" class="breadcrumb">← Task List</a>
+    <div class="topic-title-row">
+      <div class="topic-color-dot" id="topicDot"></div>
+      <input type="text" class="topic-title-input" id="topicTitleInput" placeholder="Topic name…">
+    </div>
+    <div class="stats-strip" id="statsStrip"></div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-section">
+    <div class="progress-label">
+      <span>Progress</span>
+      <strong id="progressText">0 / 0</strong>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Filter / sort -->
+  <div class="filter-bar">
+    <div class="filter-chips" id="filterChips">
+      <button class="fchip active" data-filter="all">All</button>
+      <button class="fchip" data-filter="open">Open</button>
+      <button class="fchip" data-filter="done">Done</button>
+      <button class="fchip" data-filter="overdue">Overdue</button>
+    </div>
+    <select class="sort-sel" id="sortSel">
+      <option value="manual">Order: manual</option>
+      <option value="priority">Order: priority</option>
+      <option value="due">Order: due date</option>
+    </select>
+  </div>
+
+  <!-- Task list -->
+  <div class="list-area" style="padding-top: 14px;">
+    <div id="taskList"></div>
+    <div class="add-row">
+      <button class="add-btn" id="addTaskBtn" title="Add task">+</button>
+      <span class="add-hint">Add a task</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const ACCENTS = [
+    '#4a7c59','#5b7fa6','#a65b5b','#8b6ea6',
+    '#a68b5b','#5ba6a0','#a6835b','#6e8ca6'
+  ];
+
+  const params  = new URLSearchParams(location.search);
+  const topicId = parseInt(params.get('id') || '0', 10);
+  let topics    = getTopics();
+  let topic     = topics[topicId];
+
+  if (!topic) { location.href = 'task-list.html'; }
+
+  const accentColor = ACCENTS[topicId % ACCENTS.length];
+  let currentFilter = 'all';
+  let currentSort   = 'manual';
+  let lastProgressPct = -1;
+
+  // ── Init header ───────────────────────────────────────────
+  document.getElementById('topicDot').style.background = accentColor;
+
+  const titleInput = document.getElementById('topicTitleInput');
+  titleInput.value = topic.name || '';
+  document.title   = `StudyPuff – ${topic.name || 'Topic'}`;
+
+  titleInput.addEventListener('input', (e) => {
+    topic.name = e.target.value;
+    save();
+    document.title = `StudyPuff – ${topic.name || 'Topic'}`;
+  });
+
+  function save() {
+    topics[topicId] = topic;
+    setTopics(topics);
+  }
+
+  // ── Normalize tasks to objects ────────────────────────────
+  function ensureObjects() {
+    topic.tasks = (topic.tasks || []).map(normalizeTask);
+    save();
+  }
+  ensureObjects();
+
+  // ── Due helpers ───────────────────────────────────────────
+  function dueState(due, done) {
+    if (!due || done) return null;
+    const today = todayStr();
+    if (due < today) return 'overdue';
+    if (due === today) return 'today';
+    // within 3 days → soon
+    const t = new Date(today + 'T00:00:00');
+    const d = new Date(due + 'T00:00:00');
+    const diffDays = Math.round((d - t) / 86400000);
+    if (diffDays <= 3) return 'soon';
+    return null;
+  }
+  function dueLabel(due, state) {
+    if (!due) return '';
+    const today = todayStr();
+    if (state === 'overdue') return 'Overdue';
+    if (state === 'today')   return 'Today';
+    if (state === 'soon') {
+      const t = new Date(today + 'T00:00:00');
+      const d = new Date(due + 'T00:00:00');
+      const n = Math.round((d - t) / 86400000);
+      return `In ${n}d`;
+    }
+    return '';
+  }
+  const PRI_LABEL = { none: 'Priority', low: 'Low', med: 'Medium', high: 'High' };
+  const PRI_NEXT  = { none: 'low', low: 'med', med: 'high', high: 'none' };
+  const PRI_RANK  = { high: 0, med: 1, low: 2, none: 3 };
+
+  // ── Progress ──────────────────────────────────────────────
+  function updateProgress() {
+    const total = topic.tasks.length;
+    const done  = topic.tasks.filter(t => t.done).length;
+    document.getElementById('progressText').textContent = `${done} / ${total}`;
+    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    const strip = document.getElementById('statsStrip');
+    strip.innerHTML = '';
+    if (total > 0) {
+      const overdue = topic.tasks.filter(t => dueState(t.due, t.done) === 'overdue').length;
+      strip.innerHTML = `
+        <span class="stat-pill"><strong>${total}</strong> task${total !== 1 ? 's' : ''}</span>
+        <span class="stat-pill"><strong>${done}</strong> completed</span>
+        <span class="stat-pill"><strong>${total - done}</strong> remaining</span>
+        ${overdue > 0 ? `<span class="stat-pill" style="color:#b53232"><strong>${overdue}</strong> overdue</span>` : ''}`;
+    }
+
+    // Celebrate transition to 100%
+    if (total > 0 && pct === 100 && lastProgressPct !== 100) {
+      SPFeedback.confetti({ count: 80 });
+      SPFeedback.toast('Topic complete! Sheep is proud.', { icon: '🏆', kind: 'success', ms: 2400 });
+      addCoins(5);
+    }
+    lastProgressPct = pct;
+  }
+
+  // ── Render tasks ──────────────────────────────────────────
+  function renderTasks() {
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+    const tasksRaw = topic.tasks || [];
+
+    // Build index-aware copies so we can edit originals by index
+    let indexed = tasksRaw.map((t, i) => ({ t, i }));
+
+    // Filter
+    if (currentFilter === 'open')    indexed = indexed.filter(({ t }) => !t.done);
+    if (currentFilter === 'done')    indexed = indexed.filter(({ t }) => t.done);
+    if (currentFilter === 'overdue') indexed = indexed.filter(({ t }) => dueState(t.due, t.done) === 'overdue');
+
+    // Sort
+    if (currentSort === 'priority') {
+      indexed.sort((a, b) => {
+        if (a.t.done !== b.t.done) return a.t.done ? 1 : -1;
+        return (PRI_RANK[a.t.priority] ?? 3) - (PRI_RANK[b.t.priority] ?? 3);
+      });
+    } else if (currentSort === 'due') {
+      indexed.sort((a, b) => {
+        if (a.t.done !== b.t.done) return a.t.done ? 1 : -1;
+        const ad = a.t.due || '9999-12-31';
+        const bd = b.t.due || '9999-12-31';
+        return ad.localeCompare(bd);
+      });
+    }
+
+    if (tasksRaw.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <img src="../assets/sheep.svg" alt="sheep">
+          <h3>No tasks yet</h3>
+          <p>Tap + to add your first task for this topic.</p>
+        </div>`;
+      updateProgress();
+      return;
+    }
+    if (indexed.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <img src="../assets/sheep.svg" alt="sheep">
+          <h3>Nothing here</h3>
+          <p>No tasks match the current filter.</p>
+        </div>`;
+      updateProgress();
+      return;
+    }
+
+    indexed.forEach(({ t: task, i }, renderIdx) => {
+      const row = document.createElement('div');
+      row.className = 'task-row' + (task.done ? ' done-row' : '');
+      row.style.animationDelay = (renderIdx * 0.035) + 's';
+
+      // number
+      const num = document.createElement('div');
+      num.className = 'task-num';
+      num.textContent = i + 1;
+
+      // main
+      const main = document.createElement('div');
+      main.className = 'task-main';
+
+      const topRow = document.createElement('div');
+      topRow.className = 'task-top';
+
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.className = 'task-check';
+      check.checked = task.done;
+
+      const textInput = document.createElement('input');
+      textInput.type = 'text';
+      textInput.className = 'task-text-input' + (task.done ? ' strikethrough' : '');
+      textInput.value = task.text || '';
+      textInput.placeholder = 'Task name…';
+      textInput.addEventListener('input', (e) => {
+        topic.tasks[i].text = e.target.value;
+        save();
+      });
+      textInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('addTaskBtn').click();
+        }
+      });
+
+      check.addEventListener('change', () => {
+        const wasDone = topic.tasks[i].done;
+        topic.tasks[i].done = check.checked;
+        save();
+        textInput.classList.toggle('strikethrough', check.checked);
+        row.classList.toggle('done-row', check.checked);
+        if (!wasDone && check.checked) {
+          // Satisfying bloom + confetti + coin + gentle haptic
+          check.classList.remove('sp-just-checked');
+          void check.offsetWidth;
+          check.classList.add('sp-just-checked');
+          const r = row.getBoundingClientRect();
+          SPFeedback.confetti({
+            count: 16,
+            originX: r.left + 30,
+            originY: r.top + 20,
+            colors: ['#4a7c59', '#f5c518', '#ffffff', '#e8724a']
+          });
+          addCoins(1, { from: check });
+          SPFeedback.vibrate(18);
+        } else if (wasDone && !check.checked) {
+          // Uncheck = subtle haptic only, no coin refund
+          SPFeedback.vibrate(6);
+        }
+        updateProgress();
+      });
+
+      topRow.appendChild(check);
+      topRow.appendChild(textInput);
+      main.appendChild(topRow);
+
+      // bottom row: priority + due date
+      const bottomRow = document.createElement('div');
+      bottomRow.className = 'task-bottom';
+
+      const priChip = document.createElement('button');
+      priChip.className = 'priority-chip';
+      const priVal = task.priority && task.priority !== 'none' ? task.priority : 'none';
+      priChip.dataset.priority = priVal;
+      priChip.textContent = priVal === 'none' ? 'Set priority' : PRI_LABEL[priVal];
+      priChip.title = 'Cycle priority';
+      priChip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const next = PRI_NEXT[topic.tasks[i].priority || 'none'];
+        topic.tasks[i].priority = next;
+        save();
+        renderTasks();
+      });
+
+      const dueInput = document.createElement('input');
+      dueInput.type = 'date';
+      dueInput.className = 'due-input';
+      dueInput.value = task.due || '';
+      dueInput.title = 'Due date';
+      dueInput.addEventListener('change', () => {
+        topic.tasks[i].due = dueInput.value || '';
+        save();
+        renderTasks();
+      });
+
+      bottomRow.appendChild(priChip);
+      bottomRow.appendChild(dueInput);
+
+      const state = dueState(task.due, task.done);
+      if (state) {
+        const badge = document.createElement('span');
+        badge.className = `due-badge ${state}`;
+        badge.textContent = dueLabel(task.due, state);
+        bottomRow.appendChild(badge);
+      }
+
+      main.appendChild(bottomRow);
+
+      // actions
+      const actions = document.createElement('div');
+      actions.className = 'task-actions';
+
+      const timerBtn = document.createElement('button');
+      timerBtn.className = 'task-timer-btn';
+      timerBtn.textContent = '▶ Study';
+      timerBtn.title = 'Start a timer for this task';
+      timerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        SP.set('timerHint', { topicId, topicName: topic.name, taskText: task.text });
+        window.location.href = 'index.html';
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'task-del-btn';
+      delBtn.innerHTML = '🗑';
+      delBtn.title = 'Remove task';
+      delBtn.addEventListener('click', () => {
+        row.classList.add('sp-leaving');
+        SPFeedback.vibrate(10);
+        setTimeout(() => {
+          topic.tasks.splice(i, 1);
+          save();
+          renderTasks();
+          SPFeedback.toast('Task removed', { icon: '🗑', kind: 'warn', ms: 1400 });
+        }, 260);
+      });
+
+      actions.appendChild(timerBtn);
+      actions.appendChild(delBtn);
+
+      row.appendChild(num);
+      row.appendChild(main);
+      row.appendChild(actions);
+      list.appendChild(row);
+    });
+
+    updateProgress();
+  }
+
+  // ── Add task ──────────────────────────────────────────────
+  document.getElementById('addTaskBtn').addEventListener('click', (e) => {
+    if (!topic.tasks) topic.tasks = [];
+    topic.tasks.push({ text: '', done: false, priority: 'none', due: '' });
+    save();
+    renderTasks();
+    addCoins(1, { from: e.currentTarget });
+    const inputs = document.querySelectorAll('.task-text-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  // ── Filter chips ──────────────────────────────────────────
+  document.getElementById('filterChips').addEventListener('click', (e) => {
+    const btn = e.target.closest('.fchip');
+    if (!btn) return;
+    document.querySelectorAll('#filterChips .fchip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTasks();
+  });
+
+  document.getElementById('sortSel').addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    renderTasks();
+  });
+
+  renderTasks();
+</script>
+</body>
+</html>

@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPuff – Timer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Timer page ─────────────────────────────── */
+    .timer-page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 20px 60px;
+      gap: 22px;
+    }
+
+    /* Top toolbar (mode tabs + ambient) */
+    .timer-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+    .ambient-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--chip-bg);
+      border: 1.5px solid var(--chip-border);
+      border-radius: 999px;
+      padding: 4px 10px 4px 12px;
+    }
+    .ambient-wrap label {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+    .ambient-wrap select {
+      border: none; background: transparent;
+      font-size: .86rem; font-weight: 700;
+      color: var(--text); outline: none;
+      padding: 4px 2px; cursor: pointer;
+    }
+    body.dark .ambient-wrap select { background: var(--card); border-radius: 6px; padding: 4px 6px; }
+
+    /* ── SVG Ring + mascot ──────────────────────── */
+    .timer-ring-wrap {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      flex-shrink: 0;
+    }
+    .timer-ring-wrap svg {
+      position: absolute;
+      inset: 0;
+      transform: rotate(-90deg);
+      width: 260px;
+      height: 260px;
+    }
+    .ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,.4);
+      stroke-width: 6;
+    }
+    body.dark .ring-track { stroke: rgba(255,255,255,.15); }
+    .ring-progress {
+      fill: none;
+      stroke: #2a2a2a;
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset .9s linear, stroke .3s;
+    }
+    body.dark .ring-progress { stroke: var(--circle-bg); }
+    .timer-ring-wrap.timer-running .ring-progress,
+    .timer-ring-wrap.timer-running .ring-dot {
+      transition: none;
+    }
+    .timer-inner {
+      position: absolute;
+      inset: 12px;
+      background: var(--circle-bg);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: background .4s;
+    }
+    .timer-inner img {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.2));
+      transition: transform .25s;
+    }
+    .timer-ring-wrap.timer-running .timer-inner img { animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe { 50% { transform: scale(1.04); } }
+
+    /* Mode-coloured inner */
+    .timer-ring-wrap[data-mode="short"] .timer-inner { background: #5b7fa6; }
+    .timer-ring-wrap[data-mode="long"]  .timer-inner { background: #a65b7e; }
+
+    /* ── Rotating dot ───────────────────────────── */
+    .ring-dot {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #2a2a2a;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,.35);
+      pointer-events: none;
+      top: 2px;
+      left: 122px;
+      transition: top .9s linear, left .9s linear, background .3s;
+    }
+    body.dark .ring-dot { background: var(--circle-bg); border-color: var(--card); }
+
+    /* ── Drum time picker ───────────────────────── */
+    .time-picker {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .drum-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .drum-arrow {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text-light);
+      padding: 2px 10px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: background .12s, color .12s, transform .1s;
+    }
+    .drum-arrow:hover { background: rgba(0,0,0,.08); color: var(--text); transform: scale(1.15); }
+    body.dark .drum-arrow:hover { background: rgba(255,255,255,.1); }
+    .drum-window {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      overflow: hidden;
+      height: 108px;
+      position: relative;
+    }
+    .drum-above,
+    .drum-below {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      opacity: 0.22;
+      line-height: 1;
+      padding: 10px 0;
+      width: 72px;
+      text-align: center;
+    }
+    .drum-current {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      padding: 4px 0;
+      width: 72px;
+      text-align: center;
+    }
+    .drum-sep {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 2px;
+      padding-bottom: 8px;
+      align-self: center;
+      animation: pulseSep 2s ease-in-out infinite;
+    }
+    @keyframes pulseSep { 50% { opacity: .35; } }
+
+    .drum-window::before,
+    .drum-window::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 1.5px;
+      background: rgba(0,0,0,.12);
+      z-index: 2;
+    }
+    .drum-window::before { top: 34px; }
+    .drum-window::after  { bottom: 34px; }
+
+    .drum-input {
+      font: inherit;
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      padding: 4px 0;
+      width: 72px;
+      text-align: center;
+      border: none;
+      background: rgba(255,255,255,.45);
+      border-radius: 10px;
+      -moz-appearance: textfield;
+    }
+    body.dark .drum-input { background: rgba(255,255,255,.08); }
+    .drum-input::-webkit-outer-spin-button,
+    .drum-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .drum-input:focus {
+      outline: 2px solid var(--circle-bg);
+      outline-offset: 2px;
+      background: rgba(255,255,255,.75);
+    }
+    .drum-input::placeholder { color: var(--text-light); opacity: .5; }
+
+    /* ── Preset durations ───────────────────────── */
+    .time-picker-shell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+    .timer-presets {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+    .timer-presets .preset-label {
+      width: 100%;
+      text-align: center;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-light);
+    }
+    .preset-btn {
+      min-width: 44px;
+      padding: 8px 12px;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255,255,255,.55);
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .12s, border-color .12s, color .12s, transform .1s;
+    }
+    body.dark .preset-btn { background: rgba(255,255,255,.08); }
+    .preset-btn:hover {
+      background: rgba(255,255,255,.9);
+      border-color: var(--circle-bg);
+      color: var(--circle-bg);
+      transform: translateY(-2px);
+    }
+    body.dark .preset-btn:hover { background: rgba(255,255,255,.14); }
+    .preset-btn:focus-visible {
+      outline: 2px solid var(--circle-bg);
+      outline-offset: 2px;
+    }
+    .preset-btn.preset-active {
+      background: var(--accent-bg-10);
+      border-color: var(--circle-bg);
+      color: var(--circle-bg);
+    }
+
+    /* ── Countdown (shown while running) ────────── */
+    .countdown {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 2px;
+      display: none;
+    }
+    .countdown.visible { display: block; }
+    .countdown.tabular-nums {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: 'tnum' 1;
+    }
+
+    @keyframes timer-urgent-pulse {
+      50% { opacity: 0.88; transform: scale(1.02); }
+    }
+    .timer-ring-wrap.timer-urgent .timer-inner {
+      animation: timer-urgent-pulse 1s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .timer-ring-wrap.timer-urgent .timer-inner { animation: none; }
+      .timer-ring-wrap.timer-running .timer-inner img { animation: none; }
+    }
+
+    .start-row .pill-btn.disabled-btn { pointer-events: none; }
+
+    /* ── Selected task label ────────────────────── */
+    .selected-task-label {
+      font-size: .85rem;
+      color: var(--text-light);
+      min-height: 20px;
+      text-align: center;
+    }
+
+    /* ── Two-step task selector ─────────────────── */
+    .task-selector-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      position: relative;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .task-dropdown-wrap { position: relative; }
+    .task-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 170px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      overflow: hidden;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .task-dropdown.open { display: block; animation: pop .18s ease; }
+    .task-dropdown button {
+      display: block;
+      width: 100%;
+      padding: 11px 16px;
+      text-align: left;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+      cursor: pointer;
+      color: var(--text);
+      transition: background .12s;
+    }
+    .task-dropdown button:last-child { border-bottom: none; }
+    .task-dropdown button:hover { background: var(--accent-bg-10); }
+    .task-dropdown .no-items {
+      padding: 12px 16px;
+      font-size: .85rem;
+      color: var(--text-light);
+      font-style: italic;
+    }
+    .pill-btn.disabled-btn { opacity: .4; cursor: not-allowed; }
+
+    /* ── Start / action row ─────────────────────── */
+    .start-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── Post-session overlay ───────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, var(--bg-start) 0%, var(--bg-end) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .4s;
+    }
+    .overlay.visible { opacity: 1; pointer-events: all; }
+    .overlay .top-bar { position: absolute; }
+    .overlay-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 600px;
+      padding: 0 24px;
+    }
+    .focus-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 22px 32px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      width: 100%;
+      max-width: 420px;
+      animation: pop .32s cubic-bezier(.3,1.5,.4,1);
+    }
+    .focus-card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .focus-slider-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .focus-slider-wrap input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(to right, var(--circle-bg) 0%, var(--circle-bg) 50%, #ddd 50%, #ddd 100%);
+      outline: none;
+      cursor: pointer;
+    }
+    .focus-slider-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--circle-bg);
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: .75rem;
+      color: var(--text-light);
+    }
+    .well-done {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-light);
+      animation: pop .32s cubic-bezier(.3,1.5,.4,1) .05s both;
+    }
+    .overlay-sheep {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 110px;
+      opacity: .9;
+      animation: bobble 2.6s ease-in-out infinite;
+    }
+    @keyframes bobble { 50% { transform: translateY(-8px) rotate(-3deg); } }
+    .submit-focus-btn {
+      margin-top: 16px;
+      background: var(--circle-bg);
+      color: white;
+      border: none;
+      border-radius: var(--btn-radius);
+      padding: 10px 28px;
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    .submit-focus-btn:hover { background: var(--accent); filter: brightness(1.08); transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+
+<!-- ── Drawer ───────────────────────────────── -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
+    <span>StudyPuff</span>
+  </div>
+  <nav>
+    <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
+    <a href="task-list.html"><span class="nav-icon">📋</span> Task List</a>
+    <a href="statistics.html"><span class="nav-icon">📊</span> Statistics</a>
+    <a href="rewards.html"><span class="nav-icon">🪙</span> Rewards</a>
+    <a href="settings.html"><span class="nav-icon">⚙</span> Settings</a>
+  </nav>
+</div>
+
+<!-- ── Top bar ──────────────────────────────── -->
+<div class="top-bar">
+  <div class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <a class="streak-pill" href="statistics.html" id="streakPill" title="Your study streak">
+      <span class="flame">🔥</span>
+      <span id="streakCount">0</span>
+    </a>
+    <a class="coin-badge" href="rewards.html" aria-label="Rewards">
+      <div class="coin-icon">🪙</div>
+      <span class="coin-count">0</span>
+      <div class="coin-plus">+</div>
+    </a>
+  </div>
+</div>
+
+<!-- ── Timer page ───────────────────────────── -->
+<div class="page">
+  <div class="timer-page">
+
+    <!-- Daily goal bar -->
+    <div class="goal-card" id="goalCard">
+      <div class="goal-flame" id="goalEmoji">🎯</div>
+      <div class="goal-text">
+        <strong id="goalSummary">0 / 60 min today</strong>
+        <div class="goal-bar"><div class="goal-bar-fill" id="goalBarFill"></div></div>
+      </div>
+    </div>
+
+    <!-- Mode tabs + ambient selector -->
+    <div class="timer-toolbar">
+      <div class="mode-tabs" role="tablist" aria-label="Timer mode">
+        <button type="button" class="mode-tab active" data-mode="focus">🎯 Focus</button>
+        <button type="button" class="mode-tab" data-mode="short">☕ Short Break</button>
+        <button type="button" class="mode-tab" data-mode="long">🛌 Long Break</button>
+      </div>
+      <div class="ambient-wrap">
+        <label for="ambientSel">🔊</label>
+        <select id="ambientSel" aria-label="Ambient sound">
+          <option value="none">No sound</option>
+          <option value="white">White noise</option>
+          <option value="rain">Rain</option>
+          <option value="cafe">Cafe</option>
+          <option value="forest">Forest</option>
+          <option value="lofi">Lo-fi loop</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ① Ring + rotating dot + mascot -->
+    <div class="timer-ring-wrap" id="timerRingWrap" data-mode="focus">
+      <svg viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+        <circle class="ring-track" cx="130" cy="130" r="124"/>
+        <circle class="ring-progress" id="ringProgress" cx="130" cy="130" r="124"/>
+      </svg>
+      <div class="ring-dot" id="ringDot"></div>
+      <div class="timer-inner">
+        <img src="../assets/sheep.svg" alt="StudyPuff mascot">
+      </div>
+    </div>
+
+    <!-- ② Drum time picker + presets (shown when not running) -->
+    <div class="time-picker-shell" id="timePickerShell">
+      <div class="time-picker" id="timePicker">
+        <div class="drum-col">
+          <button type="button" class="drum-arrow" id="minUp" aria-label="Increase minutes">▲</button>
+          <div class="drum-window">
+            <div class="drum-above"  id="minAbove">24</div>
+            <input type="text" class="drum-input drum-current" id="minInput" maxlength="2" inputmode="numeric" autocomplete="off" aria-label="Minutes (0–99)" title="Type minutes, 0–99">
+            <div class="drum-below"  id="minBelow">26</div>
+          </div>
+          <button type="button" class="drum-arrow" id="minDown" aria-label="Decrease minutes">▼</button>
+        </div>
+        <div class="drum-sep" aria-hidden="true">:</div>
+        <div class="drum-col">
+          <button type="button" class="drum-arrow" id="secUp" aria-label="Increase seconds">▲</button>
+          <div class="drum-window">
+            <div class="drum-above"  id="secAbove">59</div>
+            <input type="text" class="drum-input drum-current" id="secInput" maxlength="2" inputmode="numeric" autocomplete="off" aria-label="Seconds (0–59)" title="Type seconds, 0–59">
+            <div class="drum-below"  id="secBelow">01</div>
+          </div>
+          <button type="button" class="drum-arrow" id="secDown" aria-label="Decrease seconds">▼</button>
+        </div>
+      </div>
+      <div class="timer-presets" role="group" aria-label="Quick duration in minutes">
+        <span class="preset-label" id="presetLabel">Quick presets (minutes)</span>
+        <!-- Populated from JS based on mode -->
+      </div>
+    </div>
+
+    <!-- Countdown text (shown while running) -->
+    <div class="countdown tabular-nums" id="countdown" role="timer" aria-live="polite" aria-atomic="true">25:00</div>
+
+    <div class="selected-task-label" id="selectedTaskLabel">No task selected</div>
+
+    <!-- Two-step topic → task selector -->
+    <div class="task-selector-row" id="taskSelectorRow">
+      <div class="task-dropdown-wrap">
+        <button class="pill-btn" id="selectTopicBtn">Select Topic</button>
+        <div class="task-dropdown" id="topicDropdown"></div>
+      </div>
+      <div class="task-dropdown-wrap" id="taskWrap">
+        <button class="pill-btn disabled-btn" id="selectTaskBtn" disabled>Select Task</button>
+        <div class="task-dropdown" id="taskDropdown"></div>
+      </div>
+    </div>
+
+    <!-- Start / Pause / Reset -->
+    <div class="start-row">
+      <button type="button" class="pill-btn primary" id="startBtn" aria-pressed="false">Start Session</button>
+      <button type="button" class="pill-btn disabled-btn" id="resetBtn" style="display:none" aria-label="Reset timer to chosen duration">Reset</button>
+    </div>
+
+    <div style="font-size:.75rem;color:var(--text-light);opacity:.7;">Press <kbd style="background:var(--accent-bg-10);padding:1px 6px;border-radius:4px;">Space</kbd> to start/pause · <kbd style="background:var(--accent-bg-10);padding:1px 6px;border-radius:4px;">?</kbd> for shortcuts</div>
+
+  </div>
+</div>
+
+<!-- Help modal -->
+<div class="sp-help-modal" id="helpModal" role="dialog" aria-modal="true">
+  <div class="sp-help-card">
+    <h3>Keyboard shortcuts</h3>
+    <div class="sp-help-row"><span>Start / pause timer</span><kbd>Space</kbd></div>
+    <div class="sp-help-row"><span>Focus mode</span><kbd>1</kbd></div>
+    <div class="sp-help-row"><span>Short break</span><kbd>2</kbd></div>
+    <div class="sp-help-row"><span>Long break</span><kbd>3</kbd></div>
+    <div class="sp-help-row"><span>Reset (when paused)</span><kbd>R</kbd></div>
+    <div class="sp-help-row"><span>Toggle dark mode</span><kbd>D</kbd></div>
+    <div class="sp-help-row"><span>Close this dialog</span><kbd>Esc</kbd></div>
+    <div style="text-align:center;margin-top:14px;">
+      <button class="pill-btn" id="closeHelp">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating help FAB -->
+<button class="sp-help-fab" id="helpFab" aria-label="Keyboard shortcuts">?</button>
+
+<!-- ── Post-session overlay ─────────────────── -->
+<div class="overlay" id="postOverlay">
+  <div class="top-bar">
+    <div></div>
+    <a class="coin-badge" href="rewards.html">
+      <div class="coin-icon">🪙</div>
+      <span class="coin-count">0</span>
+      <div class="coin-plus">+</div>
+    </a>
+  </div>
+  <div class="overlay-content">
+    <div class="focus-card">
+      <h2>How focused did you feel this session?</h2>
+      <div class="focus-slider-wrap">
+        <input type="range" id="focusSlider" min="0" max="10" value="5">
+        <div class="slider-labels">
+          <span>0: not<br>at all</span>
+          <span>5: a little<br>bit focused</span>
+          <span>10: super<br>focused</span>
+        </div>
+      </div>
+      <button class="submit-focus-btn" id="submitFocusBtn">Submit &amp; Collect Coins</button>
+    </div>
+    <div class="well-done">Well done!</div>
+  </div>
+  <img class="overlay-sheep" src="../assets/sheep.svg" alt="sheep">
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // ═══════════════════════════════════════════════
+  //  CONSTANTS
+  // ═══════════════════════════════════════════════
+  const RING_R      = 124;
+  const RING_CX     = 130;
+  const RING_CY     = 130;
+  const DOT_HALF    = 8;
+  const CIRCUMFERENCE = 2 * Math.PI * RING_R;
+
+  // ═══════════════════════════════════════════════
+  //  STATE
+  // ═══════════════════════════════════════════════
+  const settings = getSettings();
+  let mode = 'focus'; // 'focus' | 'short' | 'long'
+  let totalSeconds  = settings.focusMin * 60;
+  let timeLeft      = totalSeconds;
+  let running       = false;
+  let sessionEndsAt = 0;
+  let rafId         = null;
+  let backupTimerId = null;
+  let lastDisplayedSecond = null;
+  const originalTitle = document.title;
+  let selectedTopic = null;
+  let selectedTask  = null;
+  let pomodoroCount = 0; // for auto-cycle
+
+  let drumMin = settings.focusMin;
+  let drumSec = 0;
+
+  // ═══════════════════════════════════════════════
+  //  DOM REFS
+  // ═══════════════════════════════════════════════
+  const timerRingWrap  = document.getElementById('timerRingWrap');
+  const ringProgress   = document.getElementById('ringProgress');
+  const ringDot        = document.getElementById('ringDot');
+  const timePickerShell = document.getElementById('timePickerShell');
+  const countdownEl    = document.getElementById('countdown');
+  const startBtn       = document.getElementById('startBtn');
+  const resetBtn       = document.getElementById('resetBtn');
+  const taskLabel      = document.getElementById('selectedTaskLabel');
+  const postOverlay    = document.getElementById('postOverlay');
+  const focusSlider    = document.getElementById('focusSlider');
+  const submitFocusBtn = document.getElementById('submitFocusBtn');
+  const ambientSel     = document.getElementById('ambientSel');
+
+  const minAbove   = document.getElementById('minAbove');
+  const minInput   = document.getElementById('minInput');
+  const minBelow   = document.getElementById('minBelow');
+  const secAbove   = document.getElementById('secAbove');
+  const secInput   = document.getElementById('secInput');
+  const secBelow   = document.getElementById('secBelow');
+
+  const selectTopicBtn  = document.getElementById('selectTopicBtn');
+  const topicDropdown   = document.getElementById('topicDropdown');
+  const selectTaskBtn   = document.getElementById('selectTaskBtn');
+  const taskDropdown    = document.getElementById('taskDropdown');
+
+  // Apply saved ambient
+  ambientSel.value = settings.ambient || 'none';
+
+  // ═══════════════════════════════════════════════
+  //  RING PROGRESS
+  // ═══════════════════════════════════════════════
+  ringProgress.style.strokeDasharray  = CIRCUMFERENCE;
+  ringProgress.style.strokeDashoffset = 0;
+
+  function positionDot(fraction) {
+    const θ = fraction * 2 * Math.PI;
+    const x = RING_CX + RING_R * Math.sin(θ);
+    const y = RING_CY - RING_R * Math.cos(θ);
+    ringDot.style.left = (x - DOT_HALF) + 'px';
+    ringDot.style.top  = (y - DOT_HALF) + 'px';
+  }
+  function updateRingFraction(remainingFraction) {
+    const f = Math.max(0, Math.min(1, remainingFraction));
+    ringProgress.style.strokeDashoffset = CIRCUMFERENCE * (1 - f);
+    positionDot(f);
+  }
+  function setTimerRunningUI(isRunning) {
+    timerRingWrap.classList.toggle('timer-running', isRunning);
+    startBtn.setAttribute('aria-pressed', isRunning ? 'true' : 'false');
+  }
+  updateRingFraction(1);
+
+  // ═══════════════════════════════════════════════
+  //  PRESETS per mode
+  // ═══════════════════════════════════════════════
+  const PRESETS = {
+    focus: [5, 15, 25, 45, 60],
+    short: [3, 5, 10],
+    long:  [10, 15, 20, 30]
+  };
+  function buildPresets() {
+    const host = document.querySelector('.timer-presets');
+    // clear existing preset buttons (keep label)
+    host.querySelectorAll('.preset-btn').forEach(b => b.remove());
+    PRESETS[mode].forEach(m => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'preset-btn';
+      b.setAttribute('data-minutes', m);
+      b.setAttribute('aria-label', `Set timer to ${m} minutes`);
+      b.textContent = m;
+      b.addEventListener('click', () => {
+        if (running) return;
+        blurTimeInputs();
+        drumMin = m; drumSec = 0;
+        renderDrums();
+        SPFeedback.toast(`Set to ${m}:00`, { icon: '⏱', ms: 1200 });
+      });
+      host.appendChild(b);
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  //  MODE TABS
+  // ═══════════════════════════════════════════════
+  function setMode(next, { silent = false } = {}) {
+    if (running) {
+      SPFeedback.toast('Pause the session first', { icon: '⏸', kind: 'warn' });
+      return;
+    }
+    mode = next;
+    timerRingWrap.setAttribute('data-mode', mode);
+    document.querySelectorAll('.mode-tab').forEach(t => {
+      t.classList.toggle('active', t.getAttribute('data-mode') === mode);
+    });
+    const s = getSettings();
+    const defaultMin = mode === 'focus' ? s.focusMin : mode === 'short' ? s.shortBreakMin : s.longBreakMin;
+    drumMin = defaultMin; drumSec = 0;
+    buildPresets();
+    renderDrums();
+    if (!silent) {
+      const labels = { focus: 'Focus mode 🎯', short: 'Short break ☕', long: 'Long break 🛌' };
+      SPFeedback.toast(labels[mode], { icon: '', ms: 1300 });
+    }
+  }
+  document.querySelectorAll('.mode-tab').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
+  });
+
+  // ═══════════════════════════════════════════════
+  //  DRUM TIME PICKER
+  // ═══════════════════════════════════════════════
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function renderDrums() {
+    const prevMin = (drumMin - 1 + 100) % 100;
+    const nextMin = (drumMin + 1) % 100;
+    minAbove.textContent = pad2(prevMin);
+    if (document.activeElement !== minInput) minInput.value = pad2(drumMin);
+    minBelow.textContent = pad2(nextMin);
+
+    const prevSec = drumSec <= 0  ? 59 : drumSec - 1;
+    const nextSec = drumSec >= 59 ? 0  : drumSec + 1;
+    secAbove.textContent = pad2(prevSec);
+    if (document.activeElement !== secInput) secInput.value = pad2(drumSec);
+    secBelow.textContent = pad2(nextSec);
+
+    totalSeconds = drumMin * 60 + drumSec;
+    if (!running) timeLeft = totalSeconds;
+    updateRingFraction(totalSeconds > 0 ? timeLeft / totalSeconds : 0);
+    updateStartButtonState();
+    updateResetVisibility();
+
+    document.querySelectorAll('.preset-btn[data-minutes]').forEach(btn => {
+      const m = parseInt(btn.getAttribute('data-minutes'), 10);
+      btn.classList.toggle('preset-active', !running && drumSec === 0 && drumMin === m);
+    });
+  }
+
+  function parseClampedInt(raw, max) {
+    const d = String(raw).replace(/\D/g, '');
+    if (d === '') return 0;
+    let n = parseInt(d, 10);
+    if (Number.isNaN(n)) return 0;
+    return Math.min(max, Math.max(0, n));
+  }
+  function commitMinInput() { if (running) return; drumMin = parseClampedInt(minInput.value, 99); renderDrums(); }
+  function commitSecInput() { if (running) return; drumSec = parseClampedInt(secInput.value, 59); renderDrums(); }
+  function onTimeInputKeydown(e, commit) {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); e.target.blur(); }
+  }
+  minInput.addEventListener('blur', commitMinInput);
+  minInput.addEventListener('keydown', (e) => onTimeInputKeydown(e, commitMinInput));
+  minInput.addEventListener('input', () => { if (running) return; minInput.value = minInput.value.replace(/\D/g, '').slice(0, 2); });
+  secInput.addEventListener('blur', commitSecInput);
+  secInput.addEventListener('keydown', (e) => onTimeInputKeydown(e, commitSecInput));
+  secInput.addEventListener('input', () => { if (running) return; secInput.value = secInput.value.replace(/\D/g, '').slice(0, 2); });
+
+  function blurTimeInputs() { minInput.blur(); secInput.blur(); }
+
+  function changeMin(delta) { if (running) return; blurTimeInputs(); drumMin = (drumMin + delta + 100) % 100; renderDrums(); }
+  function changeSec(delta) { if (running) return; blurTimeInputs(); drumSec = (drumSec + delta + 60)  % 60;  renderDrums(); }
+
+  document.getElementById('minUp').addEventListener('click',   () => changeMin(+1));
+  document.getElementById('minDown').addEventListener('click', () => changeMin(-1));
+  document.getElementById('secUp').addEventListener('click',   () => changeSec(+1));
+  document.getElementById('secDown').addEventListener('click', () => changeSec(-1));
+
+  document.getElementById('minUp').closest('.drum-col')
+    .addEventListener('wheel', (e) => { e.preventDefault(); changeMin(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+  document.getElementById('secUp').closest('.drum-col')
+    .addEventListener('wheel', (e) => { e.preventDefault(); changeSec(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+
+  function showPicker()    { timePickerShell.style.display = ''; countdownEl.classList.remove('visible'); }
+  function showCountdown() { timePickerShell.style.display = 'none'; countdownEl.classList.add('visible'); }
+
+  // ═══════════════════════════════════════════════
+  //  TOPIC → TASK SELECTOR
+  // ═══════════════════════════════════════════════
+  function closeAllDropdowns() {
+    topicDropdown.classList.remove('open');
+    taskDropdown.classList.remove('open');
+  }
+  function buildTopicDropdown() {
+    topicDropdown.innerHTML = '';
+    const topics = getTopics();
+    if (topics.length === 0) {
+      topicDropdown.innerHTML = '<div class="no-items">No topics yet. Add them in Task List.</div>';
+      return;
+    }
+    topics.forEach((t, i) => {
+      if (!t.name) return;
+      const btn = document.createElement('button');
+      btn.textContent = t.name;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedTopic = { index: i, name: t.name };
+        selectedTask  = null;
+        selectTopicBtn.textContent = t.name.length > 14 ? t.name.slice(0, 13) + '…' : t.name;
+        selectTaskBtn.disabled = false;
+        selectTaskBtn.classList.remove('disabled-btn');
+        selectTaskBtn.textContent = 'Select Task';
+        taskLabel.textContent = `Topic: ${t.name}`;
+        topicDropdown.classList.remove('open');
+        SPFeedback.toast(`Topic: ${t.name}`, { icon: '📚', ms: 1000 });
+      });
+      topicDropdown.appendChild(btn);
+    });
+  }
+  function buildTaskDropdown() {
+    taskDropdown.innerHTML = '';
+    if (!selectedTopic) return;
+    const topics = getTopics();
+    const topic  = topics[selectedTopic.index];
+    const tasks  = (topic && topic.tasks)
+      ? topic.tasks.map(t => getTaskText(t)).filter(t => t)
+      : [];
+
+    if (tasks.length === 0) {
+      taskDropdown.innerHTML = '<div class="no-items">No tasks in this topic yet.</div>';
+      return;
+    }
+    tasks.forEach(taskText => {
+      const btn = document.createElement('button');
+      btn.textContent = taskText;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedTask = { topic: selectedTopic.name, task: taskText };
+        selectTaskBtn.textContent = taskText.length > 14 ? taskText.slice(0, 13) + '…' : taskText;
+        taskLabel.textContent = `Task: ${taskText} (${selectedTopic.name})`;
+        taskDropdown.classList.remove('open');
+        SPFeedback.toast(`Task: ${taskText}`, { icon: '✏️', ms: 1000 });
+      });
+      taskDropdown.appendChild(btn);
+    });
+  }
+  selectTopicBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    buildTopicDropdown();
+    const wasOpen = topicDropdown.classList.contains('open');
+    closeAllDropdowns();
+    if (!wasOpen) topicDropdown.classList.add('open');
+  });
+  selectTaskBtn.addEventListener('click', (e) => {
+    if (selectTaskBtn.disabled) return;
+    e.stopPropagation();
+    buildTaskDropdown();
+    const wasOpen = taskDropdown.classList.contains('open');
+    closeAllDropdowns();
+    if (!wasOpen) taskDropdown.classList.add('open');
+  });
+  document.addEventListener('click', closeAllDropdowns);
+
+  // ═══════════════════════════════════════════════
+  //  TIMER LOGIC
+  // ═══════════════════════════════════════════════
+  function formatTime(s) {
+    const m   = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+  function updateStartButtonState() {
+    const blocked = totalSeconds <= 0 && !running;
+    startBtn.disabled = blocked;
+    startBtn.classList.toggle('disabled-btn', blocked);
+    if (blocked) startBtn.title = 'Choose a duration longer than 0:00';
+    else startBtn.removeAttribute('title');
+  }
+  function updateResetVisibility() {
+    const inCountdown = countdownEl.classList.contains('visible');
+    const midSession = !running && inCountdown && timeLeft > 0 && timeLeft < totalSeconds && totalSeconds > 0;
+    resetBtn.style.display = midSession ? '' : 'none';
+    resetBtn.disabled = !midSession;
+    resetBtn.classList.toggle('disabled-btn', !midSession);
+  }
+  function restoreTitle() { document.title = originalTitle; }
+
+  function stopTimerLoop() {
+    if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
+    if (backupTimerId != null) { clearTimeout(backupTimerId); backupTimerId = null; }
+  }
+
+  function timerLoopFrame() {
+    if (!running) return;
+    const remainingMs = Math.max(0, sessionEndsAt - Date.now());
+    const secs = Math.floor(remainingMs / 1000);
+    timeLeft = secs;
+
+    if (secs !== lastDisplayedSecond) {
+      lastDisplayedSecond = secs;
+      countdownEl.textContent = formatTime(secs);
+      countdownEl.setAttribute('aria-label', `Time remaining: ${formatTime(secs)}`);
+      document.title = `${formatTime(secs)} · ${originalTitle}`;
+      timerRingWrap.classList.toggle('timer-urgent', secs > 0 && secs <= 10);
+      // Light tick on final 5 seconds
+      if (secs > 0 && secs <= 5) SPFeedback.vibrate(15);
+    }
+
+    const frac = totalSeconds > 0 ? remainingMs / (totalSeconds * 1000) : 0;
+    updateRingFraction(frac);
+
+    if (remainingMs <= 0) {
+      stopTimerLoop();
+      running = false;
+      setTimerRunningUI(false);
+      timerRingWrap.classList.remove('timer-urgent');
+      restoreTitle();
+      lastDisplayedSecond = null;
+      onSessionComplete();
+      return;
+    }
+    if (document.hidden) {
+      backupTimerId = setTimeout(() => { backupTimerId = null; timerLoopFrame(); }, 250);
+    } else {
+      rafId = requestAnimationFrame(timerLoopFrame);
+    }
+  }
+
+  function startTimerLoop() {
+    stopTimerLoop();
+    sessionEndsAt = Date.now() + Math.max(0, timeLeft) * 1000;
+    lastDisplayedSecond = null;
+    timerLoopFrame();
+  }
+
+  function pauseTimer() {
+    const remainingMs = Math.max(0, sessionEndsAt - Date.now());
+    timeLeft = Math.max(0, Math.floor(remainingMs / 1000));
+    stopTimerLoop();
+    running = false;
+    setTimerRunningUI(false);
+    timerRingWrap.classList.remove('timer-urgent');
+    restoreTitle();
+    lastDisplayedSecond = null;
+    countdownEl.textContent = formatTime(timeLeft);
+    updateRingFraction(totalSeconds > 0 ? timeLeft / totalSeconds : 0);
+    updateResetVisibility();
+    SPSound.stopAmbient();
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (!running && totalSeconds <= 0) return;
+
+    if (running) {
+      pauseTimer();
+      startBtn.textContent = 'Resume';
+      SPFeedback.toast('Paused', { icon: '⏸', ms: 900 });
+    } else {
+      blurTimeInputs();
+      if (timeLeft <= 0) { totalSeconds = drumMin * 60 + drumSec; timeLeft = totalSeconds; }
+      if (timeLeft <= 0) { updateStartButtonState(); return; }
+      if (timeLeft === totalSeconds) {
+        countdownEl.textContent = formatTime(timeLeft);
+        showCountdown();
+      }
+      running = true;
+      setTimerRunningUI(true);
+      startBtn.textContent = 'Pause';
+      startTimerLoop();
+      SPSound.startAmbient(ambientSel.value);
+      const labels = { focus: 'Let\u2019s focus 🎯', short: 'Take it easy ☕', long: 'Deep rest 🛌' };
+      SPFeedback.toast(labels[mode], { icon: '', ms: 1400 });
+    }
+    updateResetVisibility();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (running) return;
+    totalSeconds = drumMin * 60 + drumSec;
+    timeLeft = totalSeconds;
+    countdownEl.textContent = formatTime(timeLeft);
+    updateRingFraction(totalSeconds > 0 ? 1 : 0);
+    showPicker();
+    startBtn.textContent = 'Start Session';
+    updateResetVisibility();
+    updateStartButtonState();
+    SPFeedback.toast('Reset', { icon: '↺', ms: 900 });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!running) return;
+    stopTimerLoop();
+    timerLoopFrame();
+  });
+
+  // ═══════════════════════════════════════════════
+  //  KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════
+  const helpModal = document.getElementById('helpModal');
+  const helpFab   = document.getElementById('helpFab');
+  function openHelp()  { helpModal.classList.add('open'); }
+  function closeHelp() { helpModal.classList.remove('open'); }
+  helpFab.addEventListener('click', openHelp);
+  document.getElementById('closeHelp').addEventListener('click', closeHelp);
+  helpModal.addEventListener('click', (e) => { if (e.target === helpModal) closeHelp(); });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (postOverlay.classList.contains('visible')) return;
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) { openHelp(); return; }
+    if (e.key === 'Escape' && helpModal.classList.contains('open')) { closeHelp(); return; }
+    if (helpModal.classList.contains('open')) return;
+
+    if (e.code === 'Space' && !e.repeat) {
+      if (e.target.closest('button:not(#startBtn), a[href], .task-dropdown')) return;
+      e.preventDefault();
+      if (!startBtn.disabled) startBtn.click();
+    } else if (e.key === '1') { setMode('focus'); }
+    else if  (e.key === '2') { setMode('short'); }
+    else if  (e.key === '3') { setMode('long');  }
+    else if  (e.key.toLowerCase() === 'r' && !running) { resetBtn.click(); }
+    else if  (e.key.toLowerCase() === 'd') {
+      const s = getSettings();
+      setSettings({ darkMode: !s.darkMode });
+      SPFeedback.toast(!s.darkMode ? 'Dark mode on 🌙' : 'Light mode on ☀️', { ms: 1200 });
+    }
+  });
+
+  // ═══════════════════════════════════════════════
+  //  SESSION COMPLETE
+  // ═══════════════════════════════════════════════
+  function onSessionComplete() {
+    const completedMin = Math.round(totalSeconds / 60);
+
+    if (mode === 'focus') {
+      pomodoroCount++;
+      addCoins(10);
+      addSession({
+        date: todayStr(),
+        taskName: selectedTask ? selectedTask.task : 'Untitled',
+        topicName: selectedTopic ? selectedTopic.name : '',
+        minutes: completedMin,
+        focusScore: null,
+        mode: 'focus'
+      });
+      if (getSettings().chime) SPSound.playChime();
+      SPSound.stopAmbient();
+      SPFeedback.confetti({ count: 90 });
+      SPFeedback.toast(`+10 coins · ${completedMin}m focus logged 🎉`, { icon: '🏆', kind: 'success', ms: 2500 });
+      postOverlay.classList.add('visible');
+      updateSliderGradient();
+      updateGoalBar();
+      updateStreakBadge();
+
+      // Auto-cycle Pomodoro
+      if (getSettings().autoCycle) {
+        const nextMode = (pomodoroCount % 4 === 0) ? 'long' : 'short';
+        setTimeout(() => {
+          setMode(nextMode, { silent: true });
+          SPFeedback.toast(`Auto-starting ${nextMode === 'short' ? 'short' : 'long'} break`, { icon: '⏭', ms: 1800 });
+        }, 1000);
+      }
+    } else {
+      addSession({
+        date: todayStr(),
+        taskName: mode === 'short' ? 'Short break' : 'Long break',
+        topicName: '',
+        minutes: completedMin,
+        focusScore: null,
+        mode
+      });
+      if (getSettings().chime) SPSound.playChime();
+      SPSound.stopAmbient();
+      SPFeedback.toast('Break done — back at it? 💪', { icon: '✨', kind: 'success', ms: 2200 });
+      if (getSettings().autoCycle) setTimeout(() => setMode('focus', { silent: false }), 800);
+    }
+
+    timeLeft = totalSeconds;
+    updateRingFraction(totalSeconds > 0 ? 1 : 0);
+    countdownEl.textContent = formatTime(timeLeft);
+    startBtn.textContent = 'Start Session';
+    setTimerRunningUI(false);
+    restoreTitle();
+    showPicker();
+    updateResetVisibility();
+    updateStartButtonState();
+  }
+
+  // ═══════════════════════════════════════════════
+  //  FOCUS SLIDER
+  // ═══════════════════════════════════════════════
+  function updateSliderGradient() {
+    const v   = focusSlider.value;
+    const pct = (v / 10) * 100;
+    focusSlider.style.background =
+      `linear-gradient(to right, var(--circle-bg) 0%, var(--circle-bg) ${pct}%, #ddd ${pct}%, #ddd 100%)`;
+  }
+  focusSlider.addEventListener('input', updateSliderGradient);
+
+  submitFocusBtn.addEventListener('click', () => {
+    const score = parseInt(focusSlider.value, 10);
+    addCoins(5, { from: submitFocusBtn });
+    const sessions = getSessions();
+    if (sessions.length > 0) { sessions[sessions.length - 1].focusScore = score; SP.set('sessions', sessions); }
+    addProductivityEntry({ date: todayStr(), focusScore: score, focusCount: 1 });
+    postOverlay.classList.remove('visible');
+    focusSlider.value = 5;
+    updateSliderGradient();
+    SPFeedback.toast('Focus logged — keep it up!', { icon: '🌱', kind: 'success' });
+  });
+
+  // ═══════════════════════════════════════════════
+  //  GOAL BAR + STREAK
+  // ═══════════════════════════════════════════════
+  function updateGoalBar() {
+    const s = getSettings();
+    const mins = minutesOnDate(todayStr());
+    const goal = s.dailyGoalMin || 60;
+    const pct  = Math.min(100, (mins / goal) * 100);
+    document.getElementById('goalSummary').textContent = `${mins} / ${goal} min today`;
+    document.getElementById('goalBarFill').style.width = pct + '%';
+    const emoji = document.getElementById('goalEmoji');
+    if (mins >= goal) {
+      emoji.textContent = '🏅';
+      emoji.style.filter = 'drop-shadow(0 0 6px gold)';
+    } else if (pct >= 50) {
+      emoji.textContent = '🔥';
+      emoji.style.filter = '';
+    } else {
+      emoji.textContent = '🎯';
+      emoji.style.filter = '';
+    }
+
+    // Celebrate goal-hit once per day
+    const today = todayStr();
+    const lastHit = SP.get('goalHitDate', null);
+    if (mins >= goal && lastHit !== today) {
+      SP.set('goalHitDate', today);
+      const card = document.getElementById('goalCard');
+      card.classList.remove('sp-goal-hit');
+      void card.offsetWidth;
+      card.classList.add('sp-goal-hit');
+      const rect = card.getBoundingClientRect();
+      SPFeedback.confetti({
+        count: 120,
+        originX: rect.left + rect.width / 2,
+        originY: rect.top + rect.height / 2,
+        colors: ['#f5c518', '#ffd76b', '#4a7c59', '#e8724a', '#ffffff']
+      });
+      SPFeedback.toast('Daily goal hit! Sheep is proud 🏅', { icon: '🎉', kind: 'success', ms: 2600 });
+      addCoins(10, { from: card });
+      if (getSettings().chime) SPSound.playChime();
+    }
+  }
+  let previousStreak = computeStreak();
+  function updateStreakBadge() {
+    const n = computeStreak();
+    document.getElementById('streakCount').textContent = n;
+    if (n > previousStreak) {
+      const pill  = document.getElementById('streakPill');
+      const flame = pill && pill.querySelector('.flame');
+      if (flame) {
+        flame.classList.remove('sp-flame-wag');
+        void flame.offsetWidth;
+        flame.classList.add('sp-flame-wag');
+      }
+      const rect = pill ? pill.getBoundingClientRect() : { left: window.innerWidth - 80, top: 30, width: 40, height: 40 };
+      SPFeedback.confetti({
+        count: 36,
+        originX: rect.left + rect.width / 2,
+        originY: rect.top + rect.height / 2,
+        colors: ['#ff7b3a', '#ffb347', '#ffd76b', '#ffffff']
+      });
+      SPFeedback.toast(`Streak: ${n} day${n === 1 ? '' : 's'} 🔥`, { icon: '✨', kind: 'success', ms: 2200 });
+    }
+    previousStreak = n;
+  }
+
+  // ═══════════════════════════════════════════════
+  //  AMBIENT SOUND persistence
+  // ═══════════════════════════════════════════════
+  ambientSel.addEventListener('change', () => {
+    setSettings({ ambient: ambientSel.value });
+    if (running) {
+      SPSound.startAmbient(ambientSel.value);
+    }
+    SPFeedback.toast(`Sound: ${ambientSel.options[ambientSel.selectedIndex].text}`, { icon: '🔊', ms: 1100 });
+  });
+
+  // ═══════════════════════════════════════════════
+  //  SHEEP EASTER EGG — click the mascot for a quip
+  // ═══════════════════════════════════════════════
+  const SHEEP_QUIPS = [
+    'Baa! You\u2019ve got this.',
+    'One session at a time.',
+    'Small wins compound.',
+    'Breathe in. Breathe out. Focus.',
+    'Proud of you for showing up.',
+    'Sheep believes in you.',
+    'A little progress > no progress.',
+    'Be gentle with yourself today.',
+    'You\u2019re doing better than you think.',
+    'Focus mode: sheep mode.'
+  ];
+  let sheepClicks = 0;
+  const sheepImg = document.querySelector('.timer-inner img');
+  if (sheepImg) {
+    sheepImg.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sheepClicks++;
+      sheepImg.classList.remove('sp-sheep-wiggle');
+      void sheepImg.offsetWidth;
+      sheepImg.classList.add('sp-sheep-wiggle');
+      SPFeedback.vibrate(8);
+      // Every 10 clicks → a surprise coin
+      if (sheepClicks % 10 === 0) {
+        addCoins(1, { from: sheepImg });
+        SPFeedback.toast('Sheep gave you a coin 🪙', { icon: '🐑', kind: 'success', ms: 1600 });
+      } else {
+        const pick = SHEEP_QUIPS[Math.floor(Math.random() * SHEEP_QUIPS.length)];
+        SPFeedback.toast(pick, { icon: '🐑', ms: 1700 });
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════════
+  buildPresets();
+  renderDrums();
+  updateSliderGradient();
+  updateGoalBar();
+  updateStreakBadge();
+
+  // Pick up "▶ Study" quick-start hint from topic page
+  (function applyTimerHint() {
+    const hint = SP.get('timerHint', null);
+    if (!hint) return;
+    SP.set('timerHint', null);
+    const topics = getTopics();
+    const idx = hint.topicId;
+    if (idx === undefined || !topics[idx]) return;
+    selectedTopic = { index: idx, name: hint.topicName || topics[idx].name };
+    selectTopicBtn.textContent =
+      selectedTopic.name.length > 14 ? selectedTopic.name.slice(0, 13) + '…' : selectedTopic.name;
+    selectTaskBtn.disabled = false;
+    selectTaskBtn.classList.remove('disabled-btn');
+    if (hint.taskText) {
+      selectedTask = { topic: selectedTopic.name, task: hint.taskText };
+      selectTaskBtn.textContent = hint.taskText.length > 14 ? hint.taskText.slice(0, 13) + '…' : hint.taskText;
+      taskLabel.textContent = `Task: ${hint.taskText} (${selectedTopic.name})`;
+    } else {
+      taskLabel.textContent = `Topic: ${selectedTopic.name}`;
+      selectTaskBtn.textContent = 'Select Task';
+    }
+    SPFeedback.toast(`Ready to study: ${selectedTopic.name}`, { icon: '📚', ms: 1600 });
+  })();
+</script>
+</body>
+</html>

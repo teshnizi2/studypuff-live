@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPuff – Task List</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Search bar ───────────────────────────── */
+    .search-wrap {
+      position: relative;
+      margin: 0 0 16px;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: .9rem;
+      background: var(--white);
+      color: var(--text);
+      outline: none;
+      box-shadow: var(--shadow);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search-wrap input:focus { border-color: var(--circle-bg); box-shadow: 0 0 0 3px var(--accent-bg-10); }
+    .search-wrap::before {
+      content: '🔍';
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .9rem;
+      opacity: .6;
+      pointer-events: none;
+    }
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: .95rem;
+      color: var(--text-light);
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: none;
+    }
+    .search-wrap.has-value .search-clear { display: block; }
+    .search-clear:hover { background: rgba(0,0,0,.06); color: var(--text); }
+
+    /* ── Topic card ───────────────────────────── */
+    .topic-card {
+      display: flex;
+      align-items: stretch;
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow .18s, transform .15s;
+      animation: slideIn .22s ease both;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .topic-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,.16);
+      transform: translateY(-1px);
+    }
+    .topic-accent { width: 6px; flex-shrink: 0; border-radius: 14px 0 0 14px; }
+    .topic-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 800; color: white;
+      margin: 14px 12px 14px 14px;
+    }
+    .topic-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 14px 0; min-width: 0; }
+    .topic-name-input {
+      border: none; background: transparent;
+      font-size: .98rem; font-weight: 700; color: var(--text);
+      outline: none; width: 100%; padding: 0; cursor: text;
+    }
+    .topic-name-input::placeholder { color: #aaa; font-weight: 500; }
+    .topic-meta { font-size: .76rem; color: var(--text-light); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .task-count-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--accent-bg-10);
+      color: var(--circle-bg);
+      border-radius: 20px; padding: 2px 8px; font-size: .72rem; font-weight: 700;
+    }
+    .done-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--accent-bg-05);
+      color: var(--circle-bg);
+      border-radius: 20px; padding: 2px 8px; font-size: .72rem; font-weight: 600;
+    }
+    .overdue-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(204,68,68,.12);
+      color: var(--danger, #cc4444);
+      border-radius: 20px; padding: 2px 8px; font-size: .72rem; font-weight: 700;
+    }
+    .matched-tasks {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .matched-tasks .mt-item {
+      font-size: .76rem;
+      color: var(--text-light);
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .matched-tasks .mt-item .mt-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: var(--text-light);
+    }
+    mark { background: #fff3a3; color: var(--text); padding: 0 2px; border-radius: 3px; }
+
+    .topic-actions { display: flex; align-items: center; gap: 4px; padding-right: 12px; }
+    .topic-nav-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-light); font-size: 1.3rem;
+      padding: 8px 6px; border-radius: 6px; line-height: 1;
+      transition: color .12s, background .12s;
+    }
+    .topic-nav-btn:hover { color: var(--text); background: rgba(0,0,0,.05); }
+    .delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: #ccc; font-size: .9rem; padding: 6px 6px;
+      border-radius: 6px; transition: color .12s, background .12s;
+    }
+    .delete-btn:hover { color: #cc4444; background: #ffeaea; }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding: 40px 24px; text-align: center; animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .empty-state img { width: 90px; opacity: .7; }
+    .empty-state h3 { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .empty-state p  { font-size: .85rem; color: var(--text-light); max-width: 260px; line-height: 1.6; }
+
+    .list-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    }
+    .list-header h2 {
+      font-size: .82rem; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: .6px;
+    }
+    .total-badge {
+      font-size: .78rem; color: var(--text-light);
+      background: var(--chip-bg, rgba(255,255,255,.7));
+      border: 1px solid var(--chip-border, transparent);
+      border-radius: 20px; padding: 3px 10px;
+    }
+
+    .add-row {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      margin-top: 4px; padding-bottom: 60px;
+    }
+    .add-topic-hint { font-size: .78rem; color: var(--text-light); }
+
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+    .confirm-box {
+      background: var(--white);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 28px 28px 22px;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      text-align: center;
+    }
+    .confirm-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .confirm-box p  { font-size: .88rem; color: var(--text-light); margin-bottom: 22px; line-height: 1.5; }
+    .confirm-btns   { display: flex; gap: 10px; justify-content: center; }
+    .confirm-cancel {
+      background: var(--chip-bg, #f0f0f0); border: none; border-radius: 8px;
+      padding: 10px 22px; font-size: .9rem; font-weight: 600; cursor: pointer; color: var(--text);
+    }
+    .confirm-delete {
+      background: #cc4444; color: white; border: none; border-radius: 8px;
+      padding: 10px 22px; font-size: .9rem; font-weight: 600; cursor: pointer;
+    }
+    .confirm-cancel:hover { background: #e0e0e0; }
+    .confirm-delete:hover { background: #aa3333; }
+  </style>
+</head>
+<body>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
+    <span>StudyPuff</span>
+  </div>
+  <nav>
+    <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
+    <a href="task-list.html"><span class="nav-icon">📋</span> Task List</a>
+    <a href="statistics.html"><span class="nav-icon">📊</span> Statistics</a>
+    <a href="rewards.html"><span class="nav-icon">🪙</span> Rewards</a>
+    <a href="settings.html"><span class="nav-icon">⚙</span> Settings</a>
+  </nav>
+</div>
+
+<div class="top-bar">
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <span class="page-title">Task List</span>
+  <a class="coin-badge" href="rewards.html">
+    <div class="coin-icon">🪙</div>
+    <span class="coin-count">0</span>
+    <div class="coin-plus">+</div>
+  </a>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Remove topic?</h3>
+    <p id="confirmMsg">This will also delete all tasks inside it.</p>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" id="confirmCancel">Cancel</button>
+      <button class="confirm-delete" id="confirmOk">Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="list-area">
+
+    <div class="search-wrap" id="searchWrap">
+      <input type="text" id="searchInput" placeholder="Search topics and tasks…" autocomplete="off">
+      <button class="search-clear" id="searchClear" title="Clear">✕</button>
+    </div>
+
+    <div class="list-header">
+      <h2>Your Topics</h2>
+      <span class="total-badge" id="totalBadge">0 topics</span>
+    </div>
+
+    <div id="topicList"></div>
+
+    <div class="add-row">
+      <button class="add-btn" id="addTopicBtn" title="Add topic">+</button>
+      <span class="add-topic-hint">Add a topic</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  const ACCENTS = [
+    '#4a7c59', '#5b7fa6', '#a65b5b', '#8b6ea6',
+    '#a68b5b', '#5ba6a0', '#a6835b', '#6e8ca6'
+  ];
+
+  let topics = getTopics();
+  let pendingDeleteIdx = null;
+  let query = '';
+
+  function save() { setTopics(topics); }
+
+  function esc(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function highlight(text, q) {
+    if (!q) return esc(text);
+    const idx = (text || '').toLowerCase().indexOf(q.toLowerCase());
+    if (idx < 0) return esc(text);
+    return esc(text.slice(0, idx)) + '<mark>' + esc(text.slice(idx, idx + q.length)) + '</mark>' + esc(text.slice(idx + q.length));
+  }
+
+  function countDone(topic) {
+    return (topic.tasks || []).filter(t => {
+      if (typeof t === 'string') return false;
+      return t.done;
+    }).length;
+  }
+  function countOverdue(topic) {
+    const today = todayStr();
+    return (topic.tasks || []).filter(t => {
+      const o = normalizeTask(t);
+      return !o.done && o.due && o.due < today;
+    }).length;
+  }
+
+  function renderTopics() {
+    const list = document.getElementById('topicList');
+    list.innerHTML = '';
+
+    const q = query.trim().toLowerCase();
+
+    const filtered = topics.map((t, i) => ({ topic: t, i }))
+      .filter(({ topic }) => {
+        if (!q) return true;
+        if ((topic.name || '').toLowerCase().includes(q)) return true;
+        return (topic.tasks || []).some(task => getTaskText(task).toLowerCase().includes(q));
+      });
+
+    document.getElementById('totalBadge').textContent =
+      q
+        ? `${filtered.length} match${filtered.length !== 1 ? 'es' : ''}`
+        : (topics.length === 1 ? '1 topic' : `${topics.length} topics`);
+
+    if (filtered.length === 0) {
+      list.innerHTML = q
+        ? `<div class="empty-state">
+             <img src="../assets/sheep.svg" alt="sheep">
+             <h3>No matches</h3>
+             <p>Nothing matches "<strong>${esc(query)}</strong>". Try another word, or clear the search.</p>
+           </div>`
+        : `<div class="empty-state">
+             <img src="../assets/sheep.svg" alt="sheep">
+             <h3>No topics yet</h3>
+             <p>Tap the + button below to add your first study topic.</p>
+           </div>`;
+      return;
+    }
+
+    filtered.forEach(({ topic, i }, renderIdx) => {
+      const color    = ACCENTS[i % ACCENTS.length];
+      const initial  = (topic.name || '?').charAt(0).toUpperCase();
+      const numTasks = (topic.tasks || []).length;
+      const numDone  = countDone(topic);
+      const numOver  = countOverdue(topic);
+
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.style.animationDelay = (renderIdx * 0.04) + 's';
+
+      const accent = document.createElement('div');
+      accent.className = 'topic-accent';
+      accent.style.background = color;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'topic-avatar';
+      avatar.style.background = color;
+      avatar.textContent = initial;
+
+      const body = document.createElement('div');
+      body.className = 'topic-body';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'topic-name-input';
+      input.value = topic.name || '';
+      input.placeholder = 'Topic name…';
+      input.addEventListener('input', (e) => {
+        topics[i].name = e.target.value;
+        avatar.textContent = (e.target.value || '?').charAt(0).toUpperCase();
+        save();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addTopicBtn').click(); }
+      });
+      input.addEventListener('click', (e) => e.stopPropagation());
+
+      const meta = document.createElement('div');
+      meta.className = 'topic-meta';
+
+      if (numTasks > 0) {
+        const tcBadge = document.createElement('span');
+        tcBadge.className = 'task-count-badge';
+        tcBadge.textContent = `${numTasks} task${numTasks !== 1 ? 's' : ''}`;
+        meta.appendChild(tcBadge);
+
+        if (numDone > 0) {
+          const doneBadge = document.createElement('span');
+          doneBadge.className = 'done-badge';
+          doneBadge.textContent = `${numDone} done`;
+          meta.appendChild(doneBadge);
+        }
+        if (numOver > 0) {
+          const ovBadge = document.createElement('span');
+          ovBadge.className = 'overdue-badge';
+          ovBadge.textContent = `${numOver} overdue`;
+          meta.appendChild(ovBadge);
+        }
+      } else {
+        meta.textContent = 'No tasks yet';
+      }
+
+      body.appendChild(input);
+      body.appendChild(meta);
+
+      // matched task previews when searching
+      if (q) {
+        const matches = (topic.tasks || [])
+          .map(t => getTaskText(t))
+          .filter(txt => txt && txt.toLowerCase().includes(q))
+          .slice(0, 3);
+        if (matches.length) {
+          const mt = document.createElement('div');
+          mt.className = 'matched-tasks';
+          matches.forEach(txt => {
+            const item = document.createElement('div');
+            item.className = 'mt-item';
+            item.innerHTML = `<span class="mt-dot"></span>${highlight(txt, q)}`;
+            mt.appendChild(item);
+          });
+          body.appendChild(mt);
+        }
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'topic-actions';
+
+      const navBtn = document.createElement('button');
+      navBtn.className = 'topic-nav-btn';
+      navBtn.textContent = '›';
+      navBtn.title = 'Open topic';
+      navBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `topic.html?id=${i}`;
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'delete-btn';
+      delBtn.innerHTML = '🗑';
+      delBtn.title = 'Remove topic';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pendingDeleteIdx = i;
+        document.getElementById('confirmMsg').textContent =
+          `"${topic.name || 'This topic'}" and all its tasks will be removed.`;
+        document.getElementById('confirmOverlay').classList.add('open');
+      });
+
+      actions.appendChild(delBtn);
+      actions.appendChild(navBtn);
+
+      card.appendChild(accent);
+      card.appendChild(avatar);
+      card.appendChild(body);
+      card.appendChild(actions);
+
+      card.addEventListener('click', () => {
+        window.location.href = `topic.html?id=${i}`;
+      });
+
+      list.appendChild(card);
+    });
+  }
+
+  // ── Search ──────────────────────────────────────────────
+  const searchInput = document.getElementById('searchInput');
+  const searchWrap  = document.getElementById('searchWrap');
+  searchInput.addEventListener('input', () => {
+    query = searchInput.value;
+    searchWrap.classList.toggle('has-value', !!query);
+    renderTopics();
+  });
+  document.getElementById('searchClear').addEventListener('click', () => {
+    searchInput.value = '';
+    query = '';
+    searchWrap.classList.remove('has-value');
+    renderTopics();
+    searchInput.focus();
+  });
+  // Keyboard: "/" focuses search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.value = '';
+      query = '';
+      searchWrap.classList.remove('has-value');
+      renderTopics();
+      searchInput.blur();
+    }
+  });
+
+  // ── Add topic ─────────────────────────────────────────────
+  document.getElementById('addTopicBtn').addEventListener('click', (e) => {
+    topics.push({ name: '', tasks: [] });
+    save();
+    renderTopics();
+    addCoins(1, { from: e.currentTarget });
+    SPFeedback.toast('New topic added — ready when you are.', { icon: '✨', kind: 'success' });
+    const inputs = document.querySelectorAll('.topic-name-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  // ── Confirm delete ────────────────────────────────────────
+  document.getElementById('confirmCancel').addEventListener('click', () => {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    pendingDeleteIdx = null;
+  });
+  document.getElementById('confirmOk').addEventListener('click', () => {
+    if (pendingDeleteIdx !== null) {
+      const removed = topics[pendingDeleteIdx]?.name || 'Topic';
+      topics.splice(pendingDeleteIdx, 1);
+      save();
+      renderTopics();
+      SPFeedback.toast(`Removed "${removed}"`, { icon: '🗑', kind: 'warn' });
+    }
+    document.getElementById('confirmOverlay').classList.remove('open');
+    pendingDeleteIdx = null;
+  });
+
+  renderTopics();
+</script>
+</body>
+</html>

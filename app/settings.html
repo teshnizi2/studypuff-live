@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyPuff – Settings</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .settings-wrap {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 20px 24px 80px;
+    }
+    .sec-title {
+      font-size: .76rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin: 20px 4px 8px;
+    }
+    .sec-title:first-child { margin-top: 0; }
+
+    .s-card {
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .s-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .s-row:last-child { border-bottom: none; }
+    .s-row-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+    .s-row-label {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .s-row-hint {
+      font-size: .78rem;
+      color: var(--text-light);
+    }
+    .s-row-control {
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* iOS-style switch */
+    .sp-switch {
+      position: relative;
+      width: 46px; height: 26px;
+      background: #ccc;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background .18s;
+      flex-shrink: 0;
+    }
+    .sp-switch::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: transform .18s, background .18s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    }
+    .sp-switch.on { background: var(--circle-bg); }
+    .sp-switch.on::after { transform: translateX(20px); }
+
+    /* Numeric input */
+    .num-wrap {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .num-wrap button {
+      background: var(--chip-bg, #f3f3f3);
+      border: none;
+      padding: 6px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .num-wrap button:hover { background: var(--chip-border, #e5e5e5); }
+    .num-wrap input {
+      width: 50px;
+      border: none;
+      padding: 6px 0;
+      font-size: .95rem;
+      text-align: center;
+      background: var(--white);
+      color: var(--text);
+      outline: none;
+      font-weight: 700;
+    }
+
+    .sel-wrap select {
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: .88rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .action-btn {
+      background: var(--circle-bg);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s, background .15s;
+    }
+    .action-btn:hover { transform: translateY(-1px); }
+    .action-btn.ghost {
+      background: transparent;
+      color: var(--circle-bg);
+      border: 1.5px solid var(--circle-bg);
+    }
+    .action-btn.ghost:hover { background: var(--accent-bg-10); }
+    .action-btn.danger {
+      background: #cc4444;
+    }
+    .action-btn.danger:hover { background: #a83434; }
+
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4); z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+    .confirm-box {
+      background: var(--white); color: var(--text);
+      border-radius: 16px;
+      padding: 28px 28px 22px;
+      max-width: 340px; width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      text-align: center;
+    }
+    .confirm-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .confirm-box p  { font-size: .88rem; color: var(--text-light); margin-bottom: 22px; line-height: 1.5; }
+    .confirm-btns   { display: flex; gap: 10px; justify-content: center; }
+
+    .file-hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
+    <span>StudyPuff</span>
+  </div>
+  <nav>
+    <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
+    <a href="task-list.html"><span class="nav-icon">📋</span> Task List</a>
+    <a href="statistics.html"><span class="nav-icon">📊</span> Statistics</a>
+    <a href="rewards.html"><span class="nav-icon">🪙</span> Rewards</a>
+    <a href="settings.html"><span class="nav-icon">⚙</span> Settings</a>
+  </nav>
+</div>
+
+<div class="top-bar">
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+  <span class="page-title">Settings</span>
+  <a class="coin-badge" href="rewards.html">
+    <div class="coin-icon">🪙</div>
+    <span class="coin-count">0</span>
+    <div class="coin-plus">+</div>
+  </a>
+</div>
+
+<div class="confirm-overlay" id="resetOverlay">
+  <div class="confirm-box">
+    <h3>Reset everything?</h3>
+    <p>This will remove all your topics, tasks, classes, sessions, coins, and settings. This cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="action-btn ghost" id="resetCancel">Cancel</button>
+      <button class="action-btn danger" id="resetConfirm">Reset all</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" class="file-hidden" accept="application/json,.json">
+
+<div class="page">
+  <div class="settings-wrap">
+
+    <!-- ── Appearance ─────────────────────── -->
+    <div class="sec-title">Appearance</div>
+    <div class="s-card">
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Dark mode</div>
+          <div class="s-row-hint">Easier on the eyes at night</div>
+        </div>
+        <div class="s-row-control">
+          <div class="sp-switch" id="sw-darkMode"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Timer ──────────────────────────── -->
+    <div class="sec-title">Timer</div>
+    <div class="s-card">
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Focus length</div>
+          <div class="s-row-hint">Default length for a focus session</div>
+        </div>
+        <div class="s-row-control">
+          <div class="num-wrap">
+            <button data-num="focusMin" data-delta="-5">−</button>
+            <input type="number" id="num-focusMin" min="5" max="180" step="5">
+            <button data-num="focusMin" data-delta="5">+</button>
+          </div>
+          <span style="font-size:.78rem;color:var(--text-light);">min</span>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Short break</div>
+          <div class="s-row-hint">Between Pomodoros</div>
+        </div>
+        <div class="s-row-control">
+          <div class="num-wrap">
+            <button data-num="shortBreakMin" data-delta="-1">−</button>
+            <input type="number" id="num-shortBreakMin" min="1" max="30" step="1">
+            <button data-num="shortBreakMin" data-delta="1">+</button>
+          </div>
+          <span style="font-size:.78rem;color:var(--text-light);">min</span>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Long break</div>
+          <div class="s-row-hint">After 4 focus sessions</div>
+        </div>
+        <div class="s-row-control">
+          <div class="num-wrap">
+            <button data-num="longBreakMin" data-delta="-5">−</button>
+            <input type="number" id="num-longBreakMin" min="5" max="60" step="5">
+            <button data-num="longBreakMin" data-delta="5">+</button>
+          </div>
+          <span style="font-size:.78rem;color:var(--text-light);">min</span>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Auto-cycle Pomodoro</div>
+          <div class="s-row-hint">Automatically start breaks and next focus block</div>
+        </div>
+        <div class="s-row-control">
+          <div class="sp-switch" id="sw-autoCycle"></div>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Default ambient sound</div>
+          <div class="s-row-hint">Played while the timer runs</div>
+        </div>
+        <div class="s-row-control">
+          <div class="sel-wrap">
+            <select id="sel-ambient">
+              <option value="none">None</option>
+              <option value="white">White noise</option>
+              <option value="rain">Rain</option>
+              <option value="cafe">Café</option>
+              <option value="forest">Forest</option>
+              <option value="lofi">Lo-fi</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">End-of-timer chime</div>
+          <div class="s-row-hint">Play a gentle chime when a session ends</div>
+        </div>
+        <div class="s-row-control">
+          <div class="sp-switch" id="sw-chime"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Daily Goal ─────────────────────── -->
+    <div class="sec-title">Daily Goal</div>
+    <div class="s-card">
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Target per day</div>
+          <div class="s-row-hint">Used by the progress bar and streak</div>
+        </div>
+        <div class="s-row-control">
+          <div class="num-wrap">
+            <button data-num="dailyGoalMin" data-delta="-15">−</button>
+            <input type="number" id="num-dailyGoalMin" min="15" max="600" step="15">
+            <button data-num="dailyGoalMin" data-delta="15">+</button>
+          </div>
+          <span style="font-size:.78rem;color:var(--text-light);">min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Data ───────────────────────────── -->
+    <div class="sec-title">Your Data</div>
+    <div class="s-card">
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Export data</div>
+          <div class="s-row-hint">Download a JSON backup of everything</div>
+        </div>
+        <div class="s-row-control">
+          <button class="action-btn" id="exportBtn">Download</button>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Import data</div>
+          <div class="s-row-hint">Replace current data with a backup file</div>
+        </div>
+        <div class="s-row-control">
+          <button class="action-btn ghost" id="importBtn">Choose file…</button>
+        </div>
+      </div>
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">Reset everything</div>
+          <div class="s-row-hint">Wipe all data on this device</div>
+        </div>
+        <div class="s-row-control">
+          <button class="action-btn danger" id="resetBtn">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── About ──────────────────────────── -->
+    <div class="sec-title">About</div>
+    <div class="s-card">
+      <div class="s-row">
+        <div class="s-row-main">
+          <div class="s-row-label">StudyPuff</div>
+          <div class="s-row-hint">Your cozy, coin-rewarding focus companion.</div>
+        </div>
+        <div class="s-row-control">
+          <span style="font-size:.78rem;color:var(--text-light)">v1.1</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // ── Load current settings into UI ────────────────────────
+  const settings = getSettings();
+
+  function setSwitch(id, value) {
+    const el = document.getElementById(id);
+    el.classList.toggle('on', !!value);
+    el.addEventListener('click', () => {
+      const key = id.replace('sw-', '');
+      const next = !el.classList.contains('on');
+      el.classList.toggle('on', next);
+      setSettings({ [key]: next });
+      SPFeedback.toast(`${prettyLabel(key)} ${next ? 'on' : 'off'}`, { icon: next ? '✅' : '⏸', kind: 'success', ms: 1200 });
+    });
+  }
+
+  function prettyLabel(k) {
+    return ({
+      darkMode:  'Dark mode',
+      autoCycle: 'Auto-cycle',
+      chime:     'Chime',
+    })[k] || k;
+  }
+
+  setSwitch('sw-darkMode',  settings.darkMode);
+  setSwitch('sw-autoCycle', settings.autoCycle);
+  setSwitch('sw-chime',     settings.chime);
+
+  // Numeric inputs
+  ['focusMin','shortBreakMin','longBreakMin','dailyGoalMin'].forEach(key => {
+    const input = document.getElementById('num-' + key);
+    input.value = settings[key];
+    input.addEventListener('change', () => {
+      const min = parseInt(input.min, 10);
+      const max = parseInt(input.max, 10);
+      let val = parseInt(input.value, 10);
+      if (isNaN(val)) val = min;
+      val = Math.max(min, Math.min(max, val));
+      input.value = val;
+      setSettings({ [key]: val });
+    });
+  });
+  document.querySelectorAll('.num-wrap button[data-num]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.num;
+      const delta = parseInt(btn.dataset.delta, 10);
+      const input = document.getElementById('num-' + key);
+      const min = parseInt(input.min, 10);
+      const max = parseInt(input.max, 10);
+      let val = parseInt(input.value, 10) + delta;
+      val = Math.max(min, Math.min(max, val));
+      input.value = val;
+      setSettings({ [key]: val });
+    });
+  });
+
+  // Ambient select
+  const selAmbient = document.getElementById('sel-ambient');
+  selAmbient.value = settings.ambient;
+  selAmbient.addEventListener('change', () => {
+    setSettings({ ambient: selAmbient.value });
+    SPFeedback.toast(`Ambient set to ${selAmbient.options[selAmbient.selectedIndex].text}`, { icon: '🎵', kind: 'success', ms: 1400 });
+  });
+
+  // ── Export ───────────────────────────────────────────────
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const data = exportAllData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `studypuff-backup-${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    SPFeedback.toast('Backup downloaded', { icon: '💾', kind: 'success' });
+  });
+
+  // ── Import ───────────────────────────────────────────────
+  const importInput = document.getElementById('importFile');
+  document.getElementById('importBtn').addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', () => {
+    const file = importInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        importAllData(data);
+        SPFeedback.toast('Import complete — reloading…', { icon: '📥', kind: 'success' });
+        setTimeout(() => location.reload(), 700);
+      } catch (err) {
+        SPFeedback.toast('Could not read that file', { icon: '⚠️', kind: 'danger' });
+      }
+    };
+    reader.readAsText(file);
+    importInput.value = '';
+  });
+
+  // ── Reset ────────────────────────────────────────────────
+  const overlay = document.getElementById('resetOverlay');
+  document.getElementById('resetBtn').addEventListener('click', () => overlay.classList.add('open'));
+  document.getElementById('resetCancel').addEventListener('click', () => overlay.classList.remove('open'));
+  document.getElementById('resetConfirm').addEventListener('click', () => {
+    resetAllData();
+    overlay.classList.remove('open');
+    SPFeedback.toast('All data reset', { icon: '🧹', kind: 'warn' });
+    setTimeout(() => location.reload(), 700);
+  });
+</script>
+</body>
+</html>
