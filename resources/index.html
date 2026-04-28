@@ -27,12 +27,12 @@
           brand: {
             sage:   '#5b8159',
             sageDk: '#3f5d3e',
-            pink:   '#f3c6c2',
-            peach:  '#f6d4b7',
-            butter: '#fbe9a5',
-            mint:   '#c7e2c7',
-            sky:    '#c6dceb',
-            lilac:  '#d9cdea',
+            pink:   '#efb6b1',
+            peach:  '#efc29f',
+            butter: '#f5dc86',
+            mint:   '#aacfa6',
+            sky:    '#a9c9dc',
+            lilac:  '#c9b8da',
           }
         },
         boxShadow: { soft: '0 10px 40px -12px rgba(34,31,27,0.18)', lift: '0 30px 60px -24px rgba(34,31,27,0.28)' },
@@ -55,7 +55,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
   body {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -207,15 +207,16 @@
 <body>
 <main class="gradient-surface relative grain">
 <!-- HEADER -->
-  <header class="relative z-20">
+  <header class="sticky top-0 z-50 border-b border-ink-900/10 bg-cream-50/90 backdrop-blur">
     <div class="mx-auto shell-container">
-      <div class="flex items-center justify-between gap-6 pt-6">
+      <div class="flex items-center justify-between gap-6 py-3">
         <a href="../index.html" class="flex items-center">
           <img src="../assets/studypuff-logo-v3.png" alt="StudyPuff Academy" class="site-logo" />
         </a>
         <nav aria-label="Primary" class="hidden items-center gap-7 lg:flex">
           <a href="../index.html" class="nav-link">Home</a>
           <a href="../study/index.html" class="nav-link">Study with us</a>
+          <a href="../resources/index.html#webapp" class="nav-link">App</a>
           <a href="../workshops/index.html" class="nav-link">Workshops</a>
           <a href="../resources/index.html" class="nav-link active">Free Resources</a>
           <a href="../store/index.html" class="nav-link">Store</a>
@@ -229,9 +230,10 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         </button>
       </div>
-      <div id="m-menu" class="mobile-menu flex-col gap-3 pt-5 lg:hidden" data-open="false">
+      <div id="m-menu" class="mobile-menu flex-col gap-3 pb-4 pt-2 lg:hidden" data-open="false">
         <a href="../index.html" class="nav-link">Home</a>
         <a href="../study/index.html" class="nav-link">Study with us</a>
+          <a href="../resources/index.html#webapp" class="nav-link">App</a>
         <a href="../workshops/index.html" class="nav-link">Workshops</a>
         <a href="../resources/index.html" class="nav-link active">Free Resources</a>
         <a href="../store/index.html" class="nav-link">Store</a>
@@ -263,7 +265,7 @@
           <a href="#" class="btn-outline mt-5 w-fit">Download free</a>
         </div>
       </article>
-      <article class="card overflow-hidden reveal flex flex-col" style="transition-delay:.08s">
+      <article id="webapp" class="card overflow-hidden reveal flex flex-col scroll-mt-32" style="transition-delay:.08s">
         <div class="prod-art" style="background:linear-gradient(135deg,#d9cdea,#c6dceb)"><svg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'><rect x='32' y='10' width='56' height='100' rx='10' fill='#1f1c18'/><rect x='36' y='18' width='48' height='80' rx='4' fill='#fbf7f0'/><circle cx='60' cy='104' r='3' fill='#fbf7f0'/><circle cx='60' cy='52' r='18' fill='none' stroke='#1f1c18' stroke-width='2.5'/><path d='M60 38v14l9 5' stroke='#1f1c18' stroke-width='2' fill='none' stroke-linecap='round'/><rect x='42' y='80' width='36' height='10' rx='5' fill='#fbe9a5' stroke='#1f1c18' stroke-width='2'/><text x='60' y='87' font-family='Georgia,serif' font-size='6' fill='#1f1c18' text-anchor='middle' font-weight='600'>FOCUS</text></svg></div>
         <div class="p-7 flex flex-col flex-1">
           <span class="chip w-fit">Web app · Free</span>
@@ -299,6 +301,15 @@
           <a href="#" class="btn-outline mt-5 w-fit">Download free</a>
         </div>
       </article>
+      <article class="card overflow-hidden reveal flex flex-col" style="transition-delay:.12s">
+        <div class="prod-art" style="background:linear-gradient(135deg,#c9b8da,#aacfa6)"><svg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'><path d='M24 36c0-9 8-16 18-16h36c10 0 18 7 18 16v28c0 9-8 16-18 16H58L42 96v-16c-10 0-18-7-18-16V36z' fill='#fbf7f0' stroke='#1f1c18' stroke-width='2.5'/><circle cx='48' cy='54' r='5' fill='#1f1c18'/><circle cx='72' cy='54' r='5' fill='#1f1c18'/><path d='M48 68c8 5 16 5 24 0' fill='none' stroke='#1f1c18' stroke-width='2.5' stroke-linecap='round'/></svg></div>
+        <div class="p-7 flex flex-col flex-1">
+          <span class="chip w-fit">Community · Free</span>
+          <h3 class="display mt-3 text-xl text-ink-900">StudyPuff Discord server</h3>
+          <p class="mt-2 text-ink-700">Join the community side of StudyPuff: ask questions, share goals, and study with other students between livestreams.</p>
+          <a href="https://discord.gg/hb8bKpbjEz" target="_blank" rel="noopener" class="btn-outline mt-5 w-fit">Join Discord</a>
+        </div>
+      </article>
       <article class="card overflow-hidden reveal flex flex-col items-center justify-center text-center p-10" style="transition-delay:.16s; background: rgba(31,28,24,0.03);">
         <p class="chip mb-4">More soon</p>
         <h3 class="display text-xl text-ink-900">More resources are on the way.</h3>
@@ -327,7 +338,7 @@
     <div class="mx-auto grid max-w-[1240px] grid-cols-2 gap-10 px-6 py-14 md:grid-cols-5 lg:px-10">
       <div class="col-span-2">
         <a href="../index.html" class="display text-2xl text-ink-900">StudyPuff</a>
-        <p class="mt-3 max-w-sm text-sm text-ink-700">A calm, science-based home for students who want to focus, learn, and live well — without the hustle.</p>
+        <p class="mt-3 max-w-sm text-sm text-ink-700">A cozy, science-based environment for students who want to improve their performance without burning out.</p>
         <div class="mt-5 flex flex-wrap items-center gap-3">
           <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".9" fill="currentColor" stroke="none"/></svg></a>
           <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" aria-label="YouTube" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.85C18.2 5 12 5 12 5s-6.2 0-7.8.35A2.6 2.6 0 0 0 2.4 7.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 4.8 2.6 2.6 0 0 0 1.8 1.85C5.8 19 12 19 12 19s6.2 0 7.8-.35a2.6 2.6 0 0 0 1.8-1.85A27 27 0 0 0 22 12a27 27 0 0 0-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></a>

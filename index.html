@@ -27,12 +27,12 @@
           brand: {
             sage:   '#5b8159',
             sageDk: '#3f5d3e',
-            pink:   '#f3c6c2',
-            peach:  '#f6d4b7',
-            butter: '#fbe9a5',
-            mint:   '#c7e2c7',
-            sky:    '#c6dceb',
-            lilac:  '#d9cdea',
+            pink:   '#efb6b1',
+            peach:  '#efc29f',
+            butter: '#f5dc86',
+            mint:   '#aacfa6',
+            sky:    '#a9c9dc',
+            lilac:  '#c9b8da',
           }
         },
         boxShadow: { soft: '0 10px 40px -12px rgba(34,31,27,0.18)', lift: '0 30px 60px -24px rgba(34,31,27,0.28)' },
@@ -55,7 +55,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
   body {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -291,15 +291,16 @@
 <main class="gradient-surface relative grain">
 
   <!-- HEADER -->
-  <header class="relative z-20">
+  <header class="sticky top-0 z-50 border-b border-ink-900/10 bg-cream-50/90 backdrop-blur">
     <div class="mx-auto shell-container">
-      <div class="flex items-center justify-between gap-6 pt-6">
+      <div class="flex items-center justify-between gap-6 py-3">
         <a href="./index.html" class="flex items-center">
           <img src="./assets/studypuff-logo-v3.png" alt="StudyPuff Academy" class="site-logo" />
         </a>
         <nav aria-label="Primary" class="hidden items-center gap-7 lg:flex">
           <a href="./index.html" class="nav-link active">Home</a>
           <a href="./study/index.html" class="nav-link">Study with us</a>
+          <a href="./resources/index.html#webapp" class="nav-link">App</a>
           <a href="./workshops/index.html" class="nav-link">Workshops</a>
           <a href="./resources/index.html" class="nav-link">Free Resources</a>
           <a href="./store/index.html" class="nav-link">Store</a>
@@ -313,9 +314,10 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         </button>
       </div>
-      <div id="m-menu" class="mobile-menu flex-col gap-3 pt-5 lg:hidden" data-open="false">
+      <div id="m-menu" class="mobile-menu flex-col gap-3 pb-4 pt-2 lg:hidden" data-open="false">
         <a href="./index.html" class="nav-link active">Home</a>
         <a href="./study/index.html" class="nav-link">Study with us</a>
+          <a href="./resources/index.html#webapp" class="nav-link">App</a>
         <a href="./workshops/index.html" class="nav-link">Workshops</a>
         <a href="./resources/index.html" class="nav-link">Free Resources</a>
         <a href="./store/index.html" class="nav-link">Store</a>
@@ -337,7 +339,7 @@
         <h1 class="display mt-5 text-[clamp(2.6rem,5.2vw,4.5rem)] text-ink-900">
           Small progress, is still progress.
         </h1>
-        <p class="mt-6 max-w-xl text-lg text-ink-700">
+        <p class="mt-6 max-w-2xl text-lg text-ink-700">
           StudyPuff is the home for students who want to improve their performance,
           without burning out. Join a workshop, drop into a free livestream,
           or use one of our free templates.
@@ -362,7 +364,7 @@
 
       <div class="lg:col-span-5 reveal" style="transition-delay:.12s">
         <div class="relative mx-auto aspect-[4/5] w-full max-w-md rounded-[36px] border border-ink-900/10 bg-cream-50 p-4 shadow-lift">
-          <a href="#webapp" data-app-link class="absolute -left-6 -top-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-butter shadow-soft animate-bobble z-10 hover:scale-105 transition" aria-label="Open the StudyPuff app">
+          <a href="./resources/index.html#webapp" data-app-link class="absolute -left-6 -top-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-butter shadow-soft animate-bobble z-10 hover:scale-105 transition" aria-label="Open the StudyPuff app">
             <img src="./assets/sheep.png" alt="StudyPuff mascot" class="h-16 w-16 object-contain" />
           </a>
           <div class="h-full w-full overflow-hidden rounded-[28px] bg-brand-peach/40">
@@ -373,7 +375,7 @@
             <p class="display text-lg text-ink-900 leading-tight mt-1"><span data-livestream-count>3</span> free co-study streams</p>
             <p class="text-xs text-ink-700 mt-1">See the schedule →</p>
           </a>
-          <a href="#webapp" data-app-link class="absolute -left-4 top-10 block w-44 rounded-2xl border border-ink-900/10 bg-cream-50 p-3 shadow-soft hover:-translate-y-0.5 transition">
+          <a href="./resources/index.html#webapp" data-app-link class="absolute -left-4 top-10 block w-44 rounded-2xl border border-ink-900/10 bg-cream-50 p-3 shadow-soft hover:-translate-y-0.5 transition">
             <p class="text-[10px] uppercase tracking-[0.2em] text-ink-700 font-semibold">Right now</p>
             <p class="display text-lg text-ink-900 leading-tight mt-1"><span data-app-active-users>128</span> studying</p>
             <p class="text-xs text-ink-700 mt-1">Open the app →</p>
@@ -428,34 +430,6 @@
     </div>
   </section>
 
-  <!-- IMAGE + TEXT: YouTube -->
-  <section class="relative py-20 lg:py-28">
-    <div class="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2 lg:px-10">
-      <div class="reveal">
-        <div class="relative overflow-x-hidden rounded-[32px] border border-ink-900/10 bg-brand-pink/40 shadow-soft">
-          <img src="./assets/youtube-lifestyle.jpg" alt="Student studying at a warmly lit desk" class="h-full w-full object-cover aspect-[4/3]" />
-          <span class="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-cream-50/95 px-3 py-1.5 text-xs font-semibold text-ink-900 shadow-soft">
-            <span class="inline-block h-2 w-2 rounded-full bg-red-500 animate-pulse"></span> LIVE every Monday
-          </span>
-        </div>
-      </div>
-      <div class="reveal" style="transition-delay:.08s">
-        <p class="chip">Study with us · on YouTube</p>
-        <h2 class="display mt-4 text-[clamp(1.9rem,3.2vw,2.75rem)] text-ink-900">Free livestreams, three times a week.</h2>
-        <p class="mt-5 text-lg text-ink-700 max-w-lg">
-          Co-study sessions with focus timer and accountability. Drop in to join a community of StudyPuffs getting their things done.
-        </p>
-        <ul class="mt-6 grid grid-cols-2 gap-3 text-sm text-ink-700 max-w-md">
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-pink"></span> 50/10 Pomodoros</li>
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-pink"></span> All ages welcome</li>
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-pink"></span> Chatting during breaks</li>
-          <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-pink"></span> Cozy community</li>
-        </ul>
-        <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" class="btn-primary mt-8">Watch on YouTube <span class="arrow">→</span></a>
-      </div>
-    </div>
-  </section>
-
   <!-- IMAGE + TEXT: Twitch (reverse) -->
   <section class="relative py-20 lg:py-28">
     <div class="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2 lg:px-10">
@@ -472,7 +446,7 @@
           <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-sky"></span> Cozy community</li>
           <li class="flex items-center gap-2 col-span-2"><span class="h-1.5 w-1.5 rounded-full bg-brand-sky"></span> Regular cozy game streams</li>
         </ul>
-        <a href="https://www.twitch.tv/studypuffacademy" target="_blank" rel="noopener" class="btn-primary mt-8">Watch on Twitch <span class="arrow">→</span></a>
+        <a href="https://www.twitch.tv/studypuffacademy" target="_blank" rel="noopener" class="btn-primary mt-8">Follow on Twitch <span class="arrow">→</span></a>
       </div>
       <div class="reveal order-1 lg:order-2" style="transition-delay:.08s">
         <div class="overflow-hidden rounded-[32px] border border-ink-900/10 bg-brand-sky/40 shadow-soft">
@@ -528,10 +502,10 @@
           <p class="chip">Notes from the co-study</p>
           <h2 class="display mt-4 text-[clamp(1.9rem,3.2vw,2.75rem)] text-ink-900">Kind words from kind students.</h2>
         </div>
-        <p class="max-w-sm text-ink-700">Featured from messages we receive each month. Share your own on Instagram <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" class="font-semibold text-ink-900 underline decoration-ink-900/30 underline-offset-4 hover:decoration-ink-900">@studypuffacademy</a>, YouTube or Twitch.</p>
+        <p class="max-w-sm text-ink-700">Featured from messages we receive each month. Share your own on Instagram <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" class="font-semibold text-ink-900 underline decoration-ink-900/30 underline-offset-4 hover:decoration-ink-900">@StudyPuffAcademy</a>, YouTube or Twitch.</p>
       </div>
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <figure class="card p-6 reveal flex flex-col">
+      <div class="flex snap-x gap-6 overflow-x-auto pb-4">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff helped me realize I'm not bad at studying. I just needed the right motivation."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -539,7 +513,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Mia</div><div class="text-[11px] text-ink-700">Member · 8 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.04s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.04s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"A great community to study with, connect with, and share things with."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -547,7 +521,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Tobi</div><div class="text-[11px] text-ink-700">Member · 5 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.08s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.08s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff means quality time for me. The live study sessions help me feel motivated, focused, and less overwhelmed."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -555,7 +529,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Sofia</div><div class="text-[11px] text-ink-700">Member · 1 year</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.12s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.12s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff makes studying at home feel less lonely. It's comforting to know others are studying too."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -563,7 +537,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Noor</div><div class="text-[11px] text-ink-700">Member · 6 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.16s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.16s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"A place of growth and motivation."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -571,7 +545,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Emi</div><div class="text-[11px] text-ink-700">Member · 3 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.20s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.20s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff has been my study savior. It keeps me motivated, focused, and makes studying feel fun."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -579,7 +553,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Lena</div><div class="text-[11px] text-ink-700">Member · 4 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.24s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.24s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff gives me the focus of studying alone, but with the connection of a community."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -587,7 +561,7 @@
             <div><div class="text-sm font-semibold text-ink-900">Aria</div><div class="text-[11px] text-ink-700">Member · 11 months</div></div>
           </figcaption>
         </figure>
-        <figure class="card p-6 reveal flex flex-col" style="transition-delay:.28s">
+        <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col" style="transition-delay:.28s">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"It feels like discovering an underrated library full of like-minded people from around the world."</blockquote>
           <figcaption class="mt-5 flex items-center gap-3">
@@ -605,7 +579,7 @@
       <div class="reveal">
         <p class="chip">FAQ</p>
         <h2 class="display mt-4 text-[clamp(1.9rem,3.2vw,2.75rem)] text-ink-900">Gentle answers to common questions.</h2>
-        <p class="mt-4 text-ink-700">Can't find yours? <a href="./contact/index.html" class="font-semibold underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900 transition">Write to us</a> — we answer within two days.</p>
+        <p class="mt-4 text-ink-700">Can't find yours? <a href="./contact/index.html" class="font-semibold underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900 transition">Write to us</a> — we answer within 2 workdays.</p>
       </div>
       <div class="space-y-3 reveal" style="transition-delay:.08s">
         <details class="card p-5">
@@ -675,7 +649,7 @@
     <div class="mx-auto grid max-w-[1240px] grid-cols-2 gap-10 px-6 py-14 md:grid-cols-5 lg:px-10">
       <div class="col-span-2">
         <a href="./index.html" class="display text-2xl text-ink-900">StudyPuff</a>
-        <p class="mt-3 max-w-sm text-sm text-ink-700">A calm, science-based home for students who want to focus, learn, and live well — without the hustle.</p>
+        <p class="mt-3 max-w-sm text-sm text-ink-700">A cozy, science-based environment for students who want to improve their performance without burning out.</p>
         <div class="mt-5 flex flex-wrap items-center gap-3">
           <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" aria-label="Instagram" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".9" fill="currentColor" stroke="none"/></svg></a>
           <a href="https://www.youtube.com/@StudyPuffAcademy" target="_blank" rel="noopener" aria-label="YouTube" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-900/15 text-ink-700 hover:border-ink-900 hover:text-ink-900 transition"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M21.6 7.2a2.6 2.6 0 0 0-1.8-1.85C18.2 5 12 5 12 5s-6.2 0-7.8.35A2.6 2.6 0 0 0 2.4 7.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 4.8 2.6 2.6 0 0 0 1.8 1.85C5.8 19 12 19 12 19s6.2 0 7.8-.35a2.6 2.6 0 0 0 1.8-1.85A27 27 0 0 0 22 12a27 27 0 0 0-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></a>
