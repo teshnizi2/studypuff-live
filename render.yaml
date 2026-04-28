@@ -1,7 +1,8 @@
 services:
-  - type: static
+  - type: web
     name: studypuff-live
+    runtime: static
     plan: free
     rootDir: .
-    buildCommand: ""
+    buildCommand: "echo 'No build step required'"
     staticPublishPath: .
