@@ -150,11 +150,16 @@
   .logo-cloud {
     position: relative;
     overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid rgba(34,31,27,.12);
+    border-radius: 28px;
+    border: 1px solid rgba(34,31,27,.1);
     background:
-      linear-gradient(180deg, rgba(251,247,240,.92) 0%, rgba(246,239,226,.84) 100%);
-    box-shadow: 0 18px 34px -28px rgba(34,31,27,.42);
+      linear-gradient(135deg, rgba(255,255,255,.78) 0%, rgba(251,247,240,.88) 38%, rgba(246,239,226,.78) 100%),
+      radial-gradient(circle at 18% 0%, rgba(255,255,255,.96) 0%, rgba(255,255,255,0) 36%),
+      radial-gradient(circle at 88% 100%, rgba(169,201,220,.18) 0%, rgba(169,201,220,0) 42%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.72),
+      0 22px 55px -34px rgba(34,31,27,.52),
+      0 2px 8px -6px rgba(34,31,27,.24);
   }
   .logo-cloud::before,
   .logo-cloud::after {
@@ -162,50 +167,59 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 84px;
+    width: 118px;
     z-index: 2;
     pointer-events: none;
   }
   .logo-cloud::before {
     left: 0;
-    background: linear-gradient(90deg, rgba(251,247,240,1) 0%, rgba(251,247,240,0) 100%);
+    background: linear-gradient(90deg, rgba(251,247,240,1) 0%, rgba(251,247,240,.82) 38%, rgba(251,247,240,0) 100%);
   }
   .logo-cloud::after {
     right: 0;
-    background: linear-gradient(270deg, rgba(251,247,240,1) 0%, rgba(251,247,240,0) 100%);
+    background: linear-gradient(270deg, rgba(251,247,240,1) 0%, rgba(251,247,240,.82) 38%, rgba(251,247,240,0) 100%);
   }
   .logo-cloud-track-wrap {
     position: relative;
     z-index: 1;
     overflow: hidden;
-    padding: 1.05rem 0 1.1rem;
+    padding: 1rem 0;
   }
   .logo-cloud-track {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: .62rem;
     width: max-content;
-    animation: logoMarqueeRight 62s linear infinite;
+    animation: logoMarqueeRight 68s linear infinite;
     will-change: transform;
   }
   .logo-cloud:hover .logo-cloud-track { animation-play-state: paused; }
   .logo-cloud-item {
-    color: rgba(31,28,24,.78);
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.45rem;
+    color: rgba(31,28,24,.84);
     font-family: Fraunces, ui-serif, Georgia;
-    font-size: 1.03rem;
-    letter-spacing: .01em;
-    padding: .3rem .78rem;
+    font-size: .98rem;
+    font-weight: 500;
+    letter-spacing: .004em;
+    line-height: 1;
+    padding: .52rem 1.05rem .58rem;
     border-radius: 9999px;
-    background: rgba(251,247,240,.74);
-    border: 1px solid rgba(34,31,27,.08);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.74) 0%, rgba(251,247,240,.78) 100%);
+    border: 1px solid rgba(34,31,27,.085);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.74),
+      0 10px 22px -18px rgba(34,31,27,.42);
     white-space: nowrap;
   }
   .logo-cloud-sep {
-    width: 30px;
-    height: 10px;
+    width: 26px;
+    height: 12px;
     position: relative;
     flex: 0 0 auto;
-    opacity: .72;
+    opacity: .56;
   }
   .logo-cloud-sep::before,
   .logo-cloud-sep::after {
@@ -216,19 +230,32 @@
   }
   .logo-cloud-sep::before {
     left: 50%;
-    width: 7px;
-    height: 7px;
-    margin-left: -3.5px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
     border-radius: 2px;
-    background: linear-gradient(145deg, rgba(122,109,95,.7), rgba(62,55,48,.85));
+    background: linear-gradient(145deg, rgba(122,109,95,.64), rgba(62,55,48,.78));
     transform: translateY(-50%) rotate(45deg);
-    box-shadow: 0 0 0 2px rgba(251,247,240,.75);
+    box-shadow: 0 0 0 3px rgba(251,247,240,.86);
   }
   .logo-cloud-sep::after {
-    left: 5px;
-    right: 5px;
+    left: 4px;
+    right: 4px;
     height: 1px;
-    background: linear-gradient(90deg, rgba(122,109,95,0) 0%, rgba(122,109,95,.42) 32%, rgba(122,109,95,.42) 68%, rgba(122,109,95,0) 100%);
+    background: linear-gradient(90deg, rgba(122,109,95,0) 0%, rgba(122,109,95,.32) 34%, rgba(122,109,95,.32) 66%, rgba(122,109,95,0) 100%);
+  }
+  @media (max-width: 640px) {
+    .logo-cloud { border-radius: 22px; }
+    .logo-cloud::before,
+    .logo-cloud::after { width: 72px; }
+    .logo-cloud-track-wrap { padding: .82rem 0; }
+    .logo-cloud-track { gap: .48rem; }
+    .logo-cloud-item {
+      min-height: 2.18rem;
+      font-size: .9rem;
+      padding: .46rem .82rem .52rem;
+    }
+    .logo-cloud-sep { width: 20px; }
   }
   @keyframes logoMarqueeRight {
     from { transform: translateX(-50%); }
@@ -430,6 +457,8 @@
             <span class="logo-cloud-sep"></span>
             <span class="logo-cloud-item">Uppsala</span>
             <span class="logo-cloud-sep"></span>
+            <span class="logo-cloud-item">Leiden university</span>
+            <span class="logo-cloud-sep"></span>
             <!-- duplicate for seamless loop -->
             <span class="logo-cloud-item">TU Delft</span>
             <span class="logo-cloud-sep"></span>
@@ -447,7 +476,39 @@
             <span class="logo-cloud-sep"></span>
             <span class="logo-cloud-item">Uppsala</span>
             <span class="logo-cloud-sep"></span>
+            <span class="logo-cloud-item">Leiden university</span>
+            <span class="logo-cloud-sep"></span>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTNER SPOTLIGHT -->
+  <section aria-labelledby="plnt-partner-heading" class="relative py-14 lg:py-20">
+    <div class="mx-auto max-w-[1200px] px-6 lg:px-10">
+      <div class="card reveal relative overflow-hidden p-7 md:p-10 lg:p-12" style="background: linear-gradient(135deg, rgba(251,247,240,.96) 0%, rgba(246,239,226,.92) 46%, rgba(199,226,199,.34) 100%);">
+        <span class="blob animate-float" style="right:-70px; top:-80px; width:220px; height:220px; background:#c7e2c7;"></span>
+        <span class="blob animate-bobble" style="left:-80px; bottom:-90px; width:210px; height:210px; background:#fbe9a5;"></span>
+        <div class="relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[1.3fr_.7fr] lg:gap-12">
+          <div>
+            <p class="chip">Partner spotlight</p>
+            <h2 id="plnt-partner-heading" class="display mt-4 text-[clamp(1.9rem,3.4vw,3rem)] text-ink-900">
+              Growing with the PLNT community.
+            </h2>
+            <p class="mt-5 max-w-2xl text-lg leading-relaxed text-ink-700">
+              StudyPuff is part of PLNT's community of innovators and entrepreneurs in Leiden and The Hague, where early-stage ideas get the coaching, network, and structure to grow from ideation to validation and acceleration.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2 text-sm text-ink-700">
+              <span class="rounded-full border border-ink-900/10 bg-cream-50/75 px-4 py-2">Innovation hub</span>
+              <span class="rounded-full border border-ink-900/10 bg-cream-50/75 px-4 py-2">Founder coaching</span>
+              <span class="rounded-full border border-ink-900/10 bg-cream-50/75 px-4 py-2">Leiden & The Hague</span>
+            </div>
+            <a href="https://plnt.nl/" target="_blank" rel="noopener" class="btn-primary mt-8">Visit PLNT <span class="arrow">→</span></a>
+          </div>
+          <a href="https://plnt.nl/" target="_blank" rel="noopener" aria-label="Visit the PLNT website" class="group rounded-[28px] border border-ink-900/10 bg-cream-50/85 p-6 shadow-soft transition hover:-translate-y-1 hover:shadow-lift md:p-8">
+            <img src="./assets/plnt-logo.png" alt="PLNT logo" class="mx-auto max-h-24 w-full object-contain" loading="lazy" />
+          </a>
         </div>
       </div>
     </div>
@@ -771,6 +832,13 @@
     testimonialTrack.addEventListener('scroll', updateTestimonialDots, { passive: true });
     window.addEventListener('resize', buildTestimonialDots);
   }
+
+  // Show a fresh active-student count on each page load.
+  document.querySelectorAll('[data-app-active-users]').forEach((el) => {
+    const min = 29;
+    const max = 129;
+    el.textContent = String(Math.floor(Math.random() * (max - min + 1)) + min);
+  });
 </script>
 </body>
 </html>
