@@ -65,6 +65,10 @@
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
+  main.gradient-surface {
+    min-height: 100vh;
+    overflow-x: clip;
+  }
   .display { font-family: Fraunces, ui-serif, Georgia; font-weight: 500; letter-spacing: -0.015em; line-height: 1.04; }
   .gradient-surface {
     background:
@@ -265,6 +269,25 @@
   /* Star row */
   .stars { display:inline-flex; gap:2px; color:#d4a44a; }
 
+  /* Testimonial carousel dots */
+  .testimonial-track {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .testimonial-track::-webkit-scrollbar { display: none; }
+  .testimonial-dot {
+    height: .65rem;
+    width: .65rem;
+    border-radius: 9999px;
+    background: rgba(31,28,24,.28);
+    transition: width .2s ease, background .2s ease, transform .2s ease;
+  }
+  .testimonial-dot:hover { transform: translateY(-1px); background: rgba(31,28,24,.55); }
+  .testimonial-dot[aria-current="true"] {
+    width: 1.75rem;
+    background: #1f1c18;
+  }
+
   /* Product illustration canvas */
   .prod-art { aspect-ratio: 1/1; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
   .prod-art > svg { width: 64%; height: 64%; filter: drop-shadow(0 10px 20px rgba(31,28,24,.15)); }
@@ -339,7 +362,7 @@
         <h1 class="display mt-5 text-[clamp(2.6rem,5.2vw,4.5rem)] text-ink-900">
           Small progress, is still progress.
         </h1>
-        <p class="mt-6 max-w-2xl text-lg text-ink-700">
+        <p class="mt-6 max-w-3xl text-lg text-ink-700">
           StudyPuff is the home for students who want to improve their performance,
           without burning out. Join a workshop, drop into a free livestream,
           or use one of our free templates.
@@ -504,7 +527,7 @@
         </div>
         <p class="max-w-sm text-ink-700">Featured from messages we receive each month. Share your own on Instagram <a href="https://www.instagram.com/studypuffacademy" target="_blank" rel="noopener" class="font-semibold text-ink-900 underline decoration-ink-900/30 underline-offset-4 hover:decoration-ink-900">@StudyPuffAcademy</a>, YouTube or Twitch.</p>
       </div>
-      <div class="flex snap-x gap-6 overflow-x-auto pb-4">
+      <div id="testimonial-track" class="testimonial-track flex snap-x gap-6 overflow-x-auto scroll-smooth pb-4" aria-label="Student testimonials">
         <figure class="card p-6 reveal flex min-w-[280px] snap-start flex-col">
           <div class="stars mb-3" aria-label="5 stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg></div>
           <blockquote class="display text-base text-ink-900 leading-snug flex-1">"StudyPuff helped me realize I'm not bad at studying. I just needed the right motivation."</blockquote>
@@ -570,6 +593,7 @@
           </figcaption>
         </figure>
       </div>
+      <div id="testimonial-dots" class="mt-5 flex items-center justify-center gap-2" aria-label="Choose testimonial page"></div>
     </div>
   </section>
 
@@ -579,7 +603,7 @@
       <div class="reveal">
         <p class="chip">FAQ</p>
         <h2 class="display mt-4 text-[clamp(1.9rem,3.2vw,2.75rem)] text-ink-900">Gentle answers to common questions.</h2>
-        <p class="mt-4 text-ink-700">Can't find yours? <a href="./contact/index.html" class="font-semibold underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900 transition">Write to us</a> — we answer within 2 workdays.</p>
+        <p class="mt-4 text-ink-700">Can't find yours? <a href="./contact/index.html" class="font-semibold underline decoration-ink-900/40 underline-offset-4 hover:decoration-ink-900 transition">Write to us</a> — we answer within 3 workdays.</p>
       </div>
       <div class="space-y-3 reveal" style="transition-delay:.08s">
         <details class="card p-5">
@@ -700,6 +724,53 @@
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Testimonial dot pagination
+  const testimonialTrack = document.getElementById('testimonial-track');
+  const testimonialDots = document.getElementById('testimonial-dots');
+  if (testimonialTrack && testimonialDots) {
+    const buildTestimonialDots = () => {
+      const maxScroll = Math.max(0, testimonialTrack.scrollWidth - testimonialTrack.clientWidth);
+      const pageCount = Math.max(1, Math.ceil(testimonialTrack.scrollWidth / testimonialTrack.clientWidth));
+      testimonialDots.innerHTML = '';
+
+      for (let index = 0; index < pageCount; index += 1) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'testimonial-dot';
+        dot.setAttribute('aria-label', `Go to testimonial page ${index + 1}`);
+        dot.addEventListener('click', () => {
+          testimonialTrack.scrollTo({
+            left: Math.min(index * testimonialTrack.clientWidth, maxScroll),
+            behavior: 'smooth'
+          });
+        });
+        testimonialDots.appendChild(dot);
+      }
+      updateTestimonialDots();
+    };
+
+    const updateTestimonialDots = () => {
+      const dots = Array.from(testimonialDots.querySelectorAll('button'));
+      if (!dots.length) return;
+      const maxScroll = Math.max(1, testimonialTrack.scrollWidth - testimonialTrack.clientWidth);
+      const activeIndex = Math.min(
+        dots.length - 1,
+        Math.round((testimonialTrack.scrollLeft / maxScroll) * (dots.length - 1))
+      );
+      dots.forEach((dot, index) => {
+        if (index === activeIndex) {
+          dot.setAttribute('aria-current', 'true');
+        } else {
+          dot.removeAttribute('aria-current');
+        }
+      });
+    };
+
+    buildTestimonialDots();
+    testimonialTrack.addEventListener('scroll', updateTestimonialDots, { passive: true });
+    window.addEventListener('resize', buildTestimonialDots);
+  }
 </script>
 </body>
 </html>
