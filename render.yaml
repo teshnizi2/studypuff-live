@@ -1,7 +1,12 @@
 services:
   - type: web
     name: studypuff-live
-    runtime: static
+    runtime: node
+    region: frankfurt
+    plan: starter
     rootDir: .
-    buildCommand: "echo 'No build step required'"
-    staticPublishPath: .
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

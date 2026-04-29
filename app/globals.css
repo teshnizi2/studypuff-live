@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #efecec;
+  --bg-cream: #fdfbf7;
+  --ink: #1f1f1f;
+  --ink-soft: #3a3a3a;
+  --accent-pink: #f3c6c2;
+  --accent-peach: #f6d4b7;
+  --accent-butter: #fbe9a5;
+  --accent-mint: #c7e2c7;
+  --accent-sky: #c6dceb;
+  --accent-lilac: #d9cdea;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Quattrocento", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gradient background with subtle grain */
+.gradient-surface {
+  background:
+    radial-gradient(ellipse at top left, rgba(243, 198, 194, 0.35), transparent 50%),
+    radial-gradient(ellipse at top right, rgba(251, 233, 165, 0.35), transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(199, 226, 199, 0.35), transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(217, 205, 234, 0.35), transparent 50%),
+    linear-gradient(180deg, #efecec 0%, #f8f3ea 100%);
+  background-size: 200% 200%;
+  animation: gradient 18s ease infinite;
+}
+
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Subtle grain */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.75rem;
+  background: var(--ink);
+  color: #fdfbf7;
+  border-radius: 999px;
+  font-family: "Quattrocento", Georgia, serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.35);
+  background: #2e2e2e;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.75rem;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  background: var(--ink);
+  color: #fdfbf7;
+  transform: translateY(-2px);
+}
+
+/* Headline feel */
+.display-heading {
+  font-family: "Trirong", Georgia, serif;
+  font-weight: 300;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+}
+
+h1, h2, h3, h4 {
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: none;
+  word-break: normal;
+}
+
+p { text-wrap: pretty; }
+
+/* Reveal-on-scroll helper */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Sticky underline for nav */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.35s ease;
+}
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Marquee */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 50s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* FAQ details styling */
+details.faq summary {
+  list-style: none;
+  cursor: pointer;
+}
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary .plus {
+  transition: transform 0.3s ease;
+}
+details.faq[open] summary .plus {
+  transform: rotate(45deg);
+}
+
+/* Simple floating shapes */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Glow/ring for hero image */
+.ring-soft {
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.06),
+    0 30px 60px -30px rgba(0,0,0,0.25);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-butter);
+  color: var(--ink);
+}
+
+/* Scrollbar (webkit) */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }

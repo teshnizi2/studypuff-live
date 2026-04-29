@@ -1,0 +1,194 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type UserRole = "user" | "admin";
+export type StudyMode = "focus" | "short" | "long";
+export type TaskPriority = "low" | "normal" | "high";
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string;
+          email: string;
+          display_name: string | null;
+          role: UserRole;
+          is_suspended: boolean;
+          created_at: string;
+          updated_at: string;
+          last_seen_at: string | null;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          display_name?: string | null;
+          role?: UserRole;
+          is_suspended?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          last_seen_at?: string | null;
+        };
+        Update: {
+          email?: string;
+          display_name?: string | null;
+          role?: UserRole;
+          is_suspended?: boolean;
+          updated_at?: string;
+          last_seen_at?: string | null;
+        };
+      };
+      user_settings: {
+        Row: {
+          user_id: string;
+          focus_minutes: number;
+          short_break_minutes: number;
+          long_break_minutes: number;
+          daily_goal_minutes: number;
+          dark_mode: boolean;
+          auto_cycle: boolean;
+          ambient: string;
+          chime: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          focus_minutes?: number;
+          short_break_minutes?: number;
+          long_break_minutes?: number;
+          daily_goal_minutes?: number;
+          dark_mode?: boolean;
+          auto_cycle?: boolean;
+          ambient?: string;
+          chime?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          focus_minutes?: number;
+          short_break_minutes?: number;
+          long_break_minutes?: number;
+          daily_goal_minutes?: number;
+          dark_mode?: boolean;
+          auto_cycle?: boolean;
+          ambient?: string;
+          chime?: boolean;
+          updated_at?: string;
+        };
+      };
+      topics: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          position?: number;
+          updated_at?: string;
+        };
+      };
+      tasks: {
+        Row: {
+          id: string;
+          user_id: string;
+          topic_id: string | null;
+          text: string;
+          done: boolean;
+          priority: TaskPriority;
+          due_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          topic_id?: string | null;
+          text: string;
+          done?: boolean;
+          priority?: TaskPriority;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          topic_id?: string | null;
+          text?: string;
+          done?: boolean;
+          priority?: TaskPriority;
+          due_date?: string | null;
+          updated_at?: string;
+        };
+      };
+      study_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          topic_id: string | null;
+          task_id: string | null;
+          topic_name: string | null;
+          task_name: string | null;
+          minutes: number;
+          mode: StudyMode;
+          focus_score: number | null;
+          studied_on: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          topic_id?: string | null;
+          task_id?: string | null;
+          topic_name?: string | null;
+          task_name?: string | null;
+          minutes: number;
+          mode?: StudyMode;
+          focus_score?: number | null;
+          studied_on?: string;
+          created_at?: string;
+        };
+        Update: {
+          focus_score?: number | null;
+        };
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          target_user_id: string | null;
+          action: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          target_user_id?: string | null;
+          action: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: never;
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: {
+      user_role: UserRole;
+      study_mode: StudyMode;
+      task_priority: TaskPriority;
+    };
+    CompositeTypes: Record<string, never>;
+  };
+}
