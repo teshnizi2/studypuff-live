@@ -66,6 +66,8 @@ export interface Database {
           auto_cycle: boolean;
           ambient: string;
           chime: boolean;
+          coins: number;
+          lifetime_focus_minutes: number;
           created_at: string;
           updated_at: string;
         };
@@ -271,12 +273,35 @@ export interface Database {
           deleted_at?: string | null;
         };
       };
+      user_purchases: {
+        Row: {
+          user_id: string;
+          item_id: string;
+          price_paid: number;
+          purchased_at: string;
+        };
+        Insert: {
+          user_id: string;
+          item_id: string;
+          price_paid: number;
+          purchased_at?: string;
+        };
+        Update: never;
+      };
     };
     Views: Record<string, never>;
     Functions: {
       join_room_by_code: {
         Args: { p_code: string };
         Returns: string;
+      };
+      award_focus_coins: {
+        Args: { p_minutes: number; p_coins: number };
+        Returns: void;
+      };
+      purchase_reward: {
+        Args: { p_item_id: string; p_price: number };
+        Returns: boolean;
       };
     };
     Enums: {

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { requireUser } from "@/lib/auth/guards";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -8,43 +10,70 @@ const dashboardLinks = [
   { label: "Overview", href: "/dashboard" },
   { label: "Timer", href: "/dashboard/timer" },
   { label: "Tasks", href: "/dashboard/tasks" },
+  { label: "Stats", href: "/dashboard/stats" },
   { label: "Rooms", href: "/dashboard/rooms" },
+  { label: "Rewards", href: "/dashboard/rewards" },
   { label: "Profile", href: "/dashboard/profile" },
   { label: "Settings", href: "/dashboard/settings" }
 ];
 
-export function DashboardShell({
+export async function DashboardShell({
   children,
   title,
   subtitle,
-  profile
+  profile: profileProp
 }: {
   children: React.ReactNode;
   title: string;
   subtitle: string;
   profile?: Profile | null;
 }) {
+  // Resolve profile + coins server-side so every dashboard page shows the live balance
+  const session = await requireUser();
+  const profile = profileProp ?? session.profile;
+  const supabase = createSupabaseServerClient();
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("coins")
+    .eq("user_id", session.user.id)
+    .single();
+  const coins = settings?.coins ?? 0;
+
   const isAdmin = profile?.role === "admin";
   const initial = (profile?.display_name || profile?.email || "?").charAt(0).toUpperCase();
 
   return (
     <main className="min-h-screen bg-cream-100">
       <header className="border-b border-ink-900/10 bg-cream-50/90 backdrop-blur">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <div className="flex flex-col gap-1">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col gap-1">
+              <Link
+                href="/"
+                className="inline-flex w-fit items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900"
+              >
+                <span aria-hidden>←</span> Back to site
+              </Link>
+              <Link href="/dashboard" className="font-display text-2xl text-ink-900">
+                StudyPuff
+              </Link>
+            </div>
             <Link
-              href="/"
-              className="inline-flex w-fit items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900"
+              href="/dashboard/rewards"
+              className="hidden items-center gap-2 rounded-full border border-ink-900/10 bg-brand-butter px-3 py-1.5 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5 sm:inline-flex"
+              aria-label={`${coins} coins — open rewards`}
             >
-              <span aria-hidden>←</span> Back to site
-            </Link>
-            <Link href="/" className="font-display text-3xl text-ink-900">
-              StudyPuff
+              <span aria-hidden>🪙</span>
+              {coins}
             </Link>
           </div>
-          <nav className="flex flex-wrap items-center gap-4 text-sm">
+          <nav className="flex flex-wrap items-center gap-3 text-sm">
             {dashboardLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="nav-link text-ink-700">
+              <Link
+                key={link.href}
+                href={link.href}
+                className="nav-link text-ink-700 hover:text-ink-900"
+              >
                 {link.label}
               </Link>
             ))}
@@ -76,7 +105,7 @@ export function DashboardShell({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[1200px] px-6 py-10 lg:px-10">
+      <section className="mx-auto max-w-[1280px] px-6 py-10 lg:px-10">
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
             Study workspace

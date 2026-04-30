@@ -191,6 +191,34 @@ export async function addStudySessionAction(formData: FormData) {
     focus_score: numberValue(formData, "focus_score", 0) || null
   });
 
+  // Reward coins for focus sessions: 1 coin per minute focused, capped at 90
+  if (mode === "focus" && minutes > 0) {
+    const coinsEarned = Math.min(minutes, 90);
+    await supabase.rpc("award_focus_coins", {
+      p_minutes: minutes,
+      p_coins: coinsEarned
+    });
+  }
+
   revalidatePath("/dashboard/timer");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/stats");
+  revalidatePath("/dashboard/rewards");
+}
+
+export async function purchaseRewardAction(formData: FormData) {
+  await requireUser();
+  const itemId = stringValue(formData, "item_id");
+  const price = numberValue(formData, "price", 0);
+  if (!itemId) throw new Error("Missing item.");
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.rpc("purchase_reward", {
+    p_item_id: itemId,
+    p_price: price
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard");
 }
