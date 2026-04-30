@@ -1,18 +1,15 @@
 const ITEMS = [
-  "TU Delft",
-  "Universiteit van Amsterdam",
-  "Erasmus University Rotterdam",
   "Leiden University",
-  "Utrecht University",
-  "Maastricht University",
+  "TU Delft",
+  "The Hague University of Applied Sciences",
+  "Erasmus University Rotterdam",
   "KU Leuven",
-  "ETH Zürich",
-  "Cambridge",
-  "Oxford",
-  "Stanford",
-  "MIT",
-  "NUS Singapore",
-  "Trinity College Dublin"
+  "Indian Institute of Science",
+  "Cambridge University",
+  "Stanford University",
+  "Maastricht University",
+  "VU Amsterdam",
+  "University of Amsterdam"
 ];
 
 export default function Marquee() {
