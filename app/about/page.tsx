@@ -32,13 +32,13 @@ const TEAM = [
   {
     name: "Elaine Herkul",
     role: "Founder · CEO",
-    photo: "/assets/elaine.png",
+    photo: "/assets/elaine.jpg",
     bio: "Elaine is currently pursuing her master's in Applied Cognitive Psychology and her master's in Statistics and Data Science. She has been hosting the study with me livestreams since 2021 and continues to work on ways to give back to students."
   },
   {
     name: "Hera Imthorn",
     role: "Co-founder · Research & Development",
-    photo: "/assets/hera.png",
+    photo: "/assets/hera.jpg",
     bio: "As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning."
   },
   {
