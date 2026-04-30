@@ -97,6 +97,8 @@ export function DashboardActions(props: Props) {
         tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
         topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
         onComplete={addStudySessionAction}
+        onCreateTask={createTaskAction}
+        onCreateTopic={createTopicAction}
         equippedSound={props.equippedSound}
         equippedAccessory={props.equippedAccessory}
         onSettingsClick={() => setOpen("settings")}

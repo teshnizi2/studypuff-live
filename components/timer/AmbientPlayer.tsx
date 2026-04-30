@@ -7,15 +7,17 @@ type Props = {
   playing: boolean;
 };
 
-// Synthesised ambience — no audio files required. Each sound is a small
-// WebAudio graph based on coloured noise + light modulation. Quality is
-// modest by design; we can swap in recorded loops later without changing
-// callers.
+// Lower-noise, calmer synthesised ambience. Each preset has a softer
+// volume target and gentler filtering than the first iteration. We can
+// swap any of these for a recorded audio loop later by adding a file
+// to /public/sounds and toggling on `useFile` in startAmbient.
+const MASTER_GAIN = 0.08;
+
 export function AmbientPlayer({ sound, playing }: Props) {
   const ctxRef = useRef<AudioContext | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
-  const [muted, setMuted] = useState(false);
   const masterRef = useRef<GainNode | null>(null);
+  const [muted, setMuted] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -34,12 +36,10 @@ export function AmbientPlayer({ sound, playing }: Props) {
         stopRef.current = null;
       }
     };
-
     if (!playing || !sound) {
       teardown();
       return;
     }
-
     let ctx = ctxRef.current;
     if (!ctx) {
       const Ctor =
@@ -53,27 +53,24 @@ export function AmbientPlayer({ sound, playing }: Props) {
 
     teardown();
     const master = ctx.createGain();
-    master.gain.value = muted ? 0 : 0.18;
+    master.gain.value = muted ? 0 : MASTER_GAIN;
     master.connect(ctx.destination);
     masterRef.current = master;
     stopRef.current = startAmbient(ctx, sound, master);
   }, [sound, playing, muted]);
 
   useEffect(() => {
-    if (masterRef.current) {
-      masterRef.current.gain.value = muted ? 0 : 0.18;
-    }
+    const m = masterRef.current;
+    if (m) m.gain.value = muted ? 0 : MASTER_GAIN;
   }, [muted]);
 
   if (!sound || !playing) return null;
-
   return (
     <button
       type="button"
       onClick={() => setMuted((m) => !m)}
       className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-2 rounded-full bg-cream-50/95 px-4 py-2 text-sm font-semibold text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur"
       aria-label={muted ? "Unmute ambient sound" : "Mute ambient sound"}
-      title={muted ? "Click to unmute" : "Click to mute"}
     >
       <span aria-hidden>{muted ? "🔇" : "🔊"}</span>
       Ambient
@@ -84,12 +81,21 @@ export function AmbientPlayer({ sound, playing }: Props) {
 function startAmbient(ctx: AudioContext, soundId: string, master: GainNode): () => void {
   const cleanups: Array<() => void> = [];
 
-  const noise = createNoiseSource(ctx, "pink");
-  const tone = ctx.createBiquadFilter();
-  tone.type = "lowpass";
-  tone.frequency.value = 4000;
-  tone.Q.value = 0.7;
-  noise.connect(tone).connect(master);
+  // Lo-fi is a melodic preset (no noise base)
+  if (soundId === "sound-lofi") {
+    cleanups.push(...startLoFi(ctx, master));
+    return () => cleanups.forEach((c) => c());
+  }
+
+  // All other presets are softly-shaped brown noise
+  const noise = createNoiseSource(ctx, "brown");
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 1200;
+  lp.Q.value = 0.7;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.5;
+  noise.connect(lp).connect(gain).connect(master);
   noise.start();
   cleanups.push(() => {
     try {
@@ -99,70 +105,143 @@ function startAmbient(ctx: AudioContext, soundId: string, master: GainNode): () 
     }
   });
 
+  // Slow LFO on overall gain for natural variation
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 0.07;
+  const lfoAmp = ctx.createGain();
+  lfoAmp.gain.value = 0.18;
+  const lfoBias = ctx.createConstantSource();
+  lfoBias.offset.value = 0.5;
+  lfoBias.start();
+  lfo.connect(lfoAmp).connect(gain.gain);
+  lfo.start();
+  cleanups.push(() => {
+    try {
+      lfo.stop();
+      lfoBias.stop();
+    } catch {
+      /* noop */
+    }
+  });
+
   if (soundId === "sound-rain") {
-    tone.frequency.value = 2200;
-    // Light shimmer of higher band noise on top
-    const high = createNoiseSource(ctx, "white");
-    const hp = ctx.createBiquadFilter();
-    hp.type = "highpass";
-    hp.frequency.value = 2500;
-    const hg = ctx.createGain();
-    hg.gain.value = 0.05;
-    high.connect(hp).connect(hg).connect(master);
-    high.start();
-    cleanups.push(() => {
-      try {
-        high.stop();
-      } catch {
-        /* noop */
-      }
-    });
+    lp.frequency.value = 1800;
+    // soft droplets
+    cleanups.push(scheduleDroplets(ctx, master, [200, 700], 0.04, 1500, 4500));
   } else if (soundId === "sound-library") {
-    tone.frequency.value = 1500;
-    master.gain.value *= 0.6;
-    cleanups.push(scheduleClicks(ctx, master, 0.035, [12_000, 35_000]));
+    lp.frequency.value = 700;
+    gain.gain.value = 0.35;
+    cleanups.push(scheduleDroplets(ctx, master, [300, 600], 0.02, 14_000, 30_000));
   } else if (soundId === "sound-forest") {
-    tone.frequency.value = 1800;
+    lp.frequency.value = 1000;
     cleanups.push(scheduleBirds(ctx, master));
   } else if (soundId === "sound-cafe") {
-    tone.frequency.value = 1200;
-    cleanups.push(scheduleClicks(ctx, master, 0.07, [3000, 9000]));
+    lp.frequency.value = 900;
+    cleanups.push(scheduleDroplets(ctx, master, [150, 350], 0.03, 4000, 12_000));
   } else if (soundId === "sound-fire") {
-    tone.frequency.value = 1300;
-    cleanups.push(scheduleClicks(ctx, master, 0.12, [400, 2500]));
+    lp.frequency.value = 1100;
+    cleanups.push(scheduleDroplets(ctx, master, [400, 1200], 0.05, 700, 3000));
   } else if (soundId === "sound-ocean") {
-    tone.frequency.value = 900;
-    // Slow LFO on a gain to simulate waves
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.4;
-    tone.disconnect();
-    tone.connect(lfoGain).connect(master);
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 0.12;
-    const lfoAmp = ctx.createGain();
-    lfoAmp.gain.value = 0.3;
-    lfo.connect(lfoAmp).connect(lfoGain.gain);
-    lfo.start();
+    lp.frequency.value = 600;
+    // Bigger LFO for wave swells
+    const wave = ctx.createOscillator();
+    wave.frequency.value = 0.1;
+    const waveAmp = ctx.createGain();
+    waveAmp.gain.value = 0.45;
+    wave.connect(waveAmp).connect(lp.frequency);
+    wave.start();
     cleanups.push(() => {
       try {
-        lfo.stop();
+        wave.stop();
       } catch {
         /* noop */
       }
     });
   }
 
-  return () => {
-    for (const c of cleanups) c();
-  };
+  return () => cleanups.forEach((c) => c());
 }
 
-function createNoiseSource(ctx: AudioContext, kind: "white" | "pink"): AudioBufferSourceNode {
+function startLoFi(ctx: AudioContext, master: GainNode): Array<() => void> {
+  // Soft chord pad: 4-note progression cycling on a slow tempo
+  const cleanups: Array<() => void> = [];
+  // Cmaj7 → Am7 → Fmaj7 → G7 (typical lo-fi loop, in low octave)
+  const PROG = [
+    [130.81, 164.81, 196.0, 246.94],
+    [110.0, 130.81, 164.81, 196.0],
+    [87.31, 130.81, 174.61, 220.0],
+    [98.0, 123.47, 146.83, 196.0]
+  ];
+  const padGain = ctx.createGain();
+  padGain.gain.value = 0;
+  padGain.connect(master);
+
+  // Soft warmth filter
+  const warm = ctx.createBiquadFilter();
+  warm.type = "lowpass";
+  warm.frequency.value = 1400;
+  warm.Q.value = 0.5;
+  padGain.connect(warm);
+
+  let stopped = false;
+  let chordIdx = 0;
+
+  const beatMs = 2200;
+  const playChord = () => {
+    if (stopped) return;
+    const notes = PROG[chordIdx % PROG.length];
+    const oscs: OscillatorNode[] = [];
+    const gains: GainNode[] = [];
+    const now = ctx.currentTime;
+    notes.forEach((freq) => {
+      const o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.2, now + 0.4);
+      g.gain.linearRampToValueAtTime(0.1, now + (beatMs / 1000) * 0.6);
+      g.gain.linearRampToValueAtTime(0, now + beatMs / 1000);
+      o.connect(g).connect(warm).connect(master);
+      o.start();
+      o.stop(now + beatMs / 1000 + 0.05);
+      oscs.push(o);
+      gains.push(g);
+    });
+    cleanups.push(() => {
+      oscs.forEach((o) => {
+        try {
+          o.stop();
+        } catch {
+          /* noop */
+        }
+      });
+    });
+    chordIdx++;
+  };
+
+  playChord();
+  const interval = setInterval(playChord, beatMs);
+  cleanups.push(() => {
+    stopped = true;
+    clearInterval(interval);
+  });
+  return cleanups;
+}
+
+function createNoiseSource(ctx: AudioContext, kind: "white" | "pink" | "brown"): AudioBufferSourceNode {
   const length = 2 * ctx.sampleRate;
   const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
   const data = buffer.getChannelData(0);
   if (kind === "white") {
     for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+  } else if (kind === "brown") {
+    let last = 0;
+    for (let i = 0; i < length; i++) {
+      const w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      data[i] = last * 3.5;
+    }
   } else {
     let b0 = 0,
       b1 = 0,
@@ -189,11 +268,13 @@ function createNoiseSource(ctx: AudioContext, kind: "white" | "pink"): AudioBuff
   return src;
 }
 
-function scheduleClicks(
+function scheduleDroplets(
   ctx: AudioContext,
   master: GainNode,
+  freqRange: [number, number],
   amp: number,
-  range: [number, number]
+  minDelay: number,
+  maxDelay: number
 ): () => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
   let stopped = false;
@@ -201,19 +282,20 @@ function scheduleClicks(
     if (stopped) return;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.type = "triangle";
-    o.frequency.value = 200 + Math.random() * 400;
-    g.gain.value = 0;
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 1500;
+    o.type = "sine";
+    o.frequency.value = freqRange[0] + Math.random() * (freqRange[1] - freqRange[0]);
     g.gain.setValueAtTime(0, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(amp, ctx.currentTime + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-    o.connect(g).connect(master);
+    g.gain.linearRampToValueAtTime(amp, ctx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+    o.connect(lp).connect(g).connect(master);
     o.start();
-    o.stop(ctx.currentTime + 0.2);
-    const next = range[0] + Math.random() * (range[1] - range[0]);
-    timer = setTimeout(tick, next);
+    o.stop(ctx.currentTime + 0.3);
+    timer = setTimeout(tick, minDelay + Math.random() * (maxDelay - minDelay));
   };
-  timer = setTimeout(tick, range[0]);
+  timer = setTimeout(tick, minDelay);
   return () => {
     stopped = true;
     if (timer) clearTimeout(timer);
@@ -225,22 +307,21 @@ function scheduleBirds(ctx: AudioContext, master: GainNode): () => void {
   let stopped = false;
   const tick = () => {
     if (stopped) return;
-    const base = 1500 + Math.random() * 1200;
+    const base = 1500 + Math.random() * 1000;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = "sine";
     o.frequency.setValueAtTime(base, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(base * 1.25, ctx.currentTime + 0.12);
-    g.gain.value = 0;
+    o.frequency.exponentialRampToValueAtTime(base * 1.2, ctx.currentTime + 0.1);
     g.gain.setValueAtTime(0, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.02);
+    g.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
     o.connect(g).connect(master);
     o.start();
     o.stop(ctx.currentTime + 0.3);
-    timer = setTimeout(tick, 6000 + Math.random() * 16000);
+    timer = setTimeout(tick, 8000 + Math.random() * 18_000);
   };
-  timer = setTimeout(tick, 4000);
+  timer = setTimeout(tick, 5000);
   return () => {
     stopped = true;
     if (timer) clearTimeout(timer);

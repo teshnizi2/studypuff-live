@@ -8,10 +8,10 @@ import {
   BarChart3,
   Sparkles,
   Music,
-  Volume2,
-  VolumeX,
-  CloudRain,
-  Flame,
+  RotateCcw,
+  ChevronDown,
+  Plus,
+  Check,
   type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
@@ -28,6 +28,8 @@ type Props = {
   tasks: Task[];
   topics: Topic[];
   onComplete: (form: FormData) => Promise<void>;
+  onCreateTask?: (form: FormData) => Promise<void>;
+  onCreateTopic?: (form: FormData) => Promise<void>;
   equippedSound?: string | null;
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
@@ -44,20 +46,15 @@ const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: stri
 
 type Mode = StudyMode | "custom";
 
-type SoundOption = {
-  id: string | null;
-  label: string;
-  Icon: LucideIcon;
-};
-
-const SOUND_OPTIONS: SoundOption[] = [
-  { id: null, label: "None", Icon: VolumeX },
-  { id: "sound-rain", label: "Rain", Icon: CloudRain },
-  { id: "sound-library", label: "Library", Icon: Volume2 },
-  { id: "sound-forest", label: "Forest", Icon: Music },
-  { id: "sound-cafe", label: "Café", Icon: Volume2 },
-  { id: "sound-fire", label: "Fire", Icon: Flame },
-  { id: "sound-ocean", label: "Ocean", Icon: Music }
+const SOUND_OPTIONS: { id: string | null; label: string }[] = [
+  { id: null, label: "Silence" },
+  { id: "sound-lofi", label: "Lo-fi pad" },
+  { id: "sound-rain", label: "Soft rain" },
+  { id: "sound-library", label: "Quiet library" },
+  { id: "sound-forest", label: "Forest morning" },
+  { id: "sound-cafe", label: "Cosy café" },
+  { id: "sound-fire", label: "Fireplace" },
+  { id: "sound-ocean", label: "Ocean waves" }
 ];
 
 export function TimerCircle({
@@ -68,6 +65,8 @@ export function TimerCircle({
   tasks,
   topics,
   onComplete,
+  onCreateTask,
+  onCreateTopic,
   equippedSound,
   equippedAccessory,
   onSettingsClick,
@@ -76,23 +75,28 @@ export function TimerCircle({
 }: Props) {
   const [mode, setMode] = useState<Mode>("focus");
   const [customMinutes, setCustomMinutes] = useState(15);
+  const [customSeconds, setCustomSeconds] = useState(0);
 
   const totalSeconds = useMemo(() => {
     if (mode === "focus") return focusMinutes * 60;
     if (mode === "short") return shortBreakMinutes * 60;
     if (mode === "long") return longBreakMinutes * 60;
-    return Math.max(1, customMinutes) * 60;
-  }, [mode, focusMinutes, shortBreakMinutes, longBreakMinutes, customMinutes]);
+    return Math.max(1, customMinutes * 60 + customSeconds);
+  }, [mode, focusMinutes, shortBreakMinutes, longBreakMinutes, customMinutes, customSeconds]);
 
   const [remaining, setRemaining] = useState(totalSeconds);
   const [running, setRunning] = useState(false);
   const [taskId, setTaskId] = useState<string>("");
   const [topicId, setTopicId] = useState<string>("");
   const [taskPickerOpen, setTaskPickerOpen] = useState(false);
-  const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-library");
+  const [soundOpen, setSoundOpen] = useState(false);
+  const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-lofi");
+  const [newTopicName, setNewTopicName] = useState("");
+  const [newTaskText, setNewTaskText] = useState("");
+  const [creating, setCreating] = useState(false);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset timer when mode/total changes
+  // Reset timer when total changes
   useEffect(() => {
     setRemaining(totalSeconds);
     setRunning(false);
@@ -123,10 +127,9 @@ export function TimerCircle({
 
   const handleComplete = useCallback(() => {
     setRunning(false);
-    const minutes = Math.round(totalSeconds / 60);
+    const minutes = Math.max(1, Math.round(totalSeconds / 60));
     const fd = new FormData();
     fd.set("minutes", String(minutes));
-    // Custom minutes still log as a focus session in the DB
     fd.set("mode", mode === "custom" ? "focus" : mode);
     if (topicId) fd.set("topic_id", topicId);
     if (taskId) {
@@ -138,9 +141,7 @@ export function TimerCircle({
       const t = topics.find((x) => x.id === topicId);
       if (t) fd.set("topic_name", t.name);
     }
-    onComplete(fd).catch(() => {
-      // swallow — we still played the chime
-    });
+    onComplete(fd).catch(() => {});
     chime();
   }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete]);
 
@@ -154,7 +155,6 @@ export function TimerCircle({
     handleComplete();
   };
 
-  // Ring math
   const radius = 140;
   const circumference = 2 * Math.PI * radius;
   const progress = totalSeconds === 0 ? 0 : 1 - remaining / totalSeconds;
@@ -167,7 +167,36 @@ export function TimerCircle({
   const ss = String(remaining % 60).padStart(2, "0");
 
   const selectedTaskLabel = tasks.find((t) => t.id === taskId)?.text;
-  const isPomodoroFocusMode = mode === "focus" || mode === "custom";
+  const selectedSoundLabel =
+    SOUND_OPTIONS.find((s) => s.id === sessionSound)?.label || "Silence";
+
+  const handleAddTopic = async () => {
+    if (!onCreateTopic || !newTopicName.trim()) return;
+    setCreating(true);
+    const fd = new FormData();
+    fd.set("name", newTopicName.trim());
+    try {
+      await onCreateTopic(fd);
+      setNewTopicName("");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!onCreateTask || !newTaskText.trim()) return;
+    setCreating(true);
+    const fd = new FormData();
+    fd.set("text", newTaskText.trim());
+    fd.set("priority", "normal");
+    if (topicId) fd.set("topic_id", topicId);
+    try {
+      await onCreateTask(fd);
+      setNewTaskText("");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-5 pb-6 pt-4 text-ink-900 shadow-soft sm:px-7 sm:pt-5">
@@ -191,7 +220,7 @@ export function TimerCircle({
         <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
       </svg>
 
-      {/* Top bar: nav icons left, gear right */}
+      {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           {onTasksClick && <IconButton Icon={ListChecks} label="Tasks" onClick={onTasksClick} />}
@@ -208,31 +237,42 @@ export function TimerCircle({
       <div className="mt-2 flex flex-col items-center">
         <div className="relative h-[260px] w-[260px] sm:h-[280px] sm:w-[280px]">
           <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full">
-            <circle cx={150} cy={150} r={radius + 2} fill="rgba(255,255,255,0.35)" />
+            <defs>
+              <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2f6f3e" />
+                <stop offset="100%" stopColor="#143a20" />
+              </linearGradient>
+              <radialGradient id="sheep-bg" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#6fa066" />
+                <stop offset="100%" stopColor="#3f6638" />
+              </radialGradient>
+            </defs>
+            <circle cx={150} cy={150} r={radius + 4} fill="rgba(255,255,255,0.45)" />
             <circle
               cx={150}
               cy={150}
               r={radius}
               fill="none"
-              stroke="rgba(31,77,44,0.18)"
-              strokeWidth={10}
+              stroke="rgba(31,77,44,0.12)"
+              strokeWidth={12}
             />
             <circle
               cx={150}
               cy={150}
               r={radius}
               fill="none"
-              stroke="#1f4d2c"
-              strokeWidth={10}
+              stroke="url(#ring-grad)"
+              strokeWidth={12}
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
               transform="rotate(-90 150 150)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }}
             />
-            <circle cx={dotX} cy={dotY} r={11} fill="#fff" stroke="#1f4d2c" strokeWidth={3} />
+            <circle cx={dotX} cy={dotY} r={13} fill="#fff" stroke="#143a20" strokeWidth={4} />
+            <circle cx={150} cy={150} r={radius - 16} fill="url(#sheep-bg)" />
           </svg>
-          <div className="absolute inset-[16%] flex items-center justify-center overflow-hidden rounded-full bg-[#5b8a55] shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]">
+          <div className="absolute inset-[16%] flex items-center justify-center overflow-hidden rounded-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/studypuff-sheep.png"
@@ -264,7 +304,7 @@ export function TimerCircle({
           </p>
         )}
 
-        {/* Mode tabs (Focus / Short / Long / Custom) */}
+        {/* Mode tabs */}
         <div className="mt-3 inline-flex flex-wrap justify-center rounded-full bg-cream-50/70 p-1 shadow-soft">
           {(
             [
@@ -289,52 +329,74 @@ export function TimerCircle({
           ))}
         </div>
 
-        {/* Custom minutes input — visible only in custom mode */}
+        {/* Custom min:sec input */}
         {mode === "custom" && (
           <div className="mt-3 flex items-center gap-2 rounded-full bg-cream-50 px-3 py-1.5 shadow-soft">
-            <label htmlFor="custom-min" className="text-xs font-semibold text-ink-700">
-              Minutes
-            </label>
+            <label className="text-xs font-semibold text-ink-700">Min</label>
             <input
-              id="custom-min"
               type="number"
-              min={1}
+              min={0}
               max={240}
               value={customMinutes}
-              onChange={(e) => setCustomMinutes(Math.max(1, Math.min(240, Number(e.target.value) || 1)))}
-              className="w-16 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
+              onChange={(e) => setCustomMinutes(Math.max(0, Math.min(240, Number(e.target.value) || 0)))}
+              className="w-12 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
             />
+            <span className="text-ink-700">:</span>
+            <input
+              type="number"
+              min={0}
+              max={59}
+              value={customSeconds}
+              onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
+              className="w-12 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
+            />
+            <label className="text-xs font-semibold text-ink-700">Sec</label>
           </div>
         )}
 
-        {/* Sound selector — only meaningful for focus / custom (study) modes */}
-        {isPomodoroFocusMode && (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-ink-700">
-              Sound
-            </span>
-            {SOUND_OPTIONS.map((s) => {
-              const active = sessionSound === s.id;
-              return (
+        {/* Sound popover trigger */}
+        <div className="relative mt-3">
+          <button
+            type="button"
+            onClick={() => setSoundOpen((o) => !o)}
+            className="inline-flex items-center gap-2 rounded-full bg-cream-50/80 px-4 py-1.5 text-xs font-semibold text-ink-900 shadow-soft transition hover:bg-cream-50"
+            aria-haspopup="listbox"
+            aria-expanded={soundOpen}
+          >
+            <Music className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+            {selectedSoundLabel}
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition ${soundOpen ? "rotate-180" : ""}`}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+          </button>
+          {soundOpen && (
+            <div
+              role="listbox"
+              className="absolute left-1/2 top-full z-30 mt-2 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-ink-900/10 bg-cream-50 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
+            >
+              {SOUND_OPTIONS.map((s) => (
                 <button
                   key={s.label}
                   type="button"
-                  onClick={() => setSessionSound(s.id)}
-                  title={s.label}
-                  aria-label={s.label}
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
-                    active
-                      ? "bg-ink-900 text-cream-50 shadow-soft"
-                      : "bg-cream-50/70 text-ink-900/80 hover:bg-cream-50"
+                  role="option"
+                  aria-selected={sessionSound === s.id}
+                  onClick={() => {
+                    setSessionSound(s.id);
+                    setSoundOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm transition hover:bg-cream-100 ${
+                    sessionSound === s.id ? "font-semibold text-ink-900" : "text-ink-900/80"
                   }`}
                 >
-                  <s.Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-                  {s.label}
+                  <span>{s.label}</span>
+                  {sessionSound === s.id && <Check className="h-4 w-4" strokeWidth={2} aria-hidden />}
                 </button>
-              );
-            })}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Controls */}
@@ -348,12 +410,12 @@ export function TimerCircle({
             {taskId ? "Change task" : "Select task"}
           </button>
           {taskPickerOpen && (
-            <div className="absolute bottom-full left-1/2 z-10 mb-2 w-72 -translate-x-1/2 rounded-2xl border border-ink-900/10 bg-cream-50 p-4 text-left shadow-soft">
+            <div className="absolute bottom-full left-1/2 z-20 mb-2 w-80 -translate-x-1/2 rounded-2xl border border-ink-900/10 bg-cream-50 p-4 text-left shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]">
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Topic</p>
               <select
                 value={topicId}
                 onChange={(e) => setTopicId(e.target.value)}
-                className="mb-3 w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
+                className="mb-2 w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
               >
                 <option value="">General study</option>
                 {topics.map((t) => (
@@ -362,11 +424,38 @@ export function TimerCircle({
                   </option>
                 ))}
               </select>
+              {onCreateTopic && (
+                <div className="mb-3 flex gap-1.5">
+                  <input
+                    type="text"
+                    value={newTopicName}
+                    onChange={(e) => setNewTopicName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTopic();
+                      }
+                    }}
+                    placeholder="+ New topic"
+                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTopic}
+                    disabled={!newTopicName.trim() || creating}
+                    className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
+                  >
+                    <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    Add
+                  </button>
+                </div>
+              )}
+
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Task</p>
               <select
                 value={taskId}
                 onChange={(e) => setTaskId(e.target.value)}
-                className="w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
+                className="mb-2 w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
               >
                 <option value="">No specific task</option>
                 {tasks.map((t) => (
@@ -375,10 +464,37 @@ export function TimerCircle({
                   </option>
                 ))}
               </select>
+              {onCreateTask && (
+                <div className="mb-3 flex gap-1.5">
+                  <input
+                    type="text"
+                    value={newTaskText}
+                    onChange={(e) => setNewTaskText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTask();
+                      }
+                    }}
+                    placeholder={topicId ? "+ New task in this topic" : "+ New task"}
+                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTask}
+                    disabled={!newTaskText.trim() || creating}
+                    className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
+                  >
+                    <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    Add
+                  </button>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => setTaskPickerOpen(false)}
-                className="mt-3 block w-full rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-cream-50"
+                className="mt-2 block w-full rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-cream-50"
               >
                 Done
               </button>
@@ -397,9 +513,11 @@ export function TimerCircle({
         <button
           type="button"
           onClick={reset}
-          className="rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-ink-900 shadow-soft transition hover:bg-cream-100 active:scale-[0.97]"
+          aria-label="Reset timer"
+          title="Reset timer"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 text-ink-900 shadow-soft transition hover:bg-cream-100 active:scale-[0.95]"
         >
-          Reset
+          <RotateCcw className="h-4 w-4" strokeWidth={2} aria-hidden />
         </button>
       </div>
 
@@ -416,7 +534,7 @@ export function TimerCircle({
         </button>
       </div>
 
-      <AmbientPlayer sound={sessionSound} playing={running && isPomodoroFocusMode} />
+      <AmbientPlayer sound={sessionSound} playing={running} />
     </div>
   );
 }
