@@ -17,6 +17,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -25,6 +26,7 @@ body {
   font-family: "Quattrocento", Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 /* Gradient background with subtle grain */
@@ -198,8 +200,8 @@ details.faq[open] summary .plus {
   color: var(--ink);
 }
 
-/* Scrollbar (webkit) */
-::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
+/* Scrollbar (webkit) — only style the main page scrollbar, not subcomponents */
+html::-webkit-scrollbar { width: 10px; }
+html::-webkit-scrollbar-track { background: var(--bg); }
+html::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
+html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
