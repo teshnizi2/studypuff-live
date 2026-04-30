@@ -1,6 +1,8 @@
 // Server-rendered SVG mockup of the StudyPuff timer screen.
 // Used on the home page so visitors see the real product before signing in.
 
+import { Coins, CloudRain, Flame, MessageCircle } from "lucide-react";
+
 const RING_RADIUS = 130;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 const PROGRESS = 0.42; // ~10 of 25 minutes elapsed
@@ -46,8 +48,9 @@ export default function AppPreview() {
                 Short · 5m
               </span>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/80 px-2.5 py-1 text-[11px] font-semibold text-ink-900">
-              🪙 420
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-cream-50/80 px-2.5 py-1 text-[11px] font-semibold text-ink-900">
+              <Coins className="h-3.5 w-3.5 text-amber-600" strokeWidth={2} aria-hidden />
+              420
             </span>
           </div>
 
@@ -110,14 +113,17 @@ export default function AppPreview() {
       </div>
 
       {/* Floating mini cards around the device for "alive" feel */}
-      <div className="pointer-events-none absolute -left-4 top-1/4 hidden rotate-[-6deg] rounded-2xl bg-cream-50 px-3 py-2 text-xs shadow-soft ring-1 ring-black/5 sm:block">
-        🌧️ Rain · ambient
+      <div className="pointer-events-none absolute -left-4 top-1/4 hidden rotate-[-6deg] items-center gap-2 rounded-2xl bg-cream-50 px-3 py-2 text-xs font-semibold shadow-soft ring-1 ring-black/5 sm:inline-flex">
+        <CloudRain className="h-4 w-4 text-sky-700" strokeWidth={1.75} aria-hidden />
+        Rain · ambient
       </div>
-      <div className="pointer-events-none absolute -right-4 top-12 hidden rotate-[5deg] rounded-2xl bg-cream-50 px-3 py-2 text-xs shadow-soft ring-1 ring-black/5 sm:block">
-        🔥 Streak · 12 days
+      <div className="pointer-events-none absolute -right-4 top-12 hidden rotate-[5deg] items-center gap-2 rounded-2xl bg-cream-50 px-3 py-2 text-xs font-semibold shadow-soft ring-1 ring-black/5 sm:inline-flex">
+        <Flame className="h-4 w-4 text-orange-600" strokeWidth={1.75} aria-hidden />
+        Streak · 12 days
       </div>
-      <div className="pointer-events-none absolute -bottom-4 right-10 hidden rotate-[-3deg] rounded-2xl bg-cream-50 px-3 py-2 text-xs shadow-soft ring-1 ring-black/5 sm:block">
-        💬 3 friends in your room
+      <div className="pointer-events-none absolute -bottom-4 right-10 hidden rotate-[-3deg] items-center gap-2 rounded-2xl bg-cream-50 px-3 py-2 text-xs font-semibold shadow-soft ring-1 ring-black/5 sm:inline-flex">
+        <MessageCircle className="h-4 w-4 text-emerald-700" strokeWidth={1.75} aria-hidden />
+        3 friends in your room
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Globe, Star } from "lucide-react";
 import Reveal from "./Reveal";
 import { StudyingNow } from "./StudyingNow";
 
@@ -93,9 +94,15 @@ export default function Hero() {
                 </p>
               </div>
               <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
-              <p>🌍 46 countries</p>
+              <p className="inline-flex items-center gap-1.5">
+                <Globe className="h-4 w-4 text-ink-700" strokeWidth={1.75} aria-hidden />
+                46 countries
+              </p>
               <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
-              <p>⭐ 4.9 rating</p>
+              <p className="inline-flex items-center gap-1.5">
+                <Star className="h-4 w-4 fill-current text-amber-500" strokeWidth={1.5} aria-hidden />
+                <span>4.9 rating</span>
+              </p>
             </div>
           </Reveal>
         </div>

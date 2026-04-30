@@ -1,20 +1,35 @@
+import { Clock, Globe, Wrench, type LucideIcon } from "lucide-react";
 import Reveal from "./Reveal";
 
-const PILLARS = [
+type Pillar = {
+  Icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  body: string;
+};
+
+const PILLARS: Pillar[] = [
   {
-    icon: "⏰",
+    Icon: Clock,
+    iconBg: "bg-brand-butter",
+    iconColor: "text-amber-700",
     title: "Steady focus",
     body:
       "Structured focus rounds, StudyPuff timer, and calm real time background sounds."
   },
   {
-    icon: "🌍",
+    Icon: Globe,
+    iconBg: "bg-brand-mint",
+    iconColor: "text-emerald-800",
     title: "International company",
     body:
       "A global room of students co-studying and learning together. Body-doubling that feels like a library."
   },
   {
-    icon: "🧰",
+    Icon: Wrench,
+    iconBg: "bg-brand-sky",
+    iconColor: "text-sky-800",
     title: "Tools that travel",
     body:
       "Simple trackers, free printable templates, knowledge, or app. Forever useful, from anywhere."
@@ -41,22 +56,21 @@ export default function WhySection() {
           </p>
         </Reveal>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((p, i) => (
             <Reveal key={p.title} delay={i * 100}>
-              <div className="group h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-8 transition-all hover:-translate-y-1 hover:shadow-soft">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-butter text-2xl transition-transform group-hover:rotate-6">
-                  {p.icon}
+              <div className="group h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-8 transition hover:-translate-y-1 hover:shadow-soft">
+                <div
+                  className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${p.iconBg} transition-transform group-hover:rotate-6`}
+                >
+                  <p.Icon className={`h-6 w-6 ${p.iconColor}`} strokeWidth={1.75} aria-hidden />
                 </div>
-                <h3 className="font-display text-xl font-normal text-ink-900">
-                  {p.title}
-                </h3>
+                <h3 className="font-display text-xl font-normal text-ink-900">{p.title}</h3>
                 <p className="mt-3 text-ink-700">{p.body}</p>
               </div>
             </Reveal>
           ))}
         </div>
-
       </div>
     </section>
   );

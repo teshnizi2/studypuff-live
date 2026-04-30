@@ -1,4 +1,16 @@
 import Link from "next/link";
+import {
+  Clock,
+  Globe,
+  MessageCircle,
+  Heart,
+  Gamepad2,
+  Timer,
+  CheckCircle2,
+  Coins,
+  Users,
+  type LucideIcon
+} from "lucide-react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
@@ -11,12 +23,19 @@ import Reveal from "@/components/Reveal";
 import AppPreview from "@/components/AppPreview";
 import SectionDivider from "@/components/SectionDivider";
 
-const COSTUDY_BULLETS: { icon: string; label: string }[] = [
-  { icon: "⏰", label: "50/10 Pomodoros" },
-  { icon: "🌍", label: "All ages welcome" },
-  { icon: "💬", label: "Chatting during breaks" },
-  { icon: "🫶", label: "Cozy community" },
-  { icon: "🎮", label: "Regular cozy game streams" }
+const COSTUDY_BULLETS: { Icon: LucideIcon; label: string; tone: string }[] = [
+  { Icon: Clock, label: "50/10 Pomodoros", tone: "bg-brand-butter text-amber-700" },
+  { Icon: Globe, label: "All ages welcome", tone: "bg-brand-mint text-emerald-800" },
+  { Icon: MessageCircle, label: "Chatting during breaks", tone: "bg-brand-sky text-sky-800" },
+  { Icon: Heart, label: "Cozy community", tone: "bg-brand-pink text-rose-700" },
+  { Icon: Gamepad2, label: "Regular cozy game streams", tone: "bg-brand-lilac text-violet-800" }
+];
+
+const APP_BULLETS: { Icon: LucideIcon; label: string; tone: string }[] = [
+  { Icon: Timer, label: "Pomodoro timer with the sheep at the centre", tone: "bg-brand-mint text-emerald-800" },
+  { Icon: CheckCircle2, label: "Tasks, topics, and a daily goal", tone: "bg-brand-butter text-amber-700" },
+  { Icon: Coins, label: "Earn & spend coins on rewards", tone: "bg-brand-pink text-rose-700" },
+  { Icon: Users, label: "Group study rooms with chat", tone: "bg-brand-sky text-sky-800" }
 ];
 
 const LIVE_SESSIONS_THIS_WEEK: number = 3;
@@ -66,7 +85,9 @@ export default function Page() {
                   key={b.label}
                   className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2 text-ink-900"
                 >
-                  <span className="text-lg" aria-hidden>{b.icon}</span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${b.tone}`}>
+                    <b.Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                  </span>
                   <span className="font-semibold">{b.label}</span>
                 </li>
               ))}
@@ -109,14 +130,11 @@ export default function Page() {
               code so friends study alongside you in real time.
             </p>
             <ul className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-              {[
-                { icon: "⏱️", label: "Pomodoro timer with the sheep at the centre" },
-                { icon: "✅", label: "Tasks, topics, and a daily goal" },
-                { icon: "🪙", label: "Earn & spend coins on rewards" },
-                { icon: "💬", label: "Group study rooms with chat" }
-              ].map((b) => (
+              {APP_BULLETS.map((b) => (
                 <li key={b.label} className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2.5 text-ink-900">
-                  <span className="text-lg" aria-hidden>{b.icon}</span>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${b.tone}`}>
+                    <b.Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                  </span>
                   <span className="font-semibold">{b.label}</span>
                 </li>
               ))}
