@@ -19,12 +19,14 @@ export async function DashboardShell({
   children,
   title,
   subtitle,
-  profile: profileProp
+  profile: profileProp,
+  bg = "cream"
 }: {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
   profile?: Profile | null;
+  bg?: "cream" | "green";
 }) {
   // Resolve profile + coins server-side so every dashboard page shows the live balance
   const session = await requireUser();
@@ -40,9 +42,18 @@ export async function DashboardShell({
   const isAdmin = profile?.role === "admin";
   const initial = (profile?.display_name || profile?.email || "?").charAt(0).toUpperCase();
 
+  const mainBg =
+    bg === "green"
+      ? "min-h-screen bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad]"
+      : "min-h-screen bg-cream-100";
+  const headerBg =
+    bg === "green"
+      ? "border-b border-ink-900/10 bg-[#dfead2]/85 backdrop-blur"
+      : "border-b border-ink-900/10 bg-cream-50/90 backdrop-blur";
+
   return (
-    <main className="min-h-screen bg-cream-100">
-      <header className="border-b border-ink-900/10 bg-cream-50/90 backdrop-blur">
+    <main className={mainBg}>
+      <header className={headerBg}>
         <div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div className="flex items-center gap-6">
             <div className="flex flex-col gap-1">

@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     .single();
 
   return (
-    <DashboardShell profile={profile}>
+    <DashboardShell profile={profile} bg="green">
       <div className="mx-auto w-full">
         <DashboardActions
           userId={user.id}

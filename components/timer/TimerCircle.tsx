@@ -212,7 +212,7 @@ export function TimerCircle({
   };
 
   return (
-    <div className="relative rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-5 pb-6 pt-4 text-ink-900 shadow-soft sm:px-7 sm:pt-5">
+    <div className="relative px-5 pb-6 pt-4 text-ink-900 sm:px-7 sm:pt-5">
       {/* Subtle ambient leaves — clipped via inset positioning so they
           stay inside the rounded card without needing overflow-hidden
           (which would also clip the sound popover). */}
@@ -387,7 +387,7 @@ export function TimerCircle({
           {soundOpen && (
             <div
               role="listbox"
-              className="absolute left-1/2 top-full z-30 mt-2 w-56 -translate-x-1/2 overflow-hidden rounded-2xl border border-ink-900/10 bg-cream-50 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
+              className="absolute left-1/2 top-full z-30 mt-2 max-h-72 w-56 -translate-x-1/2 overflow-y-auto rounded-2xl border border-ink-900/10 bg-cream-50 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
             >
               {SOUND_OPTIONS.map((s) => (
                 <button
