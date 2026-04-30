@@ -35,6 +35,11 @@ export async function updateProfileAction(formData: FormData) {
     bio: stringValue(formData, "bio").slice(0, 500) || null,
     pronouns: stringValue(formData, "pronouns").slice(0, 40) || null,
     study_field: stringValue(formData, "study_field").slice(0, 80) || null,
+    school: stringValue(formData, "school").slice(0, 120) || null,
+    year_level: stringValue(formData, "year_level").slice(0, 60) || null,
+    city: stringValue(formData, "city").slice(0, 80) || null,
+    time_zone: stringValue(formData, "time_zone").slice(0, 60) || null,
+    favorite_subjects: stringValue(formData, "favorite_subjects").slice(0, 200) || null,
     birthday: nullableValue(formData, "birthday"),
     last_seen_at: new Date().toISOString()
   };
@@ -104,6 +109,30 @@ export async function removeAvatarAction() {
 
   revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard");
+}
+
+export async function deleteTaskAction(formData: FormData) {
+  const { user } = await requireUser();
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("tasks").delete().eq("id", id).eq("user_id", user.id);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/tasks");
+}
+
+export async function deleteTopicAction(formData: FormData) {
+  const { user } = await requireUser();
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("topics").delete().eq("id", id).eq("user_id", user.id);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/tasks");
 }
 
 export async function updateSettingsAction(formData: FormData) {
