@@ -68,6 +68,9 @@ export interface Database {
           chime: boolean;
           coins: number;
           lifetime_focus_minutes: number;
+          equipped_sound: string | null;
+          equipped_theme: string | null;
+          equipped_accessory: string | null;
           created_at: string;
           updated_at: string;
         };

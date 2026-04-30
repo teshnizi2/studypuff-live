@@ -3,6 +3,7 @@ import { TimerCircle } from "@/components/timer/TimerCircle";
 import { requireUser } from "@/lib/auth/guards";
 import { addStudySessionAction } from "@/lib/app-data/actions";
 import { getUserWorkspace } from "@/lib/app-data/queries";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function TimerPage() {
   const { user, profile } = await requireUser();
@@ -12,6 +13,13 @@ export default async function TimerPage() {
   const focusMinutes = settings?.focus_minutes ?? 25;
   const shortBreakMinutes = settings?.short_break_minutes ?? 5;
   const longBreakMinutes = settings?.long_break_minutes ?? 20;
+
+  const supabase = createSupabaseServerClient();
+  const { data: equipped } = await supabase
+    .from("user_settings")
+    .select("equipped_sound, equipped_accessory")
+    .eq("user_id", user.id)
+    .single();
 
   const tasks = workspace.tasks
     .filter((t) => !t.done)
@@ -32,6 +40,8 @@ export default async function TimerPage() {
         tasks={tasks}
         topics={topics}
         onComplete={addStudySessionAction}
+        equippedSound={equipped?.equipped_sound ?? null}
+        equippedAccessory={equipped?.equipped_accessory ?? null}
       />
     </DashboardShell>
   );

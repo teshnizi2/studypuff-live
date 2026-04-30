@@ -2,7 +2,11 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { REWARDS, type RewardCategory } from "@/lib/app-data/rewards";
-import { purchaseRewardAction } from "@/lib/app-data/actions";
+import {
+  equipRewardAction,
+  purchaseRewardAction,
+  unequipRewardAction
+} from "@/lib/app-data/actions";
 
 const CATEGORY_LABEL: Record<RewardCategory, string> = {
   sound: "Ambient sounds",
@@ -16,6 +20,12 @@ const CATEGORY_TONE: Record<RewardCategory, string> = {
   accessory: "bg-brand-pink"
 };
 
+const CATEGORY_HINT: Record<RewardCategory, string> = {
+  sound: "Plays in the background while a focus session runs.",
+  theme: "Re-skins your dashboard until you swap it out.",
+  accessory: "Worn by the sheep in the timer."
+};
+
 export default async function RewardsPage() {
   const { user, profile } = await requireUser();
   const supabase = createSupabaseServerClient();
@@ -23,7 +33,9 @@ export default async function RewardsPage() {
   const [{ data: settings }, { data: purchases }] = await Promise.all([
     supabase
       .from("user_settings")
-      .select("coins, lifetime_focus_minutes")
+      .select(
+        "coins, lifetime_focus_minutes, equipped_sound, equipped_theme, equipped_accessory"
+      )
       .eq("user_id", user.id)
       .single(),
     supabase.from("user_purchases").select("item_id").eq("user_id", user.id)
@@ -32,6 +44,11 @@ export default async function RewardsPage() {
   const coins = settings?.coins ?? 0;
   const lifetimeMinutes = settings?.lifetime_focus_minutes ?? 0;
   const ownedSet = new Set((purchases || []).map((p) => p.item_id));
+  const equippedByCategory: Record<RewardCategory, string | null> = {
+    sound: settings?.equipped_sound ?? null,
+    theme: settings?.equipped_theme ?? null,
+    accessory: settings?.equipped_accessory ?? null
+  };
 
   const grouped: Record<RewardCategory, typeof REWARDS> = {
     sound: REWARDS.filter((r) => r.category === "sound"),
@@ -42,7 +59,7 @@ export default async function RewardsPage() {
   return (
     <DashboardShell
       title="Rewards"
-      subtitle="Earn coins by finishing focus sessions. Spend them on sounds, themes, and tiny upgrades for your sheep."
+      subtitle="Earn coins by finishing focus sessions. Spend them on ambient sounds, themes, and tiny upgrades for your sheep."
       profile={profile}
     >
       {/* Balance card */}
@@ -71,20 +88,22 @@ export default async function RewardsPage() {
       <div className="mt-10 space-y-12">
         {(Object.keys(grouped) as RewardCategory[]).map((cat) => (
           <section key={cat}>
-            <div className="mb-5 flex items-baseline justify-between gap-4">
+            <div className="mb-3 flex items-baseline justify-between gap-4">
               <h2 className="font-display text-3xl text-ink-900">{CATEGORY_LABEL[cat]}</h2>
               <span className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
                 {grouped[cat].length} items
               </span>
             </div>
+            <p className="mb-5 text-sm text-ink-700">{CATEGORY_HINT[cat]}</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {grouped[cat].map((r) => {
                 const owned = ownedSet.has(r.id);
+                const equipped = equippedByCategory[cat] === r.id;
                 const affordable = coins >= r.price;
                 return (
                   <article
                     key={r.id}
-                    className={`flex flex-col rounded-3xl border border-ink-900/10 ${CATEGORY_TONE[cat]}/40 p-5 shadow-soft transition hover:-translate-y-1`}
+                    className={`flex flex-col rounded-3xl border ${equipped ? "border-ink-900" : "border-ink-900/10"} ${CATEGORY_TONE[cat]}/40 p-5 shadow-soft transition hover:-translate-y-1`}
                   >
                     <div className="flex items-start justify-between">
                       <span className="text-4xl" aria-hidden>{r.emoji}</span>
@@ -94,12 +113,8 @@ export default async function RewardsPage() {
                     </div>
                     <h3 className="mt-4 font-display text-xl text-ink-900">{r.name}</h3>
                     <p className="mt-1 flex-1 text-sm text-ink-700">{r.description}</p>
-                    <div className="mt-4">
-                      {owned ? (
-                        <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-cream-50">
-                          ✓ Owned
-                        </span>
-                      ) : (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {!owned && (
                         <form action={purchaseRewardAction}>
                           <input type="hidden" name="item_id" value={r.id} />
                           <input type="hidden" name="price" value={r.price} />
@@ -112,6 +127,34 @@ export default async function RewardsPage() {
                           </button>
                         </form>
                       )}
+                      {owned && !equipped && (
+                        <form action={equipRewardAction}>
+                          <input type="hidden" name="item_id" value={r.id} />
+                          <input type="hidden" name="category" value={cat} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-cream-50 hover:bg-ink-700"
+                          >
+                            Equip
+                          </button>
+                        </form>
+                      )}
+                      {equipped && (
+                        <>
+                          <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-cream-50">
+                            ✓ Equipped
+                          </span>
+                          <form action={unequipRewardAction}>
+                            <input type="hidden" name="category" value={cat} />
+                            <button
+                              type="submit"
+                              className="text-xs font-semibold uppercase tracking-widest text-ink-700 underline-offset-4 hover:underline"
+                            >
+                              Unequip
+                            </button>
+                          </form>
+                        </>
+                      )}
                     </div>
                   </article>
                 );
@@ -120,10 +163,6 @@ export default async function RewardsPage() {
           </section>
         ))}
       </div>
-
-      <p className="mt-12 text-center text-xs text-ink-700">
-        Background sounds and themes will activate in the timer once we ship the audio loops and theme switcher — coming next.
-      </p>
     </DashboardShell>
   );
 }

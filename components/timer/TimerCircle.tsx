@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StudyMode } from "@/lib/supabase/database.types";
+import { AmbientPlayer } from "./AmbientPlayer";
 
 type Task = { id: string; text: string };
 type Topic = { id: string; name: string };
@@ -14,6 +15,15 @@ type Props = {
   tasks: Task[];
   topics: Topic[];
   onComplete: (form: FormData) => Promise<void>;
+  equippedSound?: string | null;
+  equippedAccessory?: string | null;
+};
+
+const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
+  "sheep-glasses": { emoji: "🤓", top: "32%", left: "50%", size: "text-3xl" },
+  "sheep-cap": { emoji: "🎓", top: "8%", left: "50%", size: "text-4xl" },
+  "sheep-scarf": { emoji: "🧣", top: "60%", left: "50%", size: "text-3xl" },
+  "sheep-mug": { emoji: "🍵", top: "55%", left: "82%", size: "text-2xl" }
 };
 
 type Mode = StudyMode; // "focus" | "short" | "long"
@@ -25,7 +35,9 @@ export function TimerCircle({
   todayMinutes,
   tasks,
   topics,
-  onComplete
+  onComplete,
+  equippedSound,
+  equippedAccessory
 }: Props) {
   const minutesByMode: Record<Mode, number> = useMemo(
     () => ({
@@ -185,6 +197,18 @@ export function TimerCircle({
               alt=""
               className={`h-[78%] w-[78%] object-contain ${running ? "animate-breathe" : ""}`}
             />
+            {equippedAccessory && ACCESSORY_OVERLAY[equippedAccessory] && (
+              <span
+                aria-hidden
+                className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 select-none ${ACCESSORY_OVERLAY[equippedAccessory].size}`}
+                style={{
+                  top: ACCESSORY_OVERLAY[equippedAccessory].top,
+                  left: ACCESSORY_OVERLAY[equippedAccessory].left
+                }}
+              >
+                {ACCESSORY_OVERLAY[equippedAccessory].emoji}
+              </span>
+            )}
           </div>
         </div>
 
@@ -277,6 +301,8 @@ export function TimerCircle({
           Skip · log
         </button>
       </div>
+
+      <AmbientPlayer sound={equippedSound ?? null} playing={running && mode === "focus"} />
     </div>
   );
 }

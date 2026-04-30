@@ -222,3 +222,52 @@ export async function purchaseRewardAction(formData: FormData) {
   revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard");
 }
+
+const COLUMN_FOR_CATEGORY: Record<string, "equipped_sound" | "equipped_theme" | "equipped_accessory"> = {
+  sound: "equipped_sound",
+  theme: "equipped_theme",
+  accessory: "equipped_accessory"
+};
+
+export async function equipRewardAction(formData: FormData) {
+  const { user } = await requireUser();
+  const itemId = stringValue(formData, "item_id");
+  const category = stringValue(formData, "category");
+  const column = COLUMN_FOR_CATEGORY[category];
+  if (!itemId || !column) throw new Error("Missing item or category.");
+
+  const supabase = createSupabaseServerClient();
+  const { data: owned } = await supabase
+    .from("user_purchases")
+    .select("item_id")
+    .eq("user_id", user.id)
+    .eq("item_id", itemId)
+    .maybeSingle();
+  if (!owned) throw new Error("You don't own this item.");
+
+  await supabase
+    .from("user_settings")
+    .update({ [column]: itemId })
+    .eq("user_id", user.id);
+
+  revalidatePath("/dashboard/rewards");
+  revalidatePath("/dashboard/timer");
+  revalidatePath("/dashboard");
+}
+
+export async function unequipRewardAction(formData: FormData) {
+  const { user } = await requireUser();
+  const category = stringValue(formData, "category");
+  const column = COLUMN_FOR_CATEGORY[category];
+  if (!column) throw new Error("Missing category.");
+
+  const supabase = createSupabaseServerClient();
+  await supabase
+    .from("user_settings")
+    .update({ [column]: null })
+    .eq("user_id", user.id);
+
+  revalidatePath("/dashboard/rewards");
+  revalidatePath("/dashboard/timer");
+  revalidatePath("/dashboard");
+}
