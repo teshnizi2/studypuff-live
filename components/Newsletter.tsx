@@ -25,11 +25,11 @@ export default function Newsletter() {
                 Semi-weekly newsletter
               </p>
               <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">
-                Study tips that <em className="italic">actually</em> stick.
+                Subscribe to <em className="italic">StudyPuff news</em>.
               </h2>
               <p className="mt-5 text-lg text-ink-700">
-                One short email, twice a week. A new study technique, a behind-the-scenes
-                note, and one small habit to try. Unsubscribe any time.
+                Join the semi-weekly email newsletter to get practical study and productivity
+                tips that help you stay focused and get more done.
               </p>
             </Reveal>
 
@@ -62,6 +62,11 @@ export default function Newsletter() {
                   Thanks — keep an eye on your inbox for the first letter.
                 </p>
               )}
+              <p className="mt-4 text-xs text-ink-700">
+                By submitting this form, you will receive our free newsletter. We may also send
+                you other emails about StudyPuff resources and projects. You can opt-out at any
+                time.
+              </p>
             </Reveal>
           </div>
         </div>

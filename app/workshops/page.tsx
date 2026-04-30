@@ -3,106 +3,67 @@ import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 
-const TIERS = [
+type Tier = {
+  name: string;
+  badge?: string;
+  price: string;
+  cadence: string;
+  tagline: string;
+  bullets: string[];
+  tone: string;
+  featured?: boolean;
+};
+
+const TIERS: Tier[] = [
   {
-    name: "Focus Foundations",
-    price: "€49",
-    cadence: "one-time",
-    tone: "bg-brand-pink",
-    tagline: "The starter workshop — everything you wish school had taught you.",
-    bullets: [
-      "3 live sessions + lifetime replay",
-      "The Attention Toolkit (PDF + worksheets)",
-      "Deep-work playlists and printable timer",
-      "14-day refund window"
-    ],
-    featured: false
+    name: "Focus Foundation",
+    badge: "Advanced",
+    price: "€20",
+    cadence: "1 long session",
+    tagline:
+      "Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
+    bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
+    tone: "bg-brand-pink"
   },
   {
-    name: "Exam Survival Cohort",
-    price: "€129",
-    cadence: "4-week cohort",
-    tone: "bg-brand-butter",
-    tagline: "Prep your next finals without the 2am spiral. Most popular.",
+    name: "StudyPuff Academy",
+    price: "€40",
+    cadence: "8-week series",
+    tagline:
+      "Our structured, 8-week series to help you build the foundation you need to improve your academic performance. Built on the science of studying.",
     bullets: [
-      "6 live workshops (recorded)",
-      "Weekly peer-accountability rooms",
-      "Personal study plan review",
-      "Spaced-repetition deck templates",
-      "Office hours with a StudyPuff coach"
+      "4 sessions and 4 checkups",
+      "Workbook",
+      "Personal Discord/WhatsApp Group",
+      "Lifetime support"
     ],
+    tone: "bg-brand-butter",
     featured: true
   },
   {
-    name: "Year-Long Atelier",
-    price: "€299",
-    cadence: "per school year",
-    tone: "bg-brand-sky",
-    tagline: "Ongoing coaching for students who want to rebuild how they work.",
-    bullets: [
-      "Everything in Exam Survival",
-      "Monthly 1:1 coaching call",
-      "Private community + tutor office hours",
-      "Early access to new workshops",
-      "Printed planner shipped every term"
-    ],
-    featured: false
+    name: "Time Management Toolkit",
+    badge: "Single session · Starter",
+    price: "€10",
+    cadence: "2-hour workshop",
+    tagline:
+      "One two-hour workshop to help you manage your time. Not just about the science of time management, but to help you plan your upcoming period.",
+    bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
+    tone: "bg-brand-sky"
   }
-];
-
-const MODULES = [
-  { n: "01", title: "Attention as a muscle", body: "Spot the habits that wreck your focus, and install a 25/5 rhythm that actually sticks." },
-  { n: "02", title: "The memory curve", body: "Use active recall and spaced repetition to get more out of half the study time." },
-  { n: "03", title: "Plan without fighting yourself", body: "Turn vague goals into 90-minute blocks — with built-in slack for the messy days." },
-  { n: "04", title: "The rest is the work", body: "Sleep, breaks, nutrition, movement: the boring reasons smart students outperform." }
 ];
 
 export default function WorkshopsPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Workshops"
-        title="Research-backed study workshops, taught like a good friend explains it."
-        subtitle="Tiny cohorts, live sessions, practical homework. Built for students, IB candidates, and undergrads who want to actually enjoy the work again."
+        eyebrow="Workshops · cohorts of 30 max"
+        title="Workshops that change how you study."
+        subtitle="Three workshops, one live session, a workbook, lifetime support, and a cohort that keeps you accountable."
         accent="butter"
       />
 
-      {/* Curriculum */}
       <section className="relative py-12 lg:py-20">
-        <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
-          <Reveal className="mb-10 text-center">
-            <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
-              The curriculum
-            </p>
-            <h2 className="display-heading text-3xl text-ink-900 sm:text-5xl">
-              Four modules. Not a minute of filler.
-            </h2>
-          </Reveal>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {MODULES.map((m, i) => (
-              <Reveal key={m.n} delay={i * 80}>
-                <div className="h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-8 transition hover:-translate-y-1 hover:shadow-soft">
-                  <span className="font-display text-3xl text-ink-900/40">{m.n}</span>
-                  <h3 className="mt-3 font-display text-2xl text-ink-900">{m.title}</h3>
-                  <p className="mt-4 text-ink-700">{m.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tiers */}
-      <section className="relative py-16 lg:py-24">
         <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
-          <Reveal className="mb-10 text-center">
-            <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
-              Pick your workshop
-            </p>
-            <h2 className="display-heading text-3xl text-ink-900 sm:text-5xl">
-              Three ways to enroll.
-            </h2>
-          </Reveal>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {TIERS.map((t, i) => (
               <Reveal key={t.name} delay={i * 100}>
@@ -111,6 +72,11 @@ export default function WorkshopsPage() {
                     t.featured ? "scale-[1.02] shadow-soft" : ""
                   } transition hover:-translate-y-1`}
                 >
+                  {t.badge && (
+                    <span className="mb-3 w-fit rounded-full bg-cream-50 px-3 py-1 text-xs uppercase tracking-widest text-ink-900">
+                      {t.badge}
+                    </span>
+                  )}
                   {t.featured && (
                     <span className="mb-4 w-fit rounded-full bg-ink-900 px-3 py-1 text-xs uppercase tracking-widest text-cream-50">
                       Most popular
@@ -140,6 +106,27 @@ export default function WorkshopsPage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Cozy community, not a bootcamp */}
+      <section className="relative py-16 lg:py-20">
+        <div className="mx-auto max-w-[900px] px-6 text-center lg:px-10">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.25em] text-ink-700">A cozy community</p>
+            <h2 className="display-heading mt-3 text-3xl text-ink-900 sm:text-4xl">
+              A cozy community, <em className="italic">not a bootcamp</em>.
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-ink-700">
+              Every cohort has scholarship seats. If the price is a problem, just write to us via
+              the contact form.
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Link href="/contact" className="btn-primary">
+                Apply for a scholarship seat
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
     </PageShell>

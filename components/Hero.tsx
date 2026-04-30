@@ -5,7 +5,6 @@ import Reveal from "./Reveal";
 export default function Hero() {
   return (
     <section className="relative overflow-x-hidden">
-      {/* Decorative blobs */}
       <span
         className="blob animate-float"
         style={{ left: "-80px", top: "80px", width: 260, height: 260, background: "#f3c6c2" }}
@@ -20,29 +19,29 @@ export default function Hero() {
       />
 
       <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-12 px-6 pb-20 pt-10 md:grid-cols-12 lg:px-10 lg:pb-32 lg:pt-16">
-        {/* Copy */}
         <div className="md:col-span-7">
           <Reveal>
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-ink-900 animate-pulse" />
-              Workshop cohort opens May 6
+              Cozy · science-based · student-led
             </p>
           </Reveal>
           <Reveal delay={100}>
             <h1 className="display-heading text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink-900">
-              Learn <em className="italic">science-based</em> study techniques to thrive in school.
+              Small progress, <em className="italic">is still</em> progress.
             </h1>
           </Reveal>
           <Reveal delay={200}>
-            <p className="mt-6 max-w-[36ch] text-lg leading-relaxed text-ink-700">
-              Short, research-backed workshops that help you focus deeper, remember more, and
-              finish the work without burning out.
+            <p className="mt-6 max-w-[44ch] text-lg leading-relaxed text-ink-700">
+              StudyPuff is the home for students who want to improve their performance, without
+              burning out. Join a workshop, drop into a free livestream, or use one of our free
+              templates.
             </p>
           </Reveal>
           <Reveal delay={300}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/workshops" className="btn-primary">
-                Join the workshop <span aria-hidden>→</span>
+                Join a workshop <span aria-hidden>→</span>
               </Link>
               <Link href="/study" className="btn-outline">
                 Try a free session
@@ -61,13 +60,12 @@ export default function Hero() {
                 ))}
               </div>
               <p>
-                Joined by <strong className="text-ink-900">15,145+</strong> students studying smarter.
+                <strong className="text-ink-900">17,074+</strong> students · 46 countries
               </p>
             </div>
           </Reveal>
         </div>
 
-        {/* Mascot / visual */}
         <div className="relative md:col-span-5">
           <Reveal delay={150} className="relative mx-auto max-w-md">
             <div
@@ -75,14 +73,20 @@ export default function Hero() {
               style={{ background: "radial-gradient(circle, #fbe9a5 0%, transparent 70%)" }}
               aria-hidden
             />
-            <div className="relative animate-float">
+            <Link
+              href="/dashboard"
+              className="group relative block animate-float"
+              aria-label="Open the StudyPuff app"
+            >
               <SheepMascot
                 tone="butter"
-                className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)]"
+                className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition group-hover:-translate-y-1"
               />
-            </div>
+              <div className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 shadow-soft ring-1 ring-black/5">
+                Open the app · join 17,074+ studying now →
+              </div>
+            </Link>
 
-            {/* floating sparkles */}
             <svg
               className="absolute -left-4 top-10 animate-wiggle text-ink-900"
               width="26"
@@ -113,14 +117,6 @@ export default function Hero() {
             >
               <path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" />
             </svg>
-
-            {/* floating pills */}
-            <div className="absolute -left-2 bottom-6 rotate-[-6deg] rounded-2xl bg-cream-50 px-4 py-2 text-sm shadow-soft ring-1 ring-black/5">
-              ☕ Focus streak: <strong>12 days</strong>
-            </div>
-            <div className="absolute -right-2 top-10 rotate-[4deg] rounded-2xl bg-cream-50 px-4 py-2 text-sm shadow-soft ring-1 ring-black/5">
-              📚 3 sessions / week
-            </div>
           </Reveal>
         </div>
       </div>

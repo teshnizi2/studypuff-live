@@ -54,9 +54,9 @@ export default function ContactPage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="Contact"
-        title="Tell us what you're working on."
-        subtitle="We answer every message within two school days. For the quiet stuff, email us at hello@studypuff.example."
+        eyebrow="Contact · 3-workday response"
+        title="Workshops, scholarship requests, press, partnerships, or just a kind note."
+        subtitle="Email us at info@studypuff.com or send a message below — we'll get back to you within three workdays."
         accent="sky"
       />
 
@@ -72,7 +72,7 @@ export default function ContactPage() {
                     Thanks, {form.name.split(" ")[0] || "friend"}!
                   </h2>
                   <p className="max-w-md text-ink-700">
-                    Your message landed safely. We'll write back within two school days —
+                    Your message landed safely. We&apos;ll write back within three workdays —
                     usually much sooner.
                   </p>
                   <button
@@ -146,10 +146,14 @@ export default function ContactPage() {
           <div className="space-y-6 lg:col-span-5">
             <Reveal>
               <div className="rounded-3xl border border-ink-900/10 bg-brand-butter p-8">
-                <h3 className="font-display text-xl text-ink-900">Office hours</h3>
+                <h3 className="font-display text-xl text-ink-900">Email us directly</h3>
                 <p className="mt-2 text-ink-900/80">
-                  Mon–Thu, 10:00–17:00 CET. We're offline on weekends to recover for
-                  livestreams.
+                  <a href="mailto:info@studypuff.com" className="underline underline-offset-4">
+                    info@studypuff.com
+                  </a>
+                </p>
+                <p className="mt-3 text-sm text-ink-900/70">
+                  We aim to reply within three workdays.
                 </p>
               </div>
             </Reveal>
@@ -157,19 +161,60 @@ export default function ContactPage() {
               <div className="rounded-3xl border border-ink-900/10 bg-brand-pink p-8">
                 <h3 className="font-display text-xl text-ink-900">The quick answers</h3>
                 <ul className="mt-3 space-y-2 text-ink-900/80">
-                  <li>· Refunds within 14 days, no hoops.</li>
+                  <li>· Workshops, scholarship requests, press, partnerships, or just a kind note.</li>
                   <li>· Livestreams are always free.</li>
-                  <li>· Workshops run monthly — small cohorts only.</li>
+                  <li>· Workshops run monthly — small cohorts only (30 max).</li>
                 </ul>
               </div>
             </Reveal>
             <Reveal delay={160}>
               <div className="rounded-3xl border border-ink-900/10 bg-brand-sky p-8">
-                <h3 className="font-display text-xl text-ink-900">Where to find us</h3>
+                <h3 className="font-display text-xl text-ink-900">Find us elsewhere</h3>
                 <ul className="mt-3 space-y-2 text-ink-900/80">
-                  <li>🎥 YouTube — StudyPuff Academy</li>
-                  <li>💜 Twitch — studypuff</li>
-                  <li>📷 Instagram — @studypuff.official</li>
+                  <li>
+                    🎥{" "}
+                    <a
+                      href="https://www.youtube.com/@StudyPuffAcademy"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      YouTube — StudyPuffAcademy
+                    </a>
+                  </li>
+                  <li>
+                    💜{" "}
+                    <a
+                      href="https://www.twitch.tv/studypuffacademy"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      Twitch — StudyPuffAcademy
+                    </a>
+                  </li>
+                  <li>
+                    📷{" "}
+                    <a
+                      href="https://www.instagram.com/studypuffacademy"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      Instagram — @studypuffacademy
+                    </a>
+                  </li>
+                  <li>
+                    💬{" "}
+                    <a
+                      href="https://discord.gg/hb8bKpbjEz"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      Discord — StudyPuffAcademy
+                    </a>
+                  </li>
                 </ul>
               </div>
             </Reveal>

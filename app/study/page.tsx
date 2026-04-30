@@ -2,7 +2,9 @@ import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
-import SheepMascot from "@/components/SheepMascot";
+
+const GOOGLE_CALENDAR =
+  "https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20";
 
 const SCHEDULE = [
   { day: "Monday", time: "7:00 PM CET", platform: "YouTube", topic: "Slow-start focus (Pomodoro 50/10)" },
@@ -11,10 +13,26 @@ const SCHEDULE = [
 ];
 
 const STEPS = [
-  { n: "01", title: "Pick a session", body: "Scroll the week's schedule and choose whichever slot fits. They're all free — no sign-in needed." },
-  { n: "02", title: "Set your intention", body: "Write your one task for the session in chat when you arrive. Specific beats ambitious." },
-  { n: "03", title: "Work in rounds", body: "We run structured focus rounds with short breaks. Lo-fi music, a gentle timer, and quiet company." },
-  { n: "04", title: "Close the loop", body: "Celebrate progress in chat, mark what's done, and head off feeling lighter than you arrived." }
+  {
+    n: "01",
+    title: "Pick a session",
+    body: "Scroll through the week's schedule and choose whichever sessions fits. All free to join."
+  },
+  {
+    n: "02",
+    title: "Set your intention",
+    body: "Write your tasks in the chat for each session. Be as specific as possible, so we can cheer you on."
+  },
+  {
+    n: "03",
+    title: "Work in rounds",
+    body: "Structured focus rounds, using the StudyPuff app, timer, cozy company, and guidance."
+  },
+  {
+    n: "04",
+    title: "Close the loop",
+    body: "Celebrate your progress in the chat, mark what's done in the app, and head off feeling lighter and less stressed."
+  }
 ];
 
 export default function StudyPage() {
@@ -22,20 +40,20 @@ export default function StudyPage() {
     <PageShell>
       <PageHero
         eyebrow="Study with us · Free"
-        title="Co-study with a room full of quiet classmates."
-        subtitle="Three livestreams a week on YouTube and Twitch — just structured focus time, good company, and zero pressure."
+        title="Co-study with a digital room full of international classmates."
+        subtitle="Weekly livestreams on YouTube and Twitch. Your structured focus time, good company, and accountability."
         accent="pink"
       />
 
-      {/* Schedule */}
       <section className="relative mx-auto max-w-[1100px] px-6 pb-20 lg:px-10">
         <Reveal className="mb-10 flex items-end justify-between gap-4">
           <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl">
-            This week's sessions
+            This week&apos;s sessions
           </h2>
           <p className="hidden max-w-xs text-sm text-ink-700 md:block">
-            All livestreams are free and recorded. Join live for the shared energy,
-            catch up later if you miss one.
+            All livestreams are free to join. You are free to support the cause by becoming a
+            member to get access to special emojis. If you miss a livestream, you can always
+            watch it back later.
           </p>
         </Reveal>
 
@@ -58,11 +76,24 @@ export default function StudyPage() {
         </ul>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/workshops" className="btn-primary">
-            See paid workshops
-          </Link>
+          <a
+            href={GOOGLE_CALENDAR}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-primary"
+          >
+            Scroll through this week&apos;s schedule <span aria-hidden>→</span>
+          </a>
+          <a
+            href="https://www.twitch.tv/studypuffacademy"
+            target="_blank"
+            rel="noreferrer"
+            className="btn-outline"
+          >
+            Follow on Twitch
+          </a>
           <Link href="/resources" className="btn-outline">
-            Grab the free planner
+            Free resources
           </Link>
         </div>
       </section>
@@ -74,9 +105,6 @@ export default function StudyPage() {
             <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
               How it works
             </p>
-            <h2 className="display-heading text-3xl text-ink-900 sm:text-5xl">
-              Four tiny rituals, one focused hour.
-            </h2>
           </Reveal>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
@@ -95,18 +123,47 @@ export default function StudyPage() {
       {/* Mascot CTA */}
       <section className="relative py-20 lg:py-28">
         <div className="mx-auto flex max-w-[1000px] flex-col items-center gap-8 rounded-[32px] border border-ink-900/10 bg-cream-50 px-8 py-16 text-center shadow-soft lg:flex-row lg:text-left">
-          <SheepMascot tone="mint" className="h-40 w-40 shrink-0 animate-bobble" />
+          <div className="h-40 w-40 shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/studypuff-logo-v3.png"
+              alt="StudyPuff Academy"
+              className="h-full w-full animate-bobble object-contain"
+            />
+          </div>
           <div>
             <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl">
-              See you at the next bell.
+              See you at the next session.
             </h2>
             <p className="mt-4 max-w-xl text-ink-700">
-              Subscribe to the channel, turn on notifications, and we'll nudge you a few
-              minutes before each session starts.
+              Subscribe to the channel, turn on notifications, and we&apos;ll nudge you when each
+              session starts.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#" className="btn-primary">Subscribe on YouTube</a>
-              <a href="#" className="btn-outline">Follow on Twitch</a>
+              <a
+                href="https://www.youtube.com/@StudyPuffAcademy"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary"
+              >
+                Subscribe on YouTube
+              </a>
+              <a
+                href="https://www.twitch.tv/studypuffacademy"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-outline"
+              >
+                Follow on Twitch
+              </a>
+              <a
+                href="https://discord.gg/hb8bKpbjEz"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-outline"
+              >
+                Join the Discord
+              </a>
             </div>
           </div>
         </div>
@@ -114,3 +171,4 @@ export default function StudyPage() {
     </PageShell>
   );
 }
+

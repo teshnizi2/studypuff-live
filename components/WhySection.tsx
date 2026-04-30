@@ -3,28 +3,22 @@ import SheepMascot from "./SheepMascot";
 
 const PILLARS = [
   {
-    icon: "🧠",
-    title: "Rooted in cognitive science",
-    body:
-      "Every method we teach is backed by peer-reviewed research on attention, memory and motivation — not productivity folklore."
-  },
-  {
     icon: "⏰",
-    title: "Designed for real schedules",
+    title: "Steady focus",
     body:
-      "Short sessions, clear systems, and habits that fit around classes, clubs, jobs and (occasionally) sleep."
+      "Structured focus rounds, StudyPuff timer, and calm real time background sounds."
   },
   {
-    icon: "🌱",
-    title: "Kind to your brain",
+    icon: "🌍",
+    title: "International company",
     body:
-      "We obsess over burnout. Our workshops build momentum without shame, grind culture, or hustle theatrics."
+      "A global room of students co-studying and learning together. Body-doubling that feels like a library."
   },
   {
-    icon: "👯",
-    title: "Better together",
+    icon: "🧰",
+    title: "Tools that travel",
     body:
-      "Live co-study rooms, peer accountability, and a community of students actually rooting for each other."
+      "Simple trackers, free printable templates, knowledge, or app. Forever useful, from anywhere."
   }
 ];
 
@@ -37,18 +31,19 @@ export default function WhySection() {
       <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
         <Reveal className="mx-auto max-w-3xl text-center">
           <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
-            Why StudyPuff?
+            Why StudyPuff
           </p>
           <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl lg:text-6xl">
-            Studying better is a <em className="italic">skill</em>. <br /> We'll teach it to you.
+            Because we believe that <em className="italic">students deserve better</em>.
           </h2>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-700">
-            StudyPuff is a tiny team of educators and designers on a mission to help
-            students work smarter, rest more, and actually enjoy learning again.
+            At StudyPuff, we teach you how to study. However, it doesn&apos;t stop there. We offer
+            continuous support with the help of our community. Because you don&apos;t have to do this
+            alone.
           </p>
         </Reveal>
 
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((p, i) => (
             <Reveal key={p.title} delay={i * 100}>
               <div className="group h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-8 transition-all hover:-translate-y-1 hover:shadow-soft">
@@ -64,7 +59,6 @@ export default function WhySection() {
           ))}
         </div>
 
-        {/* Floating sheep accent */}
         <div className="pointer-events-none relative mt-16 flex justify-center">
           <Reveal>
             <div className="relative">

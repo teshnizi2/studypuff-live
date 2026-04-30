@@ -3,23 +3,41 @@ import Reveal from "./Reveal";
 const QUOTES = [
   {
     quote:
-      "I used to pull all-nighters and still feel behind. After two workshops I study half as long and my grades went up a full letter.",
-    name: "Amira J.",
-    role: "Pre-med, Year 2",
+      "StudyPuff helped me realize I'm not bad at studying. I just needed the right motivation.",
     tone: "bg-brand-pink"
   },
   {
     quote:
-      "The study-with-me livestreams are weirdly motivating. It feels like having a library full of classmates, 24/7.",
-    name: "Theo K.",
-    role: "CS undergrad",
+      "A great community to study with, connect with, and share things with.",
     tone: "bg-brand-butter"
   },
   {
     quote:
-      "Honestly the only study content that doesn't make me feel guilty. I actually look forward to opening my notes now.",
-    name: "Nadia R.",
-    role: "IB Diploma",
+      "StudyPuff means quality time for me. The live study sessions help me feel motivated, focused, and less overwhelmed.",
+    tone: "bg-brand-mint"
+  },
+  {
+    quote:
+      "StudyPuff makes studying at home feel less lonely. It's comforting to know others are studying too.",
+    tone: "bg-brand-sky"
+  },
+  {
+    quote: "A place of growth and motivation.",
+    tone: "bg-brand-lilac"
+  },
+  {
+    quote:
+      "StudyPuff has been my study savior. It keeps me motivated, focused, and makes studying feel fun.",
+    tone: "bg-brand-peach"
+  },
+  {
+    quote:
+      "StudyPuff gives me the focus of studying alone, but with the connection of a community.",
+    tone: "bg-brand-butter"
+  },
+  {
+    quote:
+      "It feels like discovering an underrated library full of like-minded people from around the world.",
     tone: "bg-brand-mint"
   }
 ];
@@ -34,35 +52,58 @@ export default function Testimonials() {
               Student stories
             </p>
             <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">
-              Real students, <em className="italic">real</em> progress.
+              What students <em className="italic">tell us</em>.
             </h2>
           </div>
-          <p className="max-w-sm text-ink-700">
-            A snapshot of what workshop alumni are saying after finishing one of our
-            cohorts.
+          <p className="max-w-md text-ink-700">
+            Featured from messages we receive each month. Share your own on Instagram{" "}
+            <a
+              href="https://www.instagram.com/studypuffacademy"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              @studypuffacademy
+            </a>
+            ,{" "}
+            <a
+              href="https://www.youtube.com/@StudyPuffAcademy"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              YouTube
+            </a>{" "}
+            or{" "}
+            <a
+              href="https://www.twitch.tv/studypuffacademy"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              Twitch
+            </a>
+            .
           </p>
         </Reveal>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {QUOTES.map((q, i) => (
-            <Reveal key={q.name} delay={i * 100}>
+            <Reveal key={i} delay={i * 60}>
               <figure
-                className={`h-full rounded-3xl ${q.tone} p-8 transition-transform hover:-translate-y-1`}
+                className={`h-full rounded-3xl ${q.tone} p-6 transition-transform hover:-translate-y-1`}
               >
                 <svg
                   viewBox="0 0 24 24"
-                  className="mb-5 h-8 w-8 text-ink-900/70"
+                  className="mb-4 h-7 w-7 text-ink-900/70"
                   aria-hidden
                   fill="currentColor"
                 >
                   <path d="M9 7H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2v3a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zm10 0h-4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2v3a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z" />
                 </svg>
-                <blockquote className="font-display text-xl leading-snug text-ink-900">
+                <blockquote className="font-display text-lg leading-snug text-ink-900">
                   &ldquo;{q.quote}&rdquo;
                 </blockquote>
-                <figcaption className="mt-6 text-sm text-ink-700">
-                  <strong className="text-ink-900">{q.name}</strong> · {q.role}
-                </figcaption>
               </figure>
             </Reveal>
           ))}

@@ -10,46 +10,50 @@ type Resource = {
   tone: string;
   href?: string;
   cta?: string;
+  external?: boolean;
 };
 
 const RESOURCES: Resource[] = [
   {
-    title: "The Weekly Reset Planner",
-    body: "A printable one-pager to plan your week in under 10 minutes. PDF + editable Notion copy.",
-    tag: "Planner",
+    title: "Cornell Note Taking Template",
+    body: "A printable template that turns every lecture into something you can actually review later.",
+    tag: "Template",
     tone: "bg-brand-pink"
   },
   {
-    title: "Pomodoro Focus Timer",
-    body: "Use the authenticated StudyPuff dashboard to log focus sessions, tasks, and preferences.",
-    tag: "Tool",
+    title: "StudyPuff App",
+    body: "Log focus sessions, plan tasks, and join study rooms with friends.",
+    tag: "App",
     tone: "bg-brand-butter",
     href: "/dashboard",
-    cta: "Open app"
+    cta: "Open the app"
   },
   {
-    title: "Active Recall Cheatsheet",
-    body: "The three recall moves we teach in the workshop, collected on a single wall-sticker.",
-    tag: "Cheatsheet",
+    title: "Exam checklist",
+    body: "A short pre-exam check so nothing essential gets forgotten the night before.",
+    tag: "Checklist",
     tone: "bg-brand-mint"
   },
   {
-    title: "Exam Week Survival Kit",
-    body: "A 7-day schedule template, wellness checklist, and night-before reminder you can actually follow.",
-    tag: "Template",
+    title: "Background sounds",
+    body: "Calm, real-time backgrounds we use during the livestreams. (Coming soon.)",
+    tag: "Audio",
     tone: "bg-brand-sky"
   },
   {
-    title: "Spaced Repetition Deck Starter",
-    body: "Build better flashcards in 15 minutes with our Anki/Notion templates and writing rules.",
+    title: "Spaced-repetition starter kit",
+    body: "How to build flashcards that actually stick — with templates and a written guide.",
     tag: "Template",
     tone: "bg-brand-lilac"
   },
   {
-    title: "Burnout Check-in",
-    body: "A short self-assessment plus three small adjustments to try when you feel the grind.",
-    tag: "Reflection",
-    tone: "bg-brand-peach"
+    title: "Join the Discord",
+    body: "Hang out with other StudyPuffs between livestreams. Share wins, ask for accountability, find a study buddy.",
+    tag: "Community",
+    tone: "bg-brand-peach",
+    href: "https://discord.gg/hb8bKpbjEz",
+    cta: "Open Discord",
+    external: true
   }
 ];
 
@@ -58,8 +62,8 @@ export default function ResourcesPage() {
     <PageShell>
       <PageHero
         eyebrow="Free resources"
-        title="Free stuff that's actually useful."
-        subtitle="No email wall, no 30-day drip. Download, use, share with a friend."
+        title="Tools for a calmer term."
+        subtitle="Free printables, templates, and videos you can use. Made with love, backed by research."
         accent="mint"
       />
 
@@ -77,12 +81,20 @@ export default function ResourcesPage() {
                   <h3 className="mt-6 font-display text-2xl text-ink-900">{r.title}</h3>
                   <p className="mt-3 text-ink-900/80">{r.body}</p>
                   <div className="mt-8 flex items-center gap-3">
-                    <Link href={r.href || "/resources"} className="btn-primary">
-                      {r.cta || "Download"}
-                    </Link>
-                    <Link href={r.href || "/resources"} className="nav-link text-sm text-ink-900">
-                      {r.href ? "Get started" : "Preview"}
-                    </Link>
+                    {r.external ? (
+                      <a
+                        href={r.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn-primary"
+                      >
+                        {r.cta || "Open"}
+                      </a>
+                    ) : (
+                      <Link href={r.href || "/resources"} className="btn-primary">
+                        {r.cta || "Download"}
+                      </Link>
+                    )}
                   </div>
                 </article>
               </Reveal>
