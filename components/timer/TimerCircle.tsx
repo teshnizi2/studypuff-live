@@ -250,49 +250,47 @@ export function TimerCircle({
 
       {/* Ring + sheep */}
       <div className="mt-2 flex flex-col items-center">
-        <div className="relative h-[260px] w-[260px] sm:h-[280px] sm:w-[280px]">
+        <div className="relative h-[280px] w-[280px] sm:h-[300px] sm:w-[300px]">
           <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2f6f3e" />
-                <stop offset="100%" stopColor="#143a20" />
+                <stop offset="0%" stopColor="#3a8a4c" />
+                <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
-              <radialGradient id="sheep-bg" cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stopColor="#6fa066" />
-                <stop offset="100%" stopColor="#3f6638" />
-              </radialGradient>
             </defs>
-            <circle cx={150} cy={150} r={radius + 4} fill="rgba(255,255,255,0.45)" />
+            {/* Track */}
             <circle
               cx={150}
               cy={150}
               r={radius}
               fill="none"
-              stroke="rgba(31,77,44,0.12)"
-              strokeWidth={12}
+              stroke="rgba(31,77,44,0.14)"
+              strokeWidth={14}
             />
+            {/* Progress arc */}
             <circle
               cx={150}
               cy={150}
               r={radius}
               fill="none"
               stroke="url(#ring-grad)"
-              strokeWidth={12}
+              strokeWidth={14}
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
               transform="rotate(-90 150 150)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }}
             />
-            <circle cx={dotX} cy={dotY} r={13} fill="#fff" stroke="#143a20" strokeWidth={4} />
-            <circle cx={150} cy={150} r={radius - 16} fill="url(#sheep-bg)" />
+            {/* Dot */}
+            <circle cx={dotX} cy={dotY} r={10} fill="#fff" stroke="#1a4d2a" strokeWidth={3} />
           </svg>
-          <div className="absolute inset-[16%] flex items-center justify-center overflow-hidden rounded-full">
+          {/* Sheep disc — sized so the ring clearly breathes around it */}
+          <div className="absolute inset-[20%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_12px_rgba(0,0,0,0.18)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/studypuff-sheep.png"
               alt=""
-              className={`h-[78%] w-[78%] object-contain ${running ? "animate-breathe" : ""}`}
+              className={`h-[82%] w-[82%] object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] ${running ? "animate-breathe" : ""}`}
             />
             {equippedAccessory && ACCESSORY_OVERLAY[equippedAccessory] && (
               <span
