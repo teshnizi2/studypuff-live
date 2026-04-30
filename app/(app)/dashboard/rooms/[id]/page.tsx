@@ -1,24 +1,28 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { RoomChat } from "@/components/rooms/RoomChat";
 import { RoomRealtimeRefresher } from "@/components/rooms/RoomRealtimeRefresher";
 import { requireUser } from "@/lib/auth/guards";
 import {
   endRoomAction,
   getRoomDetail,
+  getRoomMessages,
   kickMemberAction,
   leaveRoomAction,
   updateRoomAction
 } from "@/lib/app-data/rooms";
 
 export default async function RoomDetailPage({ params }: { params: { id: string } }) {
-  const { profile } = await requireUser();
+  const { user, profile } = await requireUser();
   const room = await getRoomDetail(params.id);
 
   if (!room) notFound();
   if (!room.is_member && !room.is_owner) {
     redirect("/dashboard/rooms");
   }
+
+  const messages = await getRoomMessages(room.id);
 
   return (
     <DashboardShell
@@ -169,6 +173,17 @@ export default async function RoomDetailPage({ params }: { params: { id: string 
             </div>
           )}
         </section>
+      </div>
+
+      <div className="mt-8">
+        <RoomChat
+          roomId={room.id}
+          initialMessages={messages}
+          members={room.members}
+          currentUserId={user.id}
+          isOwner={room.is_owner}
+          disabled={Boolean(room.ended_at)}
+        />
       </div>
 
       <p className="mt-8">

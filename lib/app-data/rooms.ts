@@ -29,6 +29,27 @@ export type RoomMemberSummary = {
   is_owner: boolean;
 };
 
+export type RoomMessage = {
+  id: string;
+  room_id: string;
+  user_id: string | null;
+  body: string;
+  created_at: string;
+  deleted_at: string | null;
+};
+
+export async function getRoomMessages(roomId: string, limit = 200): Promise<RoomMessage[]> {
+  await requireUser();
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("room_messages")
+    .select("id, room_id, user_id, body, created_at, deleted_at")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: true })
+    .limit(limit);
+  return data || [];
+}
+
 export type RoomDetail = {
   id: string;
   code: string;

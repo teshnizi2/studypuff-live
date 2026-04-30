@@ -249,6 +249,28 @@ export interface Database {
         };
         Update: never;
       };
+      room_messages: {
+        Row: {
+          id: string;
+          room_id: string;
+          user_id: string | null;
+          body: string;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          room_id: string;
+          user_id?: string | null;
+          body: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          body?: string;
+          deleted_at?: string | null;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: {
