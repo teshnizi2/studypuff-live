@@ -135,6 +135,26 @@ export function TimerCircle({
 
   return (
     <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-6 py-6 text-ink-900 shadow-soft sm:px-8">
+      {/* Subtle ambient leaves in the green canvas — purely decorative */}
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute -left-3 -top-3 h-20 w-20 text-emerald-900/15"
+        viewBox="0 0 100 100"
+        fill="currentColor"
+      >
+        <path d="M50 10 Q 30 30 50 50 Q 70 30 50 10 Z" />
+        <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
+      </svg>
+      <svg
+        aria-hidden
+        className="pointer-events-none absolute -right-2 -bottom-2 h-24 w-24 rotate-180 text-emerald-900/15"
+        viewBox="0 0 100 100"
+        fill="currentColor"
+      >
+        <path d="M50 10 Q 30 30 50 50 Q 70 30 50 10 Z" />
+        <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
+      </svg>
+
       {/* Ring + sheep — centred, no top-corner clutter */}
       <div className="flex flex-col items-center">
         <div className="relative h-[260px] w-[260px] sm:h-[280px] sm:w-[280px]">
@@ -219,8 +239,8 @@ export function TimerCircle({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+      {/* Controls — Start session is the hero */}
+      <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-2.5">
         <div className="relative">
           <button
             type="button"
@@ -275,7 +295,7 @@ export function TimerCircle({
         <button
           type="button"
           onClick={() => setRunning((r) => !r)}
-          className="rounded-full bg-ink-900 px-8 py-3 text-sm font-semibold uppercase tracking-widest text-cream-50 hover:bg-ink-700"
+          className="rounded-full bg-ink-900 px-9 py-3.5 text-sm font-semibold uppercase tracking-widest text-cream-50 shadow-[0_10px_30px_-10px_rgba(31,77,44,0.6)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.98]"
         >
           {running ? "Pause" : remaining === 0 ? "Restart" : "Start session"}
         </button>
@@ -283,18 +303,20 @@ export function TimerCircle({
         <button
           type="button"
           onClick={reset}
-          className="rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-ink-900 shadow-soft hover:bg-cream-100"
+          className="rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-ink-900 shadow-soft transition hover:bg-cream-100 active:scale-[0.97]"
         >
           Reset
         </button>
+      </div>
 
+      <div className="relative z-10 mt-3 flex items-center justify-center">
         <button
           type="button"
           onClick={skip}
-          className="text-xs font-semibold uppercase tracking-widest text-ink-900/70 underline-offset-4 hover:underline"
+          className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60 underline-offset-4 hover:text-ink-900 hover:underline"
           title="Mark complete and log the session"
         >
-          Skip · log
+          Skip · log session
         </button>
       </div>
 
