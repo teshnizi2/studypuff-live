@@ -1,7 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Settings as SettingsIcon } from "lucide-react";
+import {
+  Settings as SettingsIcon,
+  ListChecks,
+  Users,
+  BarChart3,
+  Sparkles,
+  Music,
+  Volume2,
+  VolumeX,
+  CloudRain,
+  Flame,
+  type LucideIcon
+} from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { AmbientPlayer } from "./AmbientPlayer";
 
@@ -19,6 +31,8 @@ type Props = {
   equippedSound?: string | null;
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
+  onTasksClick?: () => void;
+  onRoomsClick?: () => void;
 };
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
@@ -28,7 +42,23 @@ const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: stri
   "sheep-mug": { emoji: "🍵", top: "55%", left: "82%", size: "text-2xl" }
 };
 
-type Mode = StudyMode; // "focus" | "short" | "long"
+type Mode = StudyMode | "custom";
+
+type SoundOption = {
+  id: string | null;
+  label: string;
+  Icon: LucideIcon;
+};
+
+const SOUND_OPTIONS: SoundOption[] = [
+  { id: null, label: "None", Icon: VolumeX },
+  { id: "sound-rain", label: "Rain", Icon: CloudRain },
+  { id: "sound-library", label: "Library", Icon: Volume2 },
+  { id: "sound-forest", label: "Forest", Icon: Music },
+  { id: "sound-cafe", label: "Café", Icon: Volume2 },
+  { id: "sound-fire", label: "Fire", Icon: Flame },
+  { id: "sound-ocean", label: "Ocean", Icon: Music }
+];
 
 export function TimerCircle({
   focusMinutes,
@@ -40,32 +70,33 @@ export function TimerCircle({
   onComplete,
   equippedSound,
   equippedAccessory,
-  onSettingsClick
+  onSettingsClick,
+  onTasksClick,
+  onRoomsClick
 }: Props) {
-  const minutesByMode: Record<Mode, number> = useMemo(
-    () => ({
-      focus: focusMinutes,
-      short: shortBreakMinutes,
-      long: longBreakMinutes
-    }),
-    [focusMinutes, shortBreakMinutes, longBreakMinutes]
-  );
-
   const [mode, setMode] = useState<Mode>("focus");
-  const totalSeconds = minutesByMode[mode] * 60;
+  const [customMinutes, setCustomMinutes] = useState(15);
+
+  const totalSeconds = useMemo(() => {
+    if (mode === "focus") return focusMinutes * 60;
+    if (mode === "short") return shortBreakMinutes * 60;
+    if (mode === "long") return longBreakMinutes * 60;
+    return Math.max(1, customMinutes) * 60;
+  }, [mode, focusMinutes, shortBreakMinutes, longBreakMinutes, customMinutes]);
 
   const [remaining, setRemaining] = useState(totalSeconds);
   const [running, setRunning] = useState(false);
   const [taskId, setTaskId] = useState<string>("");
   const [topicId, setTopicId] = useState<string>("");
   const [taskPickerOpen, setTaskPickerOpen] = useState(false);
+  const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-library");
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
-  // When mode changes, reset the timer
+  // Reset timer when mode/total changes
   useEffect(() => {
     setRemaining(totalSeconds);
     setRunning(false);
-  }, [mode, totalSeconds]);
+  }, [totalSeconds]);
 
   // Countdown
   useEffect(() => {
@@ -92,10 +123,11 @@ export function TimerCircle({
 
   const handleComplete = useCallback(() => {
     setRunning(false);
-    const minutes = Math.round((totalSeconds - 0) / 60);
+    const minutes = Math.round(totalSeconds / 60);
     const fd = new FormData();
     fd.set("minutes", String(minutes));
-    fd.set("mode", mode);
+    // Custom minutes still log as a focus session in the DB
+    fd.set("mode", mode === "custom" ? "focus" : mode);
     if (topicId) fd.set("topic_id", topicId);
     if (taskId) {
       fd.set("task_id", taskId);
@@ -135,10 +167,11 @@ export function TimerCircle({
   const ss = String(remaining % 60).padStart(2, "0");
 
   const selectedTaskLabel = tasks.find((t) => t.id === taskId)?.text;
+  const isPomodoroFocusMode = mode === "focus" || mode === "custom";
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-6 py-6 text-ink-900 shadow-soft sm:px-8">
-      {/* Subtle ambient leaves in the green canvas — purely decorative */}
+    <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-5 pb-6 pt-4 text-ink-900 shadow-soft sm:px-7 sm:pt-5">
+      {/* Subtle ambient leaves */}
       <svg
         aria-hidden
         className="pointer-events-none absolute -left-3 -top-3 h-20 w-20 text-emerald-900/15"
@@ -158,23 +191,23 @@ export function TimerCircle({
         <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
       </svg>
 
-      {/* Settings gear — top right */}
-      {onSettingsClick && (
-        <button
-          type="button"
-          onClick={onSettingsClick}
-          aria-label="Open settings"
-          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/80 text-ink-900 shadow-soft ring-1 ring-ink-900/10 transition hover:-translate-y-0.5 hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-        >
-          <SettingsIcon className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-      )}
+      {/* Top bar: nav icons left, gear right */}
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          {onTasksClick && <IconButton Icon={ListChecks} label="Tasks" onClick={onTasksClick} />}
+          {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
+          <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
+          <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
+        </div>
+        {onSettingsClick && (
+          <IconButton Icon={SettingsIcon} label="Settings & profile" onClick={onSettingsClick} />
+        )}
+      </div>
 
-      {/* Ring + sheep — centred, no top-corner clutter */}
-      <div className="flex flex-col items-center">
+      {/* Ring + sheep */}
+      <div className="mt-2 flex flex-col items-center">
         <div className="relative h-[260px] w-[260px] sm:h-[280px] sm:w-[280px]">
           <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full">
-            {/* Soft white halo behind the ring for contrast */}
             <circle cx={150} cy={150} r={radius + 2} fill="rgba(255,255,255,0.35)" />
             <circle
               cx={150}
@@ -221,7 +254,7 @@ export function TimerCircle({
           </div>
         </div>
 
-        <p className="mt-5 font-display text-5xl tabular-nums tracking-[0.05em] text-ink-900 sm:text-6xl">
+        <p className="mt-4 font-display text-5xl tabular-nums tracking-[0.05em] text-ink-900 sm:text-6xl">
           {mm}:{ss}
         </p>
 
@@ -231,30 +264,80 @@ export function TimerCircle({
           </p>
         )}
 
-        {/* Mode tabs — sit right under the time, balanced and integrated */}
-        <div className="mt-4 inline-flex rounded-full bg-cream-50/70 p-1 shadow-soft">
-          {(["focus", "short", "long"] as Mode[]).map((m) => (
+        {/* Mode tabs (Focus / Short / Long / Custom) */}
+        <div className="mt-3 inline-flex flex-wrap justify-center rounded-full bg-cream-50/70 p-1 shadow-soft">
+          {(
+            [
+              ["focus", `Focus · ${focusMinutes}m`],
+              ["short", `Short · ${shortBreakMinutes}m`],
+              ["long", `Long · ${longBreakMinutes}m`],
+              ["custom", "Custom"]
+            ] as [Mode, string][]
+          ).map(([m, label]) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:px-4 sm:text-xs ${
+              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:text-xs ${
                 mode === m
                   ? "bg-ink-900 text-cream-50 shadow-soft"
                   : "text-ink-900/70 hover:text-ink-900"
               }`}
             >
-              {m === "focus"
-                ? `Focus · ${focusMinutes}m`
-                : m === "short"
-                  ? `Short · ${shortBreakMinutes}m`
-                  : `Long · ${longBreakMinutes}m`}
+              {label}
             </button>
           ))}
         </div>
+
+        {/* Custom minutes input — visible only in custom mode */}
+        {mode === "custom" && (
+          <div className="mt-3 flex items-center gap-2 rounded-full bg-cream-50 px-3 py-1.5 shadow-soft">
+            <label htmlFor="custom-min" className="text-xs font-semibold text-ink-700">
+              Minutes
+            </label>
+            <input
+              id="custom-min"
+              type="number"
+              min={1}
+              max={240}
+              value={customMinutes}
+              onChange={(e) => setCustomMinutes(Math.max(1, Math.min(240, Number(e.target.value) || 1)))}
+              className="w-16 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
+            />
+          </div>
+        )}
+
+        {/* Sound selector — only meaningful for focus / custom (study) modes */}
+        {isPomodoroFocusMode && (
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="mr-1 text-[10px] font-semibold uppercase tracking-widest text-ink-700">
+              Sound
+            </span>
+            {SOUND_OPTIONS.map((s) => {
+              const active = sessionSound === s.id;
+              return (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => setSessionSound(s.id)}
+                  title={s.label}
+                  aria-label={s.label}
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+                    active
+                      ? "bg-ink-900 text-cream-50 shadow-soft"
+                      : "bg-cream-50/70 text-ink-900/80 hover:bg-cream-50"
+                  }`}
+                >
+                  <s.Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Controls — Start session is the hero */}
+      {/* Controls */}
       <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-2.5">
         <div className="relative">
           <button
@@ -266,9 +349,7 @@ export function TimerCircle({
           </button>
           {taskPickerOpen && (
             <div className="absolute bottom-full left-1/2 z-10 mb-2 w-72 -translate-x-1/2 rounded-2xl border border-ink-900/10 bg-cream-50 p-4 text-left shadow-soft">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">
-                Topic
-              </p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Topic</p>
               <select
                 value={topicId}
                 onChange={(e) => setTopicId(e.target.value)}
@@ -281,9 +362,7 @@ export function TimerCircle({
                   </option>
                 ))}
               </select>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">
-                Task
-              </p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Task</p>
               <select
                 value={taskId}
                 onChange={(e) => setTaskId(e.target.value)}
@@ -324,19 +403,48 @@ export function TimerCircle({
         </button>
       </div>
 
-      <div className="relative z-10 mt-3 flex items-center justify-center">
+      <div className="relative z-10 mt-3 flex items-center justify-center gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60">
+        <span>{todayMinutes} min today</span>
+        <span aria-hidden>·</span>
         <button
           type="button"
           onClick={skip}
-          className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60 underline-offset-4 hover:text-ink-900 hover:underline"
+          className="underline-offset-4 hover:text-ink-900 hover:underline"
           title="Mark complete and log the session"
         >
           Skip · log session
         </button>
       </div>
 
-      <AmbientPlayer sound={equippedSound ?? null} playing={running && mode === "focus"} />
+      <AmbientPlayer sound={sessionSound} playing={running && isPomodoroFocusMode} />
     </div>
+  );
+}
+
+function IconButton({
+  Icon,
+  label,
+  onClick,
+  href
+}: {
+  Icon: LucideIcon;
+  label: string;
+  onClick?: () => void;
+  href?: string;
+}) {
+  const cls =
+    "flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/80 text-ink-900 shadow-soft ring-1 ring-ink-900/10 transition hover:-translate-y-0.5 hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
+  if (href) {
+    return (
+      <a href={href} className={cls} aria-label={label} title={label}>
+        <Icon className="h-4 w-4" strokeWidth={1.75} />
+      </a>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} className={cls} aria-label={label} title={label}>
+      <Icon className="h-4 w-4" strokeWidth={1.75} />
+    </button>
   );
 }
 

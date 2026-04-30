@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ListChecks,
-  Users,
-  Sparkles,
-  BarChart3,
-  Trash2,
-  Plus
-} from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import {
@@ -90,9 +83,6 @@ export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
   const close = () => setOpen(null);
 
-  const openTasks = props.tasks.filter((t) => !t.done).length;
-  const activeRooms = props.rooms.filter((r) => !r.ended_at).length;
-
   // Group tasks by topic for the Tasks dialog
   const tasksByTopic = new Map<string | null, TaskRow[]>();
   for (const t of props.tasks) tasksByTopic.set(t.topic_id, [...(tasksByTopic.get(t.topic_id) || []), t]);
@@ -110,39 +100,9 @@ export function DashboardActions(props: Props) {
         equippedSound={props.equippedSound}
         equippedAccessory={props.equippedAccessory}
         onSettingsClick={() => setOpen("settings")}
+        onTasksClick={() => setOpen("tasks")}
+        onRoomsClick={() => setOpen("rooms")}
       />
-
-      {/* 4 action tiles */}
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ActionTile
-          Icon={ListChecks}
-          tone="bg-brand-butter text-amber-700"
-          label="Tasks"
-          hint={openTasks === 0 ? "Inbox zero" : `${openTasks} open · ${props.topics.length} topics`}
-          onClick={() => setOpen("tasks")}
-        />
-        <ActionTile
-          Icon={Users}
-          tone="bg-brand-sky text-sky-800"
-          label="Rooms"
-          hint={activeRooms === 0 ? "Create or join" : `${activeRooms} active`}
-          onClick={() => setOpen("rooms")}
-        />
-        <ActionTile
-          Icon={BarChart3}
-          tone="bg-brand-mint text-emerald-800"
-          label="Stats"
-          hint={`${props.todayMinutes} min today`}
-          href="/dashboard/stats"
-        />
-        <ActionTile
-          Icon={Sparkles}
-          tone="bg-brand-peach text-orange-700"
-          label="Rewards"
-          hint={`${props.coins} coins`}
-          href="/dashboard/rewards"
-        />
-      </div>
 
       {/* Tasks + Topics dialog (tasks live inside topics) */}
       <Dialog
@@ -472,48 +432,6 @@ function TaskItem({ task }: { task: TaskRow }) {
         </button>
       </form>
     </li>
-  );
-}
-
-function ActionTile({
-  Icon,
-  tone,
-  label,
-  hint,
-  onClick,
-  href
-}: {
-  Icon: typeof ListChecks;
-  tone: string;
-  label: string;
-  hint: string;
-  onClick?: () => void;
-  href?: string;
-}) {
-  const inner = (
-    <>
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>
-        <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-      </span>
-      <div className="min-w-0 flex-1 text-left">
-        <p className="font-display text-base leading-tight text-ink-900">{label}</p>
-        <p className="mt-0.5 text-xs text-ink-700">{hint}</p>
-      </div>
-    </>
-  );
-  const cls =
-    "group flex h-full items-center gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-4 py-3.5 text-left shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-ink-900/20 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 active:translate-y-0 active:scale-[0.98]";
-  if (href) {
-    return (
-      <a href={href} className={cls}>
-        {inner}
-      </a>
-    );
-  }
-  return (
-    <button type="button" onClick={onClick} className={cls}>
-      {inner}
-    </button>
   );
 }
 
