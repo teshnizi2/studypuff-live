@@ -1,19 +1,25 @@
 const ITEMS = [
-  "Pomodoro, done right",
-  "Spaced repetition",
-  "Active recall",
-  "Deep focus rituals",
-  "Exam-week game plans",
-  "Burnout-proof habits",
-  "Study-with-me streams",
-  "Research-backed workshops"
+  "TU Delft",
+  "Universiteit van Amsterdam",
+  "Erasmus University Rotterdam",
+  "Leiden University",
+  "Utrecht University",
+  "Maastricht University",
+  "KU Leuven",
+  "ETH Zürich",
+  "Cambridge",
+  "Oxford",
+  "Stanford",
+  "MIT",
+  "NUS Singapore",
+  "Trinity College Dublin"
 ];
 
 export default function Marquee() {
   const loop = [...ITEMS, ...ITEMS];
   return (
     <section
-      aria-label="Topics we cover"
+      aria-label="Universities our students attend"
       className="relative border-y border-ink-900/10 bg-cream-50/70 py-6"
     >
       <div className="marquee-track gap-10 px-6">

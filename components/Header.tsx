@@ -17,53 +17,13 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [localeOpen, setLocaleOpen] = useState(false);
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-ink-900/5 bg-[rgba(239,236,236,0.85)] backdrop-blur">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-6 px-6 py-4 lg:px-10">
-        {/* Left: locale (desktop) */}
-        <div className="hidden flex-1 items-center gap-4 lg:flex">
-          <div className="relative">
-            <button
-              onClick={() => setLocaleOpen((o) => !o)}
-              className="nav-link text-sm tracking-wide text-ink-900"
-              aria-haspopup="listbox"
-              aria-expanded={localeOpen}
-            >
-              Netherlands | EUR €
-              <span
-                className="ml-2 inline-block transition-transform"
-                style={{ transform: localeOpen ? "rotate(180deg)" : undefined }}
-              >
-                ▾
-              </span>
-            </button>
-            {localeOpen && (
-              <ul className="absolute left-0 top-9 w-56 rounded-xl border border-black/5 bg-cream-50 p-2 text-sm shadow-soft">
-                {[
-                  "Netherlands | EUR €",
-                  "United States | USD $",
-                  "United Kingdom | GBP £",
-                  "Germany | EUR €",
-                  "France | EUR €",
-                  "Canada | CAD $",
-                  "Australia | AUD $"
-                ].map((l) => (
-                  <li key={l}>
-                    <button
-                      onClick={() => setLocaleOpen(false)}
-                      className="block w-full rounded-lg px-3 py-2 text-left hover:bg-cream-100"
-                    >
-                      {l}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
+        {/* Left spacer to balance the centered logo */}
+        <div className="hidden flex-1 lg:block" />
 
         {/* Center: brand logo */}
         <Link
@@ -154,9 +114,8 @@ export default function Header() {
               Dashboard
             </Link>
             <Link href="/store" className="underline" onClick={() => setOpen(false)}>
-              Cart · 0
+              Store
             </Link>
-            <button type="button" className="underline">Netherlands | EUR €</button>
             </div>
           </div>
         </div>

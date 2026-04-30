@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Reveal from "./Reveal";
-import SheepMascot from "./SheepMascot";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
@@ -15,10 +14,6 @@ export default function Newsletter() {
 
       <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
         <div className="relative overflow-hidden rounded-[32px] border border-ink-900/10 bg-cream-50 p-8 shadow-soft sm:p-12 lg:p-16">
-          <div className="pointer-events-none absolute -right-6 bottom-0 hidden lg:block">
-            <SheepMascot tone="sky" className="h-64 w-64 animate-float" />
-          </div>
-
           <div className="max-w-xl">
             <Reveal>
               <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">

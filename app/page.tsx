@@ -98,6 +98,35 @@ export default function Page() {
       </section>
 
       <WhySection />
+
+      {/* PLNT partnership */}
+      <section className="relative py-12">
+        <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
+          <Reveal>
+            <div className="flex flex-col items-center gap-6 rounded-[28px] border border-ink-900/10 bg-cream-50 px-8 py-10 text-center shadow-soft sm:flex-row sm:text-left">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/plnt-logo.png"
+                alt="PLNT Leiden"
+                className="h-16 w-auto object-contain"
+              />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
+                  Proud partner
+                </p>
+                <h3 className="mt-2 font-display text-2xl text-ink-900">
+                  In partnership with PLNT.
+                </h3>
+                <p className="mt-2 max-w-xl text-ink-700">
+                  We host our in-person workshops at PLNT — a student incubator in Leiden that
+                  shares our love of small cohorts and grounded science.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <Testimonials />
       <FAQ />
       <Newsletter />

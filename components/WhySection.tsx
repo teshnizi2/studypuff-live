@@ -1,5 +1,4 @@
 import Reveal from "./Reveal";
-import SheepMascot from "./SheepMascot";
 
 const PILLARS = [
   {
@@ -59,13 +58,6 @@ export default function WhySection() {
           ))}
         </div>
 
-        <div className="pointer-events-none relative mt-16 flex justify-center">
-          <Reveal>
-            <div className="relative">
-              <SheepMascot tone="mint" className="h-40 w-40 animate-bobble" />
-            </div>
-          </Reveal>
-        </div>
       </div>
     </section>
   );

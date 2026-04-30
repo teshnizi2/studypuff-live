@@ -107,10 +107,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-ink-900/10 pt-6 text-sm text-ink-700 sm:flex-row sm:items-center">
-          <p>© {year}, StudyPuff (local preview)</p>
-          <div className="flex items-center gap-4">
-            <span>Netherlands | EUR €</span>
-          </div>
+          <p>© {year}, StudyPuff Academy</p>
+          <p>Made with care · Amsterdam</p>
         </div>
       </div>
     </footer>

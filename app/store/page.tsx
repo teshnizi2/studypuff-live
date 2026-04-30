@@ -1,144 +1,109 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
-import SheepMascot from "@/components/SheepMascot";
 
-type Product = {
-  id: string;
-  name: string;
-  price: number;
-  tone: "pink" | "peach" | "butter" | "mint" | "sky" | "lilac";
-  blurb: string;
-  category: "Planners" | "Print" | "Stationery" | "Apparel";
-};
-
-const toneClass: Record<Product["tone"], string> = {
-  pink: "bg-brand-pink",
-  peach: "bg-brand-peach",
-  butter: "bg-brand-butter",
-  mint: "bg-brand-mint",
-  sky: "bg-brand-sky",
-  lilac: "bg-brand-lilac"
-};
-
-const PRODUCTS: Product[] = [
-  { id: "p1", name: "The Weekly Reset Planner", price: 24, tone: "butter", category: "Planners", blurb: "Undated. 52 weeks. Lay-flat binding." },
-  { id: "p2", name: "Daily Focus Pad", price: 14, tone: "pink", category: "Planners", blurb: "60 tear-off pages for one-tab days." },
-  { id: "p3", name: "Study Sheep Enamel Pin", price: 9, tone: "mint", category: "Stationery", blurb: "Our little mascot, for your tote bag." },
-  { id: "p4", name: "Focus Mode Mug", price: 18, tone: "sky", category: "Apparel", blurb: "Ceramic. 350ml. Microwave-safe." },
-  { id: "p5", name: "Memory Curve Poster", price: 22, tone: "lilac", category: "Print", blurb: "A3 riso-style print. 100% recycled paper." },
-  { id: "p6", name: "Notebook — Dot Grid", price: 16, tone: "peach", category: "Stationery", blurb: "Soft-touch cover, 160 pages, bookmark ribbon." },
-  { id: "p7", name: "StudyPuff Hoodie", price: 58, tone: "mint", category: "Apparel", blurb: "Oversized. Organic cotton, heavy weight." },
-  { id: "p8", name: "Pomodoro Timer Card", price: 6, tone: "butter", category: "Print", blurb: "Wallet-sized cue card. Pack of two." }
+const TEASERS = [
+  { name: "Weekly Reset Planner", tone: "bg-brand-butter", emoji: "📓" },
+  { name: "Memory Curve Poster", tone: "bg-brand-pink", emoji: "🖼️" },
+  { name: "Study Sheep Pin", tone: "bg-brand-mint", emoji: "🐑" },
+  { name: "Focus Mode Mug", tone: "bg-brand-sky", emoji: "☕" },
+  { name: "Pomodoro Cue Card", tone: "bg-brand-lilac", emoji: "🎴" },
+  { name: "Cozy Tote Bag", tone: "bg-brand-peach", emoji: "👜" }
 ];
 
-const CATEGORIES = ["All", "Planners", "Print", "Stationery", "Apparel"] as const;
-
 export default function StorePage() {
-  const [active, setActive] = useState<(typeof CATEGORIES)[number]>("All");
-  const [cart, setCart] = useState<Record<string, number>>({});
-
-  const filtered = useMemo(
-    () =>
-      PRODUCTS.filter((p) => (active === "All" ? true : p.category === active)),
-    [active]
-  );
-
-  const cartCount = Object.values(cart).reduce((a, b) => a + b, 0);
-  const cartTotal = Object.entries(cart).reduce((sum, [id, q]) => {
-    const p = PRODUCTS.find((x) => x.id === id);
-    return sum + (p ? p.price * q : 0);
-  }, 0);
-
-  const add = (id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "sent">("idle");
 
   return (
     <PageShell>
       <PageHero
-        eyebrow="StudyPuff Store"
-        title="Tools that make studying feel like your own thing."
-        subtitle="Lovingly designed planners, prints, and small objects. Every purchase funds another free livestream."
+        eyebrow="StudyPuff Store · Opening soon"
+        title="Cozy study merch — opening soon."
+        subtitle="Planners, prints, pins, mugs and a few small objects we keep on our own desks. Drop your email to be the first in when the doors open."
         accent="peach"
       />
 
       <section className="relative pb-24">
-        <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
-          {/* Filter + cart */}
-          <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setActive(c)}
-                  className={`rounded-full px-4 py-2 text-sm transition ${
-                    active === c
-                      ? "bg-ink-900 text-cream-50"
-                      : "bg-cream-50 text-ink-900 hover:bg-cream-100"
-                  }`}
-                >
-                  {c}
+        <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
+          {/* Waitlist */}
+          <Reveal>
+            <div className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-8 shadow-soft sm:p-12">
+              <h2 className="font-display text-3xl text-ink-900 sm:text-4xl">
+                Get on the waitlist.
+              </h2>
+              <p className="mt-3 max-w-xl text-ink-700">
+                We&apos;ll send one email when the store opens, and that&apos;s it. No spam,
+                pinky promise.
+              </p>
+              <form
+                className="mt-6 flex flex-col gap-3 sm:flex-row"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (email.includes("@")) setState("sent");
+                }}
+              >
+                <input
+                  required
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@school.edu"
+                  className="flex-1 rounded-full border border-ink-900/15 bg-white px-6 py-4 text-base outline-none transition focus:border-ink-900/40"
+                />
+                <button className="btn-primary" type="submit">
+                  {state === "sent" ? "You're on the list ✨" : "Save my spot"}
                 </button>
+              </form>
+              {state === "sent" && (
+                <p className="mt-3 text-sm text-ink-700">
+                  Thanks — we&apos;ll write the moment the shop is open.
+                </p>
+              )}
+            </div>
+          </Reveal>
+
+          {/* Teasers */}
+          <div className="mt-14">
+            <Reveal>
+              <p className="text-xs uppercase tracking-[0.25em] text-ink-700">A peek at what&apos;s coming</p>
+              <h3 className="mt-3 font-display text-3xl text-ink-900 sm:text-4xl">
+                On the workbench.
+              </h3>
+            </Reveal>
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              {TEASERS.map((t, i) => (
+                <Reveal key={t.name} delay={(i % 6) * 50}>
+                  <div
+                    className={`flex aspect-square flex-col items-center justify-center rounded-3xl ${t.tone} p-4 text-center transition hover:-translate-y-1`}
+                  >
+                    <span className="text-4xl" aria-hidden>{t.emoji}</span>
+                    <p className="mt-3 text-xs font-semibold text-ink-900">{t.name}</p>
+                  </div>
+                </Reveal>
               ))}
             </div>
-            <div className="flex items-center gap-3 rounded-full border border-ink-900/10 bg-cream-50 px-4 py-2 text-sm">
-              🛒 <span>{cartCount} items</span>
-              <span className="text-ink-700">·</span>
-              <strong>€{cartTotal}</strong>
-            </div>
           </div>
 
-          {/* Products */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {filtered.map((p, i) => (
-              <Reveal key={p.id} delay={(i % 4) * 60}>
-                <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-ink-900/10 bg-cream-50 transition hover:-translate-y-1 hover:shadow-soft">
-                  <div
-                    className={`relative flex aspect-[4/5] items-center justify-center ${toneClass[p.tone]}`}
-                  >
-                    <SheepMascot
-                      tone={p.tone}
-                      className="h-32 w-32 transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <span className="absolute left-4 top-4 rounded-full bg-cream-50/80 px-3 py-1 text-xs uppercase tracking-widest text-ink-900">
-                      {p.category}
-                    </span>
-                  </div>
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="font-display text-lg text-ink-900">{p.name}</h3>
-                    <p className="mt-1 flex-1 text-sm text-ink-700">{p.blurb}</p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="font-display text-lg text-ink-900">€{p.price}</span>
-                      <button
-                        onClick={() => add(p.id)}
-                        className="rounded-full bg-ink-900 px-4 py-2 text-xs uppercase tracking-widest text-cream-50 transition hover:bg-ink-700"
-                      >
-                        {cart[p.id] ? `In cart · ${cart[p.id]}` : "Add"}
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal className="mt-20 rounded-[32px] border border-ink-900/10 bg-cream-50 p-10 text-center shadow-soft">
+          {/* For now */}
+          <Reveal className="mt-16 rounded-[32px] border border-ink-900/10 bg-cream-50 p-10 text-center shadow-soft">
             <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl">
-              Shipped from Amsterdam, slowly.
+              In the meantime, the freebies are open.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-ink-700">
-              We batch-ship on Fridays to keep things sustainable. Every order includes a
-              handwritten thank-you note and a sticker you didn't ask for.
+              Templates, printables, and the StudyPuff app are all free to use today. No purchase
+              needed — pick what helps and tell a friend.
             </p>
-            <div className="mt-6 flex justify-center gap-3">
-              <Link href="/contact" className="btn-primary">
-                Shipping & returns
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/resources" className="btn-primary">
+                Browse free resources
               </Link>
-              <Link href="/workshops" className="btn-outline">
-                Try a workshop instead
+              <Link href="/dashboard" className="btn-outline">
+                Open the StudyPuff app
               </Link>
             </div>
           </Reveal>
