@@ -20,7 +20,7 @@ export default function Marquee() {
   return (
     <section
       aria-label="Universities our students attend"
-      className="relative border-y border-ink-900/10 bg-cream-50/70 py-6"
+      className="relative overflow-hidden border-y border-ink-900/10 bg-cream-50/70 py-6"
     >
       <div className="marquee-track gap-10 px-6">
         {loop.map((t, i) => (

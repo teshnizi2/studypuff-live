@@ -17,7 +17,7 @@ export default function Hero() {
         style={{ left: "40%", bottom: "-60px", width: 280, height: 280, background: "#c6dceb" }}
       />
 
-      <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-12 px-6 pb-20 pt-10 md:grid-cols-12 lg:px-10 lg:pb-32 lg:pt-16">
+      <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-12 px-6 pb-16 pt-10 md:grid-cols-12 lg:px-10 lg:pb-20 lg:pt-14">
         <div className="md:col-span-7">
           <Reveal>
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">

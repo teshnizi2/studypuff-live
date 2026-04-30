@@ -25,7 +25,7 @@ const FAQS = [
 
 export default function FAQ() {
   return (
-    <section className="relative py-24 lg:py-28">
+    <section className="relative py-16 lg:py-24">
       <div className="mx-auto max-w-3xl px-6 lg:px-10">
         <Reveal className="mb-12 text-center">
           <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">

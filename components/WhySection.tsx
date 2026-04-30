@@ -23,7 +23,7 @@ const PILLARS = [
 
 export default function WhySection() {
   return (
-    <section id="about" className="relative overflow-hidden py-24 lg:py-32">
+    <section id="about" className="relative overflow-hidden py-16 lg:py-24">
       <span className="blob animate-float" style={{ right: "-40px", top: "20px", width: 260, height: 260, background: "#c7e2c7" }} />
       <span className="blob animate-bobble" style={{ left: "-60px", bottom: "40px", width: 220, height: 220, background: "#d9cdea" }} />
 

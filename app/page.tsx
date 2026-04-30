@@ -26,27 +26,8 @@ export default function Page() {
       <Hero />
       <Marquee />
 
-      {/* Live this week pill → Study with us */}
-      <section className="relative py-10">
-        <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
-          <Reveal>
-            <Link
-              href="/study"
-              className="group inline-flex items-center gap-3 rounded-full border border-ink-900/10 bg-cream-50 px-5 py-2.5 text-sm shadow-soft transition hover:-translate-y-0.5"
-            >
-              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="font-semibold text-ink-900">Live this week</span>
-              <span className="text-ink-700">
-                {LIVE_SESSIONS_THIS_WEEK} livestream{LIVE_SESSIONS_THIS_WEEK === 1 ? "" : "s"} on YouTube and Twitch
-              </span>
-              <span className="text-ink-900 transition group-hover:translate-x-1">→</span>
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Co-study section */}
-      <section className="relative py-20 lg:py-28">
+      {/* Co-study section — "Live this week" pill is folded into the eyebrow */}
+      <section className="relative py-16 lg:py-24">
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 md:grid-cols-12 lg:px-10">
           <Reveal className="relative md:col-span-6">
             <div
@@ -63,13 +44,20 @@ export default function Page() {
             />
           </Reveal>
           <Reveal className="md:col-span-6" delay={150}>
-            <p className="mb-4 text-xs uppercase tracking-[0.25em] text-ink-700">
+            <Link
+              href="/study"
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-900/10 bg-cream-50 px-3.5 py-1.5 text-xs font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5"
+            >
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
+              Live this week · {LIVE_SESSIONS_THIS_WEEK} livestreams →
+            </Link>
+            <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
               Study with us · free livestreams
             </p>
             <h2 className="display-heading text-[clamp(2rem,3.5vw,3rem)] text-ink-900">
               Co-study sessions with focus timer and accountability.
             </h2>
-            <p className="mt-6 max-w-[44ch] text-lg leading-relaxed text-ink-700">
+            <p className="mt-5 max-w-[44ch] text-lg leading-relaxed text-ink-700">
               Drop in to join a community of StudyPuffs getting their things done.
             </p>
             <ul className="mt-6 grid grid-cols-1 gap-2 text-sm text-ink-900/80 sm:grid-cols-2">
@@ -99,27 +87,24 @@ export default function Page() {
 
       <WhySection />
 
-      {/* PLNT partnership */}
-      <section className="relative py-12">
+      {/* PLNT partnership — compact */}
+      <section className="relative pb-8">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
           <Reveal>
-            <div className="flex flex-col items-center gap-6 rounded-[28px] border border-ink-900/10 bg-cream-50 px-8 py-10 text-center shadow-soft sm:flex-row sm:text-left">
+            <div className="flex flex-col items-center gap-5 rounded-[24px] border border-ink-900/10 bg-cream-50 px-6 py-6 text-center shadow-soft sm:flex-row sm:gap-8 sm:text-left">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/plnt-logo.png"
                 alt="PLNT Leiden"
-                className="h-16 w-auto object-contain"
+                className="h-12 w-auto shrink-0 object-contain"
               />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
+              <div className="flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
                   Proud partner
                 </p>
-                <h3 className="mt-2 font-display text-2xl text-ink-900">
-                  In partnership with PLNT.
-                </h3>
-                <p className="mt-2 max-w-xl text-ink-700">
-                  We host our in-person workshops at PLNT — a student incubator in Leiden that
-                  shares our love of small cohorts and grounded science.
+                <p className="mt-1 text-sm text-ink-700">
+                  <span className="font-display text-base text-ink-900">In partnership with PLNT.</span>{" "}
+                  We host our in-person workshops at PLNT — a student incubator in Leiden.
                 </p>
               </div>
             </div>

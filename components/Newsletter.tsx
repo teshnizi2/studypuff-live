@@ -8,7 +8,7 @@ export default function Newsletter() {
   const [state, setState] = useState<"idle" | "sent">("idle");
 
   return (
-    <section className="relative overflow-hidden py-24 lg:py-32">
+    <section className="relative overflow-hidden py-16 lg:py-24">
       <span className="blob animate-float" style={{ left: "10%", top: "-40px", width: 280, height: 280, background: "#fbe9a5" }} />
       <span className="blob animate-bobble" style={{ right: "8%", bottom: "-60px", width: 260, height: 260, background: "#f3c6c2" }} />
 
