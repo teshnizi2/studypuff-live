@@ -32,9 +32,7 @@ export default function AppPreview() {
           <span className="h-3 w-3 rounded-full bg-[#ff6259]" />
           <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
           <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
-          <div className="ml-3 flex-1 truncate rounded-full bg-cream-100 px-3 py-1 text-[11px] text-ink-700">
-            studypuff-live.vercel.app/dashboard/timer
-          </div>
+          <div className="ml-3 h-5 flex-1 rounded-full bg-cream-100" />
         </div>
 
         {/* Timer canvas */}

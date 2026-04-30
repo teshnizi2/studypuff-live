@@ -13,7 +13,13 @@ type Tier = {
   bullets: string[];
   tone: string;
   featured?: boolean;
+  ctaLabel?: string;
+  ctaHref?: string;
+  ctaExternal?: boolean;
 };
+
+const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
+const SINGLE_WAITLIST_FORM = "https://forms.gle/YPYHPUwiwY8esmK39";
 
 const TIERS: Tier[] = [
   {
@@ -24,7 +30,9 @@ const TIERS: Tier[] = [
     tagline:
       "Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
     bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
-    tone: "bg-brand-pink"
+    tone: "bg-brand-pink",
+    ctaLabel: "Enroll now",
+    ctaHref: "/contact"
   },
   {
     name: "StudyPuff Academy",
@@ -39,7 +47,9 @@ const TIERS: Tier[] = [
       "Lifetime support"
     ],
     tone: "bg-brand-butter",
-    featured: true
+    featured: true,
+    ctaLabel: "Enroll now",
+    ctaHref: "/contact"
   },
   {
     name: "Time Management Toolkit",
@@ -49,7 +59,10 @@ const TIERS: Tier[] = [
     tagline:
       "One two-hour workshop to help you manage your time. Not just about the science of time management, but to help you plan your upcoming period.",
     bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
-    tone: "bg-brand-sky"
+    tone: "bg-brand-sky",
+    ctaLabel: "Join the waiting list",
+    ctaHref: SINGLE_WAITLIST_FORM,
+    ctaExternal: true
   }
 ];
 
@@ -59,7 +72,7 @@ export default function WorkshopsPage() {
       <PageHero
         eyebrow="Workshops · cohorts of 30 max"
         title="Workshops that change how you study."
-        subtitle="Three workshops, one live session, a workbook, lifetime support, and a cohort that keeps you accountable."
+        subtitle="Choose the amount of support you need: one focused workshop, a foundation session, or our structured StudyPuff Academy series."
         accent="butter"
       />
 
@@ -99,12 +112,23 @@ export default function WorkshopsPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
-                    href="/contact"
-                    className={`mt-8 ${t.featured ? "btn-primary" : "btn-outline"}`}
-                  >
-                    Enroll now
-                  </Link>
+                  {t.ctaExternal ? (
+                    <a
+                      href={t.ctaHref || "/contact"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`mt-8 ${t.featured ? "btn-primary" : "btn-outline"}`}
+                    >
+                      {t.ctaLabel || "Enroll now"}
+                    </a>
+                  ) : (
+                    <Link
+                      href={t.ctaHref || "/contact"}
+                      className={`mt-8 ${t.featured ? "btn-primary" : "btn-outline"}`}
+                    >
+                      {t.ctaLabel || "Enroll now"}
+                    </Link>
+                  )}
                 </article>
               </Reveal>
             ))}
@@ -130,9 +154,14 @@ export default function WorkshopsPage() {
               the contact form — no judgement, no application essay.
             </p>
             <div className="mt-6 flex justify-center gap-3">
-              <Link href="/contact" className="btn-primary">
+              <a
+                href={SCHOLARSHIP_FORM}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary"
+              >
                 Apply for a scholarship seat
-              </Link>
+              </a>
             </div>
           </Reveal>
         </div>

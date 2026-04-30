@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Youtube, Twitch, Instagram, MessageCircle } from "lucide-react";
+import { Youtube, Twitch, MessageCircle } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -132,7 +132,11 @@ export default function ContactPage() {
                   </Field>
                   <div className="flex items-center justify-between gap-4 pt-2">
                     <p className="text-xs text-ink-700">
-                      By sending, you agree to our (imaginary) privacy policy.
+                      By sending, you agree to our{" "}
+                      <a href="/privacy" className="underline underline-offset-4">
+                        privacy policy
+                      </a>
+                      .
                     </p>
                     <button className="btn-primary" type="submit">
                       Send message <span aria-hidden>→</span>
@@ -158,65 +162,41 @@ export default function ContactPage() {
                 </p>
               </div>
             </Reveal>
-            <Reveal delay={80}>
-              <div className="rounded-3xl border border-ink-900/10 bg-brand-pink p-8">
-                <h3 className="font-display text-xl text-ink-900">The quick answers</h3>
-                <ul className="mt-3 space-y-2 text-ink-900/80">
-                  <li>· Workshops, scholarship requests, press, partnerships, or just a kind note.</li>
-                  <li>· Livestreams are always free.</li>
-                  <li>· Workshops run monthly — small cohorts only (30 max).</li>
-                </ul>
-              </div>
-            </Reveal>
             <Reveal delay={160}>
               <div className="rounded-3xl border border-ink-900/10 bg-brand-sky p-8">
                 <h3 className="font-display text-xl text-ink-900">Find us elsewhere</h3>
-                <ul className="mt-3 space-y-2 text-ink-900/80">
-                  <li className="flex items-center gap-2">
-                    <Youtube className="h-4 w-4 text-rose-700" strokeWidth={1.75} aria-hidden />
-                    <a
-                      href="https://www.youtube.com/@StudyPuffAcademy"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4"
-                    >
-                      YouTube — StudyPuffAcademy
-                    </a>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Twitch className="h-4 w-4 text-violet-800" strokeWidth={1.75} aria-hidden />
-                    <a
-                      href="https://www.twitch.tv/studypuffacademy"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4"
-                    >
-                      Twitch — StudyPuffAcademy
-                    </a>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4 text-pink-700" strokeWidth={1.75} aria-hidden />
-                    <a
-                      href="https://www.instagram.com/studypuffacademy"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4"
-                    >
-                      Instagram — @studypuffacademy
-                    </a>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-emerald-700" strokeWidth={1.75} aria-hidden />
-                    <a
-                      href="https://discord.gg/hb8bKpbjEz"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4"
-                    >
-                      Discord — StudyPuffAcademy
-                    </a>
-                  </li>
-                </ul>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <a
+                    href="https://www.youtube.com/@StudyPuffAcademy"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="YouTube"
+                    title="YouTube"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 text-rose-700 transition hover:-translate-y-0.5 hover:bg-cream-100"
+                  >
+                    <Youtube className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </a>
+                  <a
+                    href="https://www.twitch.tv/studypuffacademy"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Twitch"
+                    title="Twitch"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 text-violet-800 transition hover:-translate-y-0.5 hover:bg-cream-100"
+                  >
+                    <Twitch className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </a>
+                  <a
+                    href="https://discord.gg/hb8bKpbjEz"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Discord"
+                    title="Discord"
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 text-emerald-700 transition hover:-translate-y-0.5 hover:bg-cream-100"
+                  >
+                    <MessageCircle className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </a>
+                </div>
               </div>
             </Reveal>
           </div>

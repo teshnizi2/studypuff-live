@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Globe, Star } from "lucide-react";
+import { Globe } from "lucide-react";
 import Reveal from "./Reveal";
 import { StudyingNow } from "./StudyingNow";
 
@@ -23,13 +23,7 @@ export default function Hero() {
         <div className="md:col-span-7">
           <Reveal>
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-ink-900 animate-pulse" />
               Cozy · science-based · student-led
-            </p>
-          </Reveal>
-          <Reveal delay={50}>
-            <p className="mb-4 text-base font-semibold text-ink-700 sm:text-lg">
-              A cozy study app + community for students.
             </p>
           </Reveal>
           <Reveal delay={100}>
@@ -54,18 +48,19 @@ export default function Hero() {
             </h1>
           </Reveal>
           <Reveal delay={200}>
-            <p className="mt-6 max-w-[44ch] text-lg leading-relaxed text-ink-700">
-              Join free livestreams, use our focus timer + co-study rooms, and learn how to study
-              without burning out. No credit card needed.
+            <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-ink-700">
+              StudyPuff is the home for students who want to improve their performance, without
+              burning out. Join a workshop, drop into a free livestream, or use one of our free
+              templates.
             </p>
           </Reveal>
           <Reveal delay={300}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/study" className="btn-primary">
-                Try a free session <span aria-hidden>→</span>
+              <Link href="/workshops" className="btn-primary">
+                Join the next workshop <span aria-hidden>→</span>
               </Link>
-              <Link href="/workshops" className="btn-outline">
-                Browse workshops
+              <Link href="/study" className="btn-outline">
+                Study with us for free
               </Link>
             </div>
           </Reveal>
@@ -89,12 +84,7 @@ export default function Hero() {
               <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
               <p className="inline-flex items-center gap-1.5">
                 <Globe className="h-4 w-4 text-ink-700" strokeWidth={1.75} aria-hidden />
-                46 countries
-              </p>
-              <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
-              <p className="inline-flex items-center gap-1.5">
-                <Star className="h-4 w-4 fill-current text-amber-500" strokeWidth={1.5} aria-hidden />
-                <span>4.9 rating</span>
+                46+ countries
               </p>
             </div>
           </Reveal>

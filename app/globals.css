@@ -220,6 +220,28 @@ html::-webkit-scrollbar-track { background: var(--bg); }
 html::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
 html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 
+/* Policy / long-form copy */
+.prose-policy p {
+  color: #3a3a3a;
+  line-height: 1.65;
+  margin-top: 0.85em;
+}
+.prose-policy ul {
+  list-style: disc;
+  padding-left: 1.4em;
+  margin-top: 0.6em;
+  color: #3a3a3a;
+}
+.prose-policy li {
+  line-height: 1.6;
+  margin-top: 0.3em;
+}
+.prose-policy a {
+  color: #1f1f1f;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 /* Decorative hand-drawn squiggle used under section eyebrows */
 .eyebrow-squiggle::after {
   content: "";

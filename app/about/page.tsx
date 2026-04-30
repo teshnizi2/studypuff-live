@@ -30,22 +30,22 @@ const PRINCIPLES = [
 
 const TEAM = [
   {
-    name: "Elaine",
-    role: "Founder / CEO",
+    name: "Elaine Herkul",
+    role: "Founder · CEO",
     photo: "/assets/elaine.png",
-    bio: "Founded StudyPuff to make studying feel less lonely. Runs the workshops and most of the livestreams."
+    bio: "Elaine is currently pursuing her master's in Applied Cognitive Psychology and her master's in Statistics and Data Science. She has been hosting the study with me livestreams since 2021 and continues to work on ways to give back to students."
   },
   {
-    name: "Hera",
+    name: "Hera Imthorn",
     role: "Co-founder · Research & Development",
     photo: "/assets/hera.png",
-    bio: "Translates the cognitive science research into the workshops we run. Keeps every claim honest."
+    bio: "As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning."
   },
   {
-    name: "Reza",
+    name: "Reza Ahmadi Teshnizi",
     role: "Co-founder · Engineering & Automation",
     photo: "/assets/sheep.png",
-    bio: "Computer scientist behind the StudyPuff app, the website, and the automations that keep everything humming in the background."
+    bio: "Reza is the computer scientist behind the StudyPuff app and the website. He also focuses on the automation to make sure that everything keeps running smoothly in the background."
   }
 ];
 
@@ -55,7 +55,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="About"
         title="Studying better shouldn't be a secret."
-        subtitle="A small studio building workshops, tools and livestreams for students who want to work smarter — and rest more."
+        subtitle="A small team of three, building a calm home for students who want to study well together."
         accent="lilac"
       />
 
@@ -125,28 +125,6 @@ export default function AboutPage() {
               );
             })}
           </div>
-
-          {/* PLNT partnership */}
-          <Reveal className="mt-16">
-            <div className="flex flex-col items-center gap-6 rounded-[28px] border border-ink-900/10 bg-cream-50 px-8 py-10 text-center shadow-soft sm:flex-row sm:text-left">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/plnt-logo.png"
-                alt="PLNT Leiden"
-                className="h-16 w-auto object-contain"
-              />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
-                  Partner
-                </p>
-                <h3 className="mt-2 font-display text-2xl text-ink-900">PLNT Leiden</h3>
-                <p className="mt-2 max-w-xl text-ink-700">
-                  Our home base. PLNT is a student incubator in Leiden where we host our in-person
-                  workshops and run a few of the livestreams.
-                </p>
-              </div>
-            </div>
-          </Reveal>
 
           <Reveal className="mt-16 text-center">
             <Link href="/contact" className="btn-primary">

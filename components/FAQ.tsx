@@ -4,23 +4,24 @@ import Reveal from "./Reveal";
 const FAQS = [
   {
     q: "Who are the workshops for?",
-    a: "High school, IB, A-level, and university students who want to study more effectively — whether you're aiming for top marks or just trying to feel less behind."
+    a: "The current workshops are specifically designed for university and college students. However, this does not mean that you cannot join if you're not a university or college student. Anyone who wants to learn more about the specific workshop topic is able to join."
   },
   {
-    q: "How are the sessions delivered?",
-    a: "A mix of live cohort workshops, recorded lessons, printable worksheets, and optional co-study rooms so you can apply each technique the same week you learn it."
-  },
-  {
-    q: "Do I need to commit to a specific schedule?",
-    a: "Each workshop runs over a few weeks with flexible live slots. All live sessions are recorded, and the practice work is self-paced."
-  },
-  {
-    q: "What if it's not right for me?",
-    a: "We have a 14-day no-questions-asked refund window. We only want the workshop in the hands of students it actually helps."
+    q: "Can I join the workshops from outside of the Netherlands?",
+    a: "We are currently focused on hosting in-person workshops, but we will soon launch our online workshops. Make sure to sign up to our newsletter to be the first to know when this happens. For now you can always join the livestreams on YouTube or Twitch."
   },
   {
     q: "Are the livestreams really free?",
-    a: "Yep — three study-with-me sessions a week on YouTube and Twitch, forever free. The workshop is our paid program, the livestreams are for everyone."
+    a: "Yes they are. Upon joining the livestream you will see an ad and sometimes there will be ads during the breaks, but you do not have to pay anything to join. In case you want to support, you can become a member to get access to cute emojis."
+  },
+  {
+    q: "What makes the workshops science-based?",
+    a: "Every workshop is grounded in scientific research on attention, sleep, spaced repetition, motivation, and other related topics. With that we also use our own experience as students and student representatives, to ensure it's all related to actual student life."
+  },
+  {
+    q: "What if I can't afford a paid workshop?",
+    a: "Every workshop has scholarship seats. For this you can fill out the following form.",
+    formUrl: "https://forms.gle/12W2jhcPdtPEbt4X8"
   }
 ];
 
@@ -50,7 +51,24 @@ export default function FAQ() {
                       <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
                     </span>
                   </summary>
-                  <p className="mt-4 max-w-prose text-ink-700">{f.a}</p>
+                  <p className="mt-4 max-w-prose text-ink-700">
+                    {"formUrl" in f && f.formUrl ? (
+                      <>
+                        {f.a.split("form")[0]}
+                        <a
+                          href={f.formUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline underline-offset-4 hover:text-ink-900"
+                        >
+                          form
+                        </a>
+                        {f.a.split("form").slice(1).join("form")}
+                      </>
+                    ) : (
+                      f.a
+                    )}
+                  </p>
                 </details>
               </Reveal>
             </li>

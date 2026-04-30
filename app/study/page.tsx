@@ -16,8 +16,10 @@ const GOOGLE_CALENDAR =
   "https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20";
 
 const SCHEDULE = [
-  { day: "Monday", time: "7:00 PM CET", platform: "YouTube", topic: "Slow-start focus (Pomodoro 50/10)" },
-  { day: "Wednesday", time: "4:00 PM CET", platform: "Twitch", topic: "Deep-work block (90 min)" },
+  { day: "Monday", time: "8:00 AM CET", platform: "YouTube", topic: "Cozy morning focus" },
+  { day: "Tuesday", time: "12:00 PM CET", platform: "YouTube", topic: "Deep work" },
+  { day: "Wednesday", time: "4:00 PM CET", platform: "Twitch", topic: "Deep-work block" },
+  { day: "Friday", time: "12:00 PM CET", platform: "YouTube", topic: "Last focus sprint" },
   { day: "Saturday", time: "10:00 AM CET", platform: "YouTube", topic: "Weekend reset + planning" }
 ];
 
@@ -123,12 +125,13 @@ export default function StudyPage() {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <a
-            href={GOOGLE_CALENDAR}
+            href="https://www.youtube.com/@StudyPuffAcademy"
             target="_blank"
             rel="noreferrer"
             className="btn-primary"
           >
-            Scroll through this week&apos;s schedule <span aria-hidden>→</span>
+            <Youtube className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            Subscribe on YouTube
           </a>
           <a
             href="https://www.twitch.tv/studypuffacademy"
@@ -136,11 +139,17 @@ export default function StudyPage() {
             rel="noreferrer"
             className="btn-outline"
           >
+            <Twitch className="h-4 w-4" strokeWidth={1.75} aria-hidden />
             Follow on Twitch
           </a>
-          <Link href="/resources" className="btn-outline">
-            Free resources
-          </Link>
+          <a
+            href={GOOGLE_CALENDAR}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-outline"
+          >
+            Add to calendar
+          </a>
         </div>
       </section>
 
@@ -157,9 +166,9 @@ export default function StudyPage() {
             {(
               [
                 { Icon: Clock, label: "50/10 Pomodoros", body: "Structured focus rounds with built-in rests.", tone: "bg-brand-butter text-amber-700" },
-                { Icon: Globe, label: "All ages welcome", body: "From high schoolers to PhDs from 46 countries.", tone: "bg-brand-mint text-emerald-800" },
+                { Icon: Globe, label: "All ages welcome", body: "Anyone is welcome to join.", tone: "bg-brand-mint text-emerald-800" },
                 { Icon: MessageCircle, label: "Chat during breaks", body: "Cheer each other on between rounds.", tone: "bg-brand-sky text-sky-800" },
-                { Icon: Gamepad2, label: "Cozy game streams", body: "Off-weeks we hang out with cozy games.", tone: "bg-brand-lilac text-violet-800" }
+                { Icon: Gamepad2, label: "Cozy game streams", body: "On Twitch we have regular hangouts to play cozy games.", tone: "bg-brand-lilac text-violet-800" }
               ] as { Icon: LucideIcon; label: string; body: string; tone: string }[]
             ).map((b, i) => (
               <Reveal key={b.label} delay={i * 70}>

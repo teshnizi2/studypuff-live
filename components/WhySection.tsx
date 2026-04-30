@@ -1,38 +1,23 @@
-import { Clock, Globe, Wrench, type LucideIcon } from "lucide-react";
 import Reveal from "./Reveal";
 
-type Pillar = {
-  Icon: LucideIcon;
-  iconBg: string;
-  iconColor: string;
-  title: string;
-  body: string;
-};
-
-const PILLARS: Pillar[] = [
+const PILLARS = [
   {
-    Icon: Clock,
-    iconBg: "bg-brand-butter",
-    iconColor: "text-amber-700",
+    emoji: "⏰",
     title: "Steady focus",
     body:
-      "Structured focus rounds, StudyPuff timer, and calm real time background sounds."
+      "Structured focus rounds, the StudyPuff timer, and calm real-time background sounds."
   },
   {
-    Icon: Globe,
-    iconBg: "bg-brand-mint",
-    iconColor: "text-emerald-800",
+    emoji: "🌍",
     title: "International company",
     body:
       "A global room of students co-studying and learning together. Body-doubling that feels like a library."
   },
   {
-    Icon: Wrench,
-    iconBg: "bg-brand-sky",
-    iconColor: "text-sky-800",
+    emoji: "✈️",
     title: "Tools that travel",
     body:
-      "Simple trackers, free printable templates, knowledge, or app. Forever useful, from anywhere."
+      "Simple trackers, free printable templates, knowledge, and an app. Forever useful, from anywhere."
   }
 ];
 
@@ -51,8 +36,9 @@ export default function WhySection() {
             Because we believe that <em className="italic">students deserve better</em>.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-ink-700 sm:text-lg">
-            We teach you how to study, then keep showing up — with workshops, livestreams, and a
-            community that believes you don&apos;t have to do this alone.
+            At StudyPuff, we teach you how to study. However, it doesn&apos;t stop there. We offer
+            continuous support with the help of our community. Because you don&apos;t have to do
+            this alone.
           </p>
         </Reveal>
 
@@ -60,10 +46,8 @@ export default function WhySection() {
           {PILLARS.map((p, i) => (
             <Reveal key={p.title} delay={i * 100}>
               <div className="group h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-8 transition hover:-translate-y-1 hover:shadow-soft">
-                <div
-                  className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${p.iconBg} transition-transform group-hover:rotate-6`}
-                >
-                  <p.Icon className={`h-6 w-6 ${p.iconColor}`} strokeWidth={1.75} aria-hidden />
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-butter text-3xl transition-transform group-hover:rotate-6">
+                  {p.emoji}
                 </div>
                 <h3 className="font-display text-xl font-normal text-ink-900">{p.title}</h3>
                 <p className="mt-3 text-ink-700">{p.body}</p>

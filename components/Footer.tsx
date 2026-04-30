@@ -2,11 +2,6 @@ import Link from "next/link";
 
 const SOCIAL = [
   {
-    label: "Instagram",
-    href: "https://www.instagram.com/studypuffacademy",
-    d: "M13.4 0H4.6A4.6 4.6 0 0 0 0 4.6v8.8A4.6 4.6 0 0 0 4.6 18h8.8a4.6 4.6 0 0 0 4.6-4.6V4.6A4.6 4.6 0 0 0 13.4 0Zm3.1 13.4a3.1 3.1 0 0 1-3.1 3.1H4.6a3.1 3.1 0 0 1-3.1-3.1V4.6a3.1 3.1 0 0 1 3.1-3.1h8.8a3.1 3.1 0 0 1 3.1 3.1v8.8ZM9 4.1a4.9 4.9 0 1 0 0 9.8 4.9 4.9 0 0 0 0-9.8Zm0 8.4a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm5.2-7.6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-  },
-  {
     label: "YouTube",
     href: "https://www.youtube.com/@StudyPuffAcademy",
     d: "M17.8 3.4c0-1.6-1.1-2.8-2.5-2.8C13.3.5 11.4.4 9.4.4H8.8C6.8.4 4.8.5 2.9.6c-1.4 0-2.5 1.2-2.5 2.8C.3 4.6.3 5.9.3 7.1c0 1.2 0 2.5.1 3.7 0 1.6 1.1 2.8 2.6 2.8 2 .1 4 .1 6.1.1 2.1 0 4.2 0 6.2-.1 1.4 0 2.5-1.2 2.5-2.8.1-1.2.1-2.5.1-3.7 0-1.3 0-2.5-.1-3.7ZM7.3 10.3V3.8l4.8 3.3-4.8 3.2Z"
@@ -38,18 +33,14 @@ const COLUMNS = [
     title: "Company",
     items: [
       { label: "About", href: "/about" },
-      { label: "Contact", href: "/contact" },
-      { label: "Affiliate", href: "/contact" },
-      { label: "Careers", href: "/about" }
+      { label: "Contact", href: "/contact" }
     ]
   },
   {
     title: "Policies",
     items: [
-      { label: "Refund", href: "/contact" },
-      { label: "Privacy", href: "/contact" },
-      { label: "Terms", href: "/contact" },
-      { label: "Shipping", href: "/store" }
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" }
     ]
   }
 ];
@@ -108,7 +99,7 @@ export default function Footer() {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-ink-900/10 pt-6 text-sm text-ink-700 sm:flex-row sm:items-center">
           <p>© {year}, StudyPuff Academy</p>
-          <p>Made with care · Amsterdam</p>
+          <p>Made with care · Leiden</p>
         </div>
       </div>
     </footer>

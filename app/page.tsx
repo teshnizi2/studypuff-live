@@ -1,16 +1,5 @@
 import Link from "next/link";
-import {
-  Clock,
-  Globe,
-  MessageCircle,
-  Heart,
-  Gamepad2,
-  Timer,
-  CheckCircle2,
-  Coins,
-  Users,
-  type LucideIcon
-} from "lucide-react";
+import { Youtube, ExternalLink } from "lucide-react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
@@ -23,19 +12,19 @@ import Reveal from "@/components/Reveal";
 import AppPreview from "@/components/AppPreview";
 import SectionDivider from "@/components/SectionDivider";
 
-const COSTUDY_BULLETS: { Icon: LucideIcon; label: string; tone: string }[] = [
-  { Icon: Clock, label: "50/10 Pomodoros", tone: "bg-brand-butter text-amber-700" },
-  { Icon: Globe, label: "All ages welcome", tone: "bg-brand-mint text-emerald-800" },
-  { Icon: MessageCircle, label: "Chatting during breaks", tone: "bg-brand-sky text-sky-800" },
-  { Icon: Heart, label: "Cozy community", tone: "bg-brand-pink text-rose-700" },
-  { Icon: Gamepad2, label: "Regular cozy game streams", tone: "bg-brand-lilac text-violet-800" }
+const COSTUDY_BULLETS: string[] = [
+  "50/10 Pomodoros",
+  "All ages welcome",
+  "Chatting during breaks",
+  "Cozy community",
+  "Regular cozy game streams"
 ];
 
-const APP_BULLETS: { Icon: LucideIcon; label: string; tone: string }[] = [
-  { Icon: Timer, label: "Pomodoro timer with the sheep at the centre", tone: "bg-brand-mint text-emerald-800" },
-  { Icon: CheckCircle2, label: "Tasks, topics, and a daily goal", tone: "bg-brand-butter text-amber-700" },
-  { Icon: Coins, label: "Earn & spend coins on rewards", tone: "bg-brand-pink text-rose-700" },
-  { Icon: Users, label: "Group study rooms with chat", tone: "bg-brand-sky text-sky-800" }
+const APP_BULLETS: string[] = [
+  "Pomodoro timer with the sheep at the centre",
+  "Tasks, topics, and a daily goal",
+  "Earn & spend coins on rewards",
+  "Group study rooms with chat"
 ];
 
 const LIVE_SESSIONS_THIS_WEEK: number = 3;
@@ -77,18 +66,13 @@ export default function Page() {
             </h2>
             <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-ink-700">
               Free livestreams on YouTube and Twitch. Drop in, set your intention, and get
-              your things done alongside students from 46 countries.
+              your things done alongside students from all around the world.
             </p>
-            <ul className="mt-6 grid grid-cols-1 gap-2.5 text-sm sm:grid-cols-2">
+            <ul className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               {COSTUDY_BULLETS.map((b) => (
-                <li
-                  key={b.label}
-                  className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2 text-ink-900"
-                >
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${b.tone}`}>
-                    <b.Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                  </span>
-                  <span className="font-semibold">{b.label}</span>
+                <li key={b} className="flex items-center gap-2.5 text-ink-900">
+                  <span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-ink-900/70" />
+                  <span>{b}</span>
                 </li>
               ))}
             </ul>
@@ -97,12 +81,13 @@ export default function Page() {
                 See this week&apos;s schedule <span aria-hidden>→</span>
               </Link>
               <a
-                href="https://www.twitch.tv/studypuffacademy"
+                href="https://www.youtube.com/@StudyPuffAcademy"
                 target="_blank"
                 rel="noreferrer"
                 className="btn-outline"
               >
-                Follow on Twitch
+                <Youtube className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                Subscribe on YouTube
               </a>
             </div>
           </Reveal>
@@ -125,17 +110,17 @@ export default function Page() {
               A cozy timer. A sheep that&apos;s rooting for you.
             </h2>
             <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-ink-700">
-              Set focus, pick a task, press start. Earn coins for every minute focused, then spend
-              them on ambient sounds, tiny sheep accessories, and themes. Join study rooms with a
-              code so friends study alongside you in real time.
+              Set your focus timer, pick a task, press start. Earn coins for every study session,
+              completed tasks, and more. Use them on new ambient sounds, themes, and more to come.
+              Join study rooms with a code so you can study with your friends in real time.
             </p>
-            <ul className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <ul className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               {APP_BULLETS.map((b) => (
-                <li key={b.label} className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2.5 text-ink-900">
-                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${b.tone}`}>
-                    <b.Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                  </span>
-                  <span className="font-semibold">{b.label}</span>
+                <li
+                  key={b}
+                  className="rounded-2xl bg-cream-50/70 px-3 py-2.5 text-ink-900"
+                >
+                  <span className="font-semibold">{b}</span>
                 </li>
               ))}
             </ul>
@@ -155,25 +140,37 @@ export default function Page() {
 
       <WhySection />
 
-      {/* PLNT partnership — compact */}
+      {/* PLNT partnership */}
       <section className="relative pb-8">
         <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
           <Reveal>
-            <div className="flex flex-col items-center gap-5 rounded-[24px] border border-ink-900/10 bg-cream-50 px-6 py-6 text-center shadow-soft sm:flex-row sm:gap-8 sm:text-left">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/plnt-logo.png"
-                alt="PLNT Leiden"
-                className="h-12 w-auto shrink-0 object-contain"
-              />
-              <div className="flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
-                  Proud partner
-                </p>
-                <p className="mt-1 text-sm text-ink-700">
-                  <span className="font-display text-base text-ink-900">In partnership with PLNT.</span>{" "}
-                  We host our in-person workshops at PLNT — a student incubator in Leiden.
-                </p>
+            <div className="rounded-[28px] border border-ink-900/10 bg-cream-50 px-6 py-6 shadow-soft sm:px-8 sm:py-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-8">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/plnt-logo.png"
+                  alt="PLNT Students"
+                  className="h-14 w-auto shrink-0 object-contain"
+                />
+                <div className="flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
+                    Proud partner
+                  </p>
+                  <p className="mt-2 text-base leading-relaxed text-ink-900 sm:text-lg">
+                    StudyPuff is part of PLNT&apos;s community of innovators and entrepreneurs in
+                    Leiden and The Hague, where early-stage ideas get the coaching, network, and
+                    structure to grow from ideation to validation and acceleration.
+                  </p>
+                  <a
+                    href="https://www.plntleiden.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-outline mt-4 inline-flex"
+                  >
+                    Visit PLNT
+                    <ExternalLink className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                  </a>
+                </div>
               </div>
             </div>
           </Reveal>
