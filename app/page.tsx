@@ -8,6 +8,8 @@ import FAQ from "@/components/FAQ";
 import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import AppPreview from "@/components/AppPreview";
+import SectionDivider from "@/components/SectionDivider";
 
 const COSTUDY_BULLETS: { icon: string; label: string }[] = [
   { icon: "⏰", label: "50/10 Pomodoros" },
@@ -86,6 +88,53 @@ export default function Page() {
         </div>
       </section>
 
+      <SectionDivider tone="pink" />
+
+      {/* Meet the app */}
+      <section className="relative py-16 lg:py-24">
+        <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-14 px-6 md:grid-cols-12 lg:px-10">
+          <Reveal className="md:col-span-6 md:order-2">
+            <AppPreview />
+          </Reveal>
+          <Reveal className="md:col-span-6 md:order-1" delay={150}>
+            <p className="eyebrow-squiggle mb-3 inline-flex flex-col text-xs uppercase tracking-[0.25em] text-ink-700">
+              Meet the app · free
+            </p>
+            <h2 className="display-heading text-[clamp(2rem,3.5vw,3rem)] text-ink-900">
+              A cozy timer. A sheep that&apos;s rooting for you.
+            </h2>
+            <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-ink-700">
+              Set focus, pick a task, press start. Earn coins for every minute focused, then spend
+              them on ambient sounds, tiny sheep accessories, and themes. Join study rooms with a
+              code so friends study alongside you in real time.
+            </p>
+            <ul className="mt-6 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              {[
+                { icon: "⏱️", label: "Pomodoro timer with the sheep at the centre" },
+                { icon: "✅", label: "Tasks, topics, and a daily goal" },
+                { icon: "🪙", label: "Earn & spend coins on rewards" },
+                { icon: "💬", label: "Group study rooms with chat" }
+              ].map((b) => (
+                <li key={b.label} className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2.5 text-ink-900">
+                  <span className="text-lg" aria-hidden>{b.icon}</span>
+                  <span className="font-semibold">{b.label}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/dashboard" className="btn-primary">
+                Open the app <span aria-hidden>→</span>
+              </Link>
+              <Link href="/register" className="btn-outline">
+                Create a free account
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <SectionDivider tone="mint" />
+
       <WhySection />
 
       {/* PLNT partnership — compact */}
@@ -113,8 +162,14 @@ export default function Page() {
         </div>
       </section>
 
+      <SectionDivider tone="ink" />
+
       <Testimonials />
+
+      <SectionDivider tone="butter" />
+
       <FAQ />
+
       <Newsletter />
       <Footer />
     </main>

@@ -33,7 +33,23 @@ export default function Hero() {
           </Reveal>
           <Reveal delay={100}>
             <h1 className="display-heading text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink-900">
-              Small progress, <em className="italic">is still</em> progress.
+              Small progress,{" "}
+              <span className="relative inline-block">
+                <em className="italic">is still</em>
+                <svg
+                  aria-hidden
+                  viewBox="0 0 200 12"
+                  preserveAspectRatio="none"
+                  className="absolute -bottom-1 left-0 h-2.5 w-full text-[#c97f72]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                >
+                  <path d="M2 8 Q 30 2 60 6 T 120 5 T 198 7" />
+                </svg>
+              </span>{" "}
+              progress.
             </h1>
           </Reveal>
           <Reveal delay={200}>
