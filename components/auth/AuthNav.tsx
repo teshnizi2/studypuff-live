@@ -7,16 +7,29 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function AuthNav() {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-    });
+    async function loadSession(currentUser: User | null) {
+      setUser(currentUser);
+      if (!currentUser) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", currentUser.id)
+        .single();
+      setIsAdmin(profile?.role === "admin");
+    }
+
+    supabase.auth.getUser().then(({ data }) => loadSession(data.user ?? null));
 
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      loadSession(session?.user ?? null);
     });
 
     return () => data.subscription.unsubscribe();
@@ -28,9 +41,11 @@ export function AuthNav() {
         <Link href="/dashboard" className="nav-link text-sm">
           Dashboard
         </Link>
-        <Link href="/admin" className="nav-link text-sm">
-          Admin
-        </Link>
+        {isAdmin && (
+          <Link href="/admin" className="nav-link text-sm">
+            Admin
+          </Link>
+        )}
       </>
     );
   }
