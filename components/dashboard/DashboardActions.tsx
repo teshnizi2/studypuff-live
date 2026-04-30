@@ -424,7 +424,7 @@ function ActionTile({
     </>
   );
   const cls =
-    "group flex h-full items-center gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-4 py-3.5 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-cream-100";
+    "group flex h-full items-center gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-4 py-3.5 text-left shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-ink-900/20 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 active:translate-y-0 active:scale-[0.98]";
   if (href) {
     return (
       <a href={href} className={cls}>
