@@ -68,21 +68,26 @@ export default function StorePage() {
           </Reveal>
 
           {/* Teasers */}
-          <div className="mt-14">
-            <Reveal>
-              <p className="text-xs uppercase tracking-[0.25em] text-ink-700">A peek at what&apos;s coming</p>
-              <h3 className="mt-3 font-display text-3xl text-ink-900 sm:text-4xl">
-                On the workbench.
-              </h3>
+          <div className="mt-12">
+            <Reveal className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-ink-700">A peek at what&apos;s coming</p>
+                <h3 className="mt-2 font-display text-3xl text-ink-900 sm:text-4xl">
+                  On the workbench.
+                </h3>
+              </div>
+              <p className="max-w-md text-sm text-ink-700">
+                A small, slow-fashion catalogue. Designed in Amsterdam, batch-shipped on Fridays.
+              </p>
             </Reveal>
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {TEASERS.map((t, i) => (
-                <Reveal key={t.name} delay={(i % 6) * 50}>
+                <Reveal key={t.name} delay={(i % 6) * 40}>
                   <div
-                    className={`flex aspect-square flex-col items-center justify-center rounded-3xl ${t.tone} p-4 text-center transition hover:-translate-y-1`}
+                    className={`flex aspect-[5/6] flex-col items-center justify-center gap-2 rounded-2xl ${t.tone} p-4 text-center shadow-soft transition hover:-translate-y-1`}
                   >
-                    <span className="text-4xl" aria-hidden>{t.emoji}</span>
-                    <p className="mt-3 text-xs font-semibold text-ink-900">{t.name}</p>
+                    <span className="text-3xl" aria-hidden>{t.emoji}</span>
+                    <p className="text-xs font-semibold leading-tight text-ink-900">{t.name}</p>
                   </div>
                 </Reveal>
               ))}
@@ -90,20 +95,21 @@ export default function StorePage() {
           </div>
 
           {/* For now */}
-          <Reveal className="mt-16 rounded-[32px] border border-ink-900/10 bg-cream-50 p-10 text-center shadow-soft">
-            <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl">
-              In the meantime, the freebies are open.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-ink-700">
-              Templates, printables, and the StudyPuff app are all free to use today. No purchase
-              needed — pick what helps and tell a friend.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Reveal className="mt-12 grid grid-cols-1 gap-3 rounded-[28px] border border-ink-900/10 bg-cream-50 p-6 shadow-soft sm:grid-cols-[1fr_auto] sm:items-center sm:gap-6 sm:p-8">
+            <div>
+              <h2 className="font-display text-2xl text-ink-900 sm:text-3xl">
+                In the meantime, the freebies are open.
+              </h2>
+              <p className="mt-2 text-sm text-ink-700">
+                Templates, printables, and the StudyPuff app are free to use today.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               <Link href="/resources" className="btn-primary">
-                Browse free resources
+                Browse resources
               </Link>
               <Link href="/dashboard" className="btn-outline">
-                Open the StudyPuff app
+                Open the app
               </Link>
             </div>
           </Reveal>

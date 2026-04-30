@@ -49,19 +49,33 @@ export default function Hero() {
             </div>
           </Reveal>
           <Reveal delay={400}>
-            <div className="mt-10 flex items-center gap-4 text-sm text-ink-700">
-              <div className="flex -space-x-2">
-                {["#f3c6c2", "#fbe9a5", "#c7e2c7", "#c6dceb", "#d9cdea"].map((c, i) => (
-                  <span
-                    key={i}
-                    className="inline-block h-8 w-8 rounded-full border-2 border-cream-50"
-                    style={{ background: c }}
-                  />
-                ))}
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-ink-700">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {[
+                    { c: "#f3c6c2", l: "A" },
+                    { c: "#fbe9a5", l: "M" },
+                    { c: "#c7e2c7", l: "T" },
+                    { c: "#c6dceb", l: "L" },
+                    { c: "#d9cdea", l: "S" }
+                  ].map((a, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-cream-50 text-xs font-semibold text-ink-900"
+                      style={{ background: a.c }}
+                    >
+                      {a.l}
+                    </span>
+                  ))}
+                </div>
+                <p>
+                  <strong className="text-ink-900">17,074+</strong> students
+                </p>
               </div>
-              <p>
-                <strong className="text-ink-900">17,074+</strong> students · 46 countries
-              </p>
+              <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
+              <p>🌍 46 countries</p>
+              <span className="hidden h-4 w-px bg-ink-900/15 sm:inline-block" aria-hidden />
+              <p>⭐ 4.9 rating</p>
             </div>
           </Reveal>
         </div>
