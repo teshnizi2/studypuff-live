@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Code2 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -91,26 +92,38 @@ export default function AboutPage() {
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {TEAM.map((m, i) => (
-              <Reveal key={m.name} delay={i * 80}>
-                <figure className="h-full overflow-hidden rounded-3xl border border-ink-900/10 bg-cream-50 transition hover:-translate-y-1 hover:shadow-soft">
-                  <div className="aspect-[4/3] w-full overflow-hidden bg-brand-butter/30">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={m.photo}
-                      alt={m.name}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <figcaption className="p-6 text-center">
-                    <p className="font-display text-2xl text-ink-900">{m.name}</p>
-                    <p className="text-sm text-ink-700">{m.role}</p>
-                    <p className="mt-3 text-sm text-ink-700">{m.bio}</p>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
+            {TEAM.map((m, i) => {
+              const isPlaceholder = m.photo === "/assets/sheep.png";
+              return (
+                <Reveal key={m.name} delay={i * 80}>
+                  <figure className="h-full overflow-hidden rounded-3xl border border-ink-900/10 bg-cream-50 transition hover:-translate-y-1 hover:shadow-soft">
+                    <div className="aspect-[4/3] w-full overflow-hidden bg-brand-butter/30">
+                      {isPlaceholder ? (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-brand-mint via-brand-sky to-brand-lilac">
+                          <Code2 className="h-12 w-12 text-emerald-900/80" strokeWidth={1.5} aria-hidden />
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-900/70">
+                            Photo coming soon
+                          </p>
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={m.photo}
+                          alt={m.name}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                    <figcaption className="p-6 text-center">
+                      <p className="font-display text-2xl text-ink-900">{m.name}</p>
+                      <p className="text-sm text-ink-700">{m.role}</p>
+                      <p className="mt-3 text-sm text-ink-700">{m.bio}</p>
+                    </figcaption>
+                  </figure>
+                </Reveal>
+              );
+            })}
           </div>
 
           {/* PLNT partnership */}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check, Heart } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -88,10 +89,12 @@ export default function WorkshopsPage() {
                     <span className="font-display text-4xl text-ink-900">{t.price}</span>
                     <span className="text-sm text-ink-700">/ {t.cadence}</span>
                   </p>
-                  <ul className="mt-6 flex-1 space-y-2 text-sm text-ink-900/80">
+                  <ul className="mt-6 flex-1 space-y-2.5 text-sm text-ink-900">
                     {t.bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-2">
-                        <span aria-hidden className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-ink-900" />
+                      <li key={b} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cream-50">
+                          <Check className="h-3 w-3 text-ink-900" strokeWidth={2.5} aria-hidden />
+                        </span>
                         {b}
                       </li>
                     ))}
@@ -113,13 +116,18 @@ export default function WorkshopsPage() {
       <section className="relative py-16 lg:py-20">
         <div className="mx-auto max-w-[900px] px-6 text-center lg:px-10">
           <Reveal>
-            <p className="text-xs uppercase tracking-[0.25em] text-ink-700">A cozy community</p>
+            <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-pink text-rose-700">
+              <Heart className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+            </span>
+            <p className="eyebrow-squiggle mb-3 inline-flex flex-col items-center text-xs uppercase tracking-[0.25em] text-ink-700">
+              A cozy community
+            </p>
             <h2 className="display-heading mt-3 text-3xl text-ink-900 sm:text-4xl">
               A cozy community, <em className="italic">not a bootcamp</em>.
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-ink-700">
               Every cohort has scholarship seats. If the price is a problem, just write to us via
-              the contact form.
+              the contact form — no judgement, no application essay.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Link href="/contact" className="btn-primary">

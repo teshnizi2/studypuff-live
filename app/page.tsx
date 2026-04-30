@@ -51,16 +51,16 @@ export default function Page() {
       <section className="relative py-16 lg:py-24">
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 md:grid-cols-12 lg:px-10">
           <Reveal className="relative md:col-span-6">
+            {/* Soft offset shadow card (polaroid feel) */}
             <div
-              className="absolute -inset-4 -z-10 rounded-[32px]"
-              style={{ background: "#f3c6c2" }}
               aria-hidden
+              className="absolute inset-2 -z-10 rounded-[32px] bg-brand-pink/60"
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/youtube-lifestyle.jpg"
               alt="Student studying at a warmly lit desk during a co-study session"
-              className="ring-soft w-full rounded-[28px] object-cover"
+              className="w-full rounded-[28px] object-cover shadow-[0_30px_60px_-25px_rgba(0,0,0,0.25)]"
               loading="lazy"
             />
           </Reveal>

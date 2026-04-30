@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import Reveal from "./Reveal";
 
 const FAQS = [
@@ -45,8 +46,8 @@ export default function FAQ() {
                     <span className="font-display text-lg text-ink-900 sm:text-xl">
                       {f.q}
                     </span>
-                    <span className="plus inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-peach text-ink-900">
-                      +
+                    <span className="plus inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-ink-900/15 bg-cream-50 text-ink-900 transition-colors group-open:bg-ink-900 group-open:text-cream-50">
+                      <Plus className="h-4 w-4" strokeWidth={2} aria-hidden />
                     </span>
                   </summary>
                   <p className="mt-4 max-w-prose text-ink-700">{f.a}</p>

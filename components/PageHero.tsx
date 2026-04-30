@@ -25,7 +25,7 @@ export default function PageHero({
   return (
     <section className="relative py-20 lg:py-28">
       <span
-        className="blob animate-float"
+        className="blob"
         style={{
           left: "-60px",
           top: "40px",
@@ -35,7 +35,7 @@ export default function PageHero({
         }}
       />
       <span
-        className="blob animate-bobble"
+        className="blob"
         style={{
           right: "-80px",
           top: "20%",
