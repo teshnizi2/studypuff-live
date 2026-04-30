@@ -19,7 +19,7 @@ type Tier = {
 };
 
 const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
-const SINGLE_WAITLIST_FORM = "https://forms.gle/YPYHPUwiwY8esmK39";
+const WAITLIST_FORM = "https://forms.gle/YPYHPUwiwY8esmK39";
 
 const TIERS: Tier[] = [
   {
@@ -31,8 +31,9 @@ const TIERS: Tier[] = [
       "Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
     bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
     tone: "bg-brand-pink",
-    ctaLabel: "Enroll now",
-    ctaHref: "/contact"
+    ctaLabel: "Join the waiting list",
+    ctaHref: WAITLIST_FORM,
+    ctaExternal: true
   },
   {
     name: "StudyPuff Academy",
@@ -48,8 +49,9 @@ const TIERS: Tier[] = [
     ],
     tone: "bg-brand-butter",
     featured: true,
-    ctaLabel: "Enroll now",
-    ctaHref: "/contact"
+    ctaLabel: "Join the waiting list",
+    ctaHref: WAITLIST_FORM,
+    ctaExternal: true
   },
   {
     name: "Time Management Toolkit",
@@ -61,7 +63,7 @@ const TIERS: Tier[] = [
     bullets: ["1 session", "Personalized advice", "Workbook", "Personal Discord/WhatsApp Group"],
     tone: "bg-brand-sky",
     ctaLabel: "Join the waiting list",
-    ctaHref: SINGLE_WAITLIST_FORM,
+    ctaHref: WAITLIST_FORM,
     ctaExternal: true
   }
 ];

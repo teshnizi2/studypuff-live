@@ -16,9 +16,9 @@ const GOOGLE_CALENDAR =
   "https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20";
 
 const SCHEDULE = [
-  { day: "Monday", time: "8:00 AM CET", platform: "YouTube", topic: "Cozy morning focus" },
-  { day: "Tuesday", time: "12:00 PM CET", platform: "YouTube", topic: "Deep work" },
-  { day: "Friday", time: "12:00 PM CET", platform: "YouTube", topic: "Last focus sprint" }
+  { day: "Monday", time: "8:00 AM CET", platform: "YouTube · Twitch", topic: "Cozy morning focus" },
+  { day: "Tuesday", time: "12:00 PM CET", platform: "YouTube · Twitch", topic: "Deep work" },
+  { day: "Friday", time: "12:00 PM CET", platform: "YouTube · Twitch", topic: "Last focus sprint" }
 ];
 
 const STEPS = [

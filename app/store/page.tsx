@@ -1,15 +1,11 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 
-export default function StorePage() {
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sent">("idle");
+const WAITLIST_FORM = "https://forms.gle/bVDmDsuSSSCSjE5C9";
 
+export default function StorePage() {
   return (
     <PageShell>
       <PageHero
@@ -31,30 +27,14 @@ export default function StorePage() {
                 Join the semi-weekly email newsletter to get practical study, productivity tips,
                 and know when the shop opens.
               </p>
-              <form
-                className="mt-6 flex flex-col gap-3 sm:flex-row"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (email.includes("@")) setState("sent");
-                }}
+              <a
+                href={WAITLIST_FORM}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary mt-6 inline-flex"
               >
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@school.edu"
-                  className="flex-1 rounded-full border border-ink-900/15 bg-white px-6 py-4 text-base outline-none transition focus:border-ink-900/40"
-                />
-                <button className="btn-primary" type="submit">
-                  {state === "sent" ? "You're on the list ✨" : "Save my spot"}
-                </button>
-              </form>
-              {state === "sent" && (
-                <p className="mt-3 text-sm text-ink-700">
-                  Thanks — we&apos;ll write the moment the shop is open.
-                </p>
-              )}
+                Save my spot <span aria-hidden>→</span>
+              </a>
             </div>
           </Reveal>
 

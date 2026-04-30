@@ -199,11 +199,13 @@ export function TimerCircle({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-5 pb-6 pt-4 text-ink-900 shadow-soft sm:px-7 sm:pt-5">
-      {/* Subtle ambient leaves */}
+    <div className="relative rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-5 pb-6 pt-4 text-ink-900 shadow-soft sm:px-7 sm:pt-5">
+      {/* Subtle ambient leaves — clipped via inset positioning so they
+          stay inside the rounded card without needing overflow-hidden
+          (which would also clip the sound popover). */}
       <svg
         aria-hidden
-        className="pointer-events-none absolute -left-3 -top-3 h-20 w-20 text-emerald-900/15"
+        className="pointer-events-none absolute left-2 top-2 h-16 w-16 text-emerald-900/15"
         viewBox="0 0 100 100"
         fill="currentColor"
       >
@@ -212,7 +214,7 @@ export function TimerCircle({
       </svg>
       <svg
         aria-hidden
-        className="pointer-events-none absolute -right-2 -bottom-2 h-24 w-24 rotate-180 text-emerald-900/15"
+        className="pointer-events-none absolute right-2 bottom-2 h-20 w-20 rotate-180 text-emerald-900/15"
         viewBox="0 0 100 100"
         fill="currentColor"
       >

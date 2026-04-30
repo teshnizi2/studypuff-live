@@ -28,7 +28,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell profile={profile}>
-      <div className="mx-auto max-w-[760px]">
+      <div className="mx-auto w-full">
         <DashboardActions
           userId={user.id}
           tasks={workspace.tasks.map((t) => ({

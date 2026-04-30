@@ -42,9 +42,9 @@ const TEAM = [
     bio: "As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning."
   },
   {
-    name: "Reza Ahmadi Teshnizi",
+    name: "Reza Teshnizi",
     role: "Co-founder · Engineering & Automation",
-    photo: "/assets/sheep.png",
+    photo: "/assets/reza.jpg",
     bio: "Reza is the computer scientist behind the StudyPuff app and the website. He also focuses on the automation to make sure that everything keeps running smoothly in the background."
   }
 ];
