@@ -59,6 +59,10 @@ const config: Config = {
         wiggle: {
           "0%, 100%": { transform: "rotate(-2deg)" },
           "50%": { transform: "rotate(2deg)" }
+        },
+        breathe: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.04)" }
         }
       },
       animation: {
@@ -67,7 +71,8 @@ const config: Config = {
         marquee: "marquee 40s linear infinite",
         "fade-up": "fade-up 0.8s ease-out forwards",
         gradient: "gradient 15s ease infinite",
-        wiggle: "wiggle 3s ease-in-out infinite"
+        wiggle: "wiggle 3s ease-in-out infinite",
+        breathe: "breathe 4s ease-in-out infinite"
       }
     }
   },
