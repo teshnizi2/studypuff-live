@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { DashboardActions } from "@/components/dashboard/DashboardActions";
@@ -29,19 +28,15 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const firstName = profile?.display_name || user.email?.split("@")[0] || "study buddy";
   const dailyGoal = settings?.daily_goal_minutes ?? 90;
   const goalPct = Math.min(100, Math.round((workspace.todayMinutes / dailyGoal) * 100));
 
   return (
-    <DashboardShell
-      title={`Hi, ${firstName}`}
-      subtitle="One calm space — focus timer in the centre, everything else just a click away."
-      profile={profile}
-    >
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        {/* LEFT: Timer */}
-        <div className="space-y-6">
+    <DashboardShell profile={profile}>
+      {/* One unified workspace — sheep in the middle, everything one click away */}
+      <div className="mx-auto max-w-[860px]">
+        <div className="rounded-[36px] border border-ink-900/10 bg-cream-50 p-5 shadow-soft sm:p-8">
+          {/* Centerpiece: timer with sheep */}
           <TimerCircle
             focusMinutes={settings?.focus_minutes ?? 25}
             shortBreakMinutes={settings?.short_break_minutes ?? 5}
@@ -54,83 +49,79 @@ export default async function DashboardPage() {
             equippedAccessory={settings?.equipped_accessory ?? null}
           />
 
-          <section className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="font-display text-2xl text-ink-900">Today</h2>
-              <span className="text-sm text-ink-700">
+          {/* Today's goal progress, full width */}
+          <div className="mt-6 rounded-2xl bg-cream-100 px-5 py-4">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <p className="font-semibold text-ink-900">Today&apos;s goal</p>
+              <span className="text-ink-700">
                 {workspace.todayMinutes} / {dailyGoal} min
               </span>
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-ink-900/10">
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-ink-900/10">
               <div
                 className="h-full rounded-full bg-ink-900 transition-all"
                 style={{ width: `${goalPct}%` }}
               />
             </div>
-            <p className="mt-3 text-xs text-ink-700">
-              <Link href="/dashboard/stats" className="underline underline-offset-4 hover:text-ink-900">
-                See full stats →
-              </Link>
-            </p>
-          </section>
-        </div>
+          </div>
 
-        {/* RIGHT: Action grid + modals */}
-        <div>
-          <DashboardActions
-            userId={user.id}
-            tasks={workspace.tasks.map((t) => ({
-              id: t.id,
-              text: t.text,
-              done: t.done,
-              priority: t.priority,
-              topic_id: t.topic_id
-            }))}
-            topics={workspace.topics.map((t) => ({ id: t.id, name: t.name }))}
-            rooms={myRooms.map((r) => ({
-              id: r.id,
-              code: r.code,
-              name: r.name,
-              is_open: r.is_open,
-              ended_at: r.ended_at,
-              owner_id: r.owner_id
-            }))}
-            settings={
-              settings
-                ? {
-                    focus_minutes: settings.focus_minutes,
-                    short_break_minutes: settings.short_break_minutes,
-                    long_break_minutes: settings.long_break_minutes,
-                    daily_goal_minutes: settings.daily_goal_minutes,
-                    ambient: settings.ambient,
-                    chime: settings.chime,
-                    auto_cycle: settings.auto_cycle
-                  }
-                : null
-            }
-            profile={
-              profileFull
-                ? profileFull
-                : {
-                    id: user.id,
-                    email: user.email || "",
-                    display_name: null,
-                    username: null,
-                    bio: null,
-                    avatar_url: null,
-                    pronouns: null,
-                    study_field: null,
-                    school: null,
-                    year_level: null,
-                    city: null,
-                    time_zone: null,
-                    favorite_subjects: null,
-                    birthday: null
-                  }
-            }
-            coins={settings?.coins ?? 0}
-            todayMinutes={workspace.todayMinutes}
-          />
+          {/* Action grid — every action opens a modal in-place */}
+          <div className="mt-6">
+            <DashboardActions
+              userId={user.id}
+              tasks={workspace.tasks.map((t) => ({
+                id: t.id,
+                text: t.text,
+                done: t.done,
+                priority: t.priority,
+                topic_id: t.topic_id
+              }))}
+              topics={workspace.topics.map((t) => ({ id: t.id, name: t.name }))}
+              rooms={myRooms.map((r) => ({
+                id: r.id,
+                code: r.code,
+                name: r.name,
+                is_open: r.is_open,
+                ended_at: r.ended_at,
+                owner_id: r.owner_id
+              }))}
+              settings={
+                settings
+                  ? {
+                      focus_minutes: settings.focus_minutes,
+                      short_break_minutes: settings.short_break_minutes,
+                      long_break_minutes: settings.long_break_minutes,
+                      daily_goal_minutes: settings.daily_goal_minutes,
+                      ambient: settings.ambient,
+                      chime: settings.chime,
+                      auto_cycle: settings.auto_cycle
+                    }
+                  : null
+              }
+              profile={
+                profileFull
+                  ? profileFull
+                  : {
+                      id: user.id,
+                      email: user.email || "",
+                      display_name: null,
+                      username: null,
+                      bio: null,
+                      avatar_url: null,
+                      pronouns: null,
+                      study_field: null,
+                      school: null,
+                      year_level: null,
+                      city: null,
+                      time_zone: null,
+                      favorite_subjects: null,
+                      birthday: null
+                    }
+              }
+              coins={settings?.coins ?? 0}
+              todayMinutes={workspace.todayMinutes}
+            />
+          </div>
         </div>
       </div>
     </DashboardShell>

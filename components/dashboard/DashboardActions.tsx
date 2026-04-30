@@ -138,17 +138,12 @@ export function DashboardActions(props: Props) {
           href="/dashboard/rewards"
         />
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-5 py-3 text-sm">
-        <div className="flex items-center gap-3 text-ink-700">
-          <BarChart3 className="h-4 w-4 text-ink-700" strokeWidth={1.75} aria-hidden />
-          <span>
-            <strong className="text-ink-900">{props.todayMinutes} min</strong> studied today
-          </span>
-        </div>
-        <a href="/dashboard/stats" className="text-xs font-semibold uppercase tracking-widest text-ink-700 hover:text-ink-900">
-          Full stats →
-        </a>
-      </div>
+      <a
+        href="/dashboard/stats"
+        className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-ink-700 hover:text-ink-900"
+      >
+        <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> Full stats →
+      </a>
 
       {/* Tasks dialog */}
       <Dialog open={open === "tasks"} onClose={close} title="Tasks" description="Add, complete, and clean up your task list." size="md">

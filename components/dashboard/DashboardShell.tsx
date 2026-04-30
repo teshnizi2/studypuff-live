@@ -22,8 +22,8 @@ export async function DashboardShell({
   profile: profileProp
 }: {
   children: React.ReactNode;
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
   profile?: Profile | null;
 }) {
   // Resolve profile + coins server-side so every dashboard page shows the live balance
@@ -103,14 +103,15 @@ export async function DashboardShell({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[1280px] px-6 py-10 lg:px-10">
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
-            Study workspace
-          </p>
-          <h1 className="mt-2 font-display text-4xl text-ink-900 md:text-5xl">{title}</h1>
-          <p className="mt-3 max-w-2xl text-ink-700">{subtitle}</p>
-        </div>
+      <section className="mx-auto max-w-[1280px] px-6 py-8 lg:px-10">
+        {title || subtitle ? (
+          <div className="mb-8">
+            {title && (
+              <h1 className="font-display text-3xl text-ink-900 md:text-4xl">{title}</h1>
+            )}
+            {subtitle && <p className="mt-2 max-w-2xl text-ink-700">{subtitle}</p>}
+          </div>
+        ) : null}
         {children}
       </section>
     </main>
