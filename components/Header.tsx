@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AuthNav } from "./auth/AuthNav";
 
 const NAV = [
+  { label: "Home", href: "/" },
   { label: "Study with us", href: "/study" },
   { label: "StudyPuff App", href: "/dashboard" },
   { label: "Workshops", href: "/workshops" },
@@ -82,7 +83,10 @@ export default function Header() {
           </div>
           <ul className="divide-y divide-ink-900/10 border-y border-ink-900/10">
             {NAV.map((n) => {
-              const active = pathname === n.href || pathname.startsWith(n.href + "/");
+              const active =
+                n.href === "/"
+                  ? pathname === "/"
+                  : pathname === n.href || pathname.startsWith(n.href + "/");
               return (
                 <li key={n.label}>
                   <Link
