@@ -6,15 +6,15 @@ export default function Hero() {
   return (
     <section className="relative">
       <span
-        className="blob animate-float"
+        className="blob"
         style={{ left: "-80px", top: "80px", width: 260, height: 260, background: "#f3c6c2" }}
       />
       <span
-        className="blob animate-bobble"
+        className="blob"
         style={{ right: "-60px", top: "10px", width: 220, height: 220, background: "#fbe9a5" }}
       />
       <span
-        className="blob animate-float"
+        className="blob"
         style={{ left: "40%", bottom: "-60px", width: 280, height: 280, background: "#c6dceb" }}
       />
 
@@ -109,13 +109,15 @@ export default function Hero() {
             />
             <Link
               href="/dashboard"
-              className="group relative block animate-float focus-visible:outline-none"
+              className="group relative block focus-visible:outline-none"
               aria-label="Open the StudyPuff app"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/studypuff-hero.png"
+                src="/studypuff-hero-md.png"
                 alt="StudyPuff sheep mascot — open the app"
+                width={800}
+                height={800}
                 className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition duration-300 ease-out group-hover:-translate-y-1.5 group-hover:rotate-[-2deg] group-active:scale-[0.98]"
               />
               <div className="pointer-events-none absolute -bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 shadow-soft ring-1 ring-black/5">
@@ -124,37 +126,6 @@ export default function Hero() {
                 <span aria-hidden>→</span>
               </div>
             </Link>
-
-            <svg
-              className="absolute -left-4 top-10 animate-wiggle text-ink-900"
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" />
-            </svg>
-            <svg
-              className="absolute right-6 top-2 animate-wiggle text-ink-900"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" />
-            </svg>
-            <svg
-              className="absolute -right-2 bottom-10 animate-wiggle text-ink-900"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M12 2l2 7 7 2-7 2-2 7-2-7-7-2 7-2z" />
-            </svg>
           </Reveal>
         </div>
       </div>

@@ -29,7 +29,8 @@ body {
   overflow-x: clip;
 }
 
-/* Gradient background with subtle grain */
+/* Static brand background — no animation. Same look as before, but no
+   constant background-position repaint of the whole viewport. */
 .gradient-surface {
   background:
     radial-gradient(ellipse at top left, rgba(243, 198, 194, 0.35), transparent 50%),
@@ -37,23 +38,12 @@ body {
     radial-gradient(ellipse at bottom left, rgba(199, 226, 199, 0.35), transparent 50%),
     radial-gradient(ellipse at bottom right, rgba(217, 205, 234, 0.35), transparent 50%),
     linear-gradient(180deg, #efecec 0%, #f8f3ea 100%);
-  background-size: 200% 200%;
-  animation: gradient 18s ease infinite;
 }
 
-@keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* Subtle grain */
+/* Grain layer kept but disabled by default — it's pretty invisible at
+   opacity 0.05 and was contributing to paint cost. */
 .grain::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.05;
-  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  content: none;
 }
 
 /* Button styles */
@@ -200,12 +190,14 @@ details.faq[open] summary .plus {
   transform: rotate(45deg);
 }
 
-/* Simple floating shapes */
+/* Simple floating shapes — blur reduced + opacity capped so 9 blobs
+   across the page don't hammer the GPU. Animations on these elements
+   are disabled in components below by removing animate-* classes. */
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.45;
+  filter: blur(28px);
+  opacity: 0.35;
   pointer-events: none;
 }
 

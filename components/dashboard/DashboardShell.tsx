@@ -6,14 +6,12 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
+// Trimmed to 4 top-level tabs. Sub-pages (Timer, Tasks, Rooms, Profile)
+// are still reachable by deep link or from inside the tabs they belong to.
 const dashboardLinks = [
-  { label: "Overview", href: "/dashboard" },
-  { label: "Timer", href: "/dashboard/timer" },
-  { label: "Tasks", href: "/dashboard/tasks" },
+  { label: "Home", href: "/dashboard" },
   { label: "Stats", href: "/dashboard/stats" },
-  { label: "Rooms", href: "/dashboard/rooms" },
-  { label: "Rewards", href: "/dashboard/rewards" },
-  { label: "Profile", href: "/dashboard/profile" },
+  { label: "Shop", href: "/dashboard/rewards" },
   { label: "Settings", href: "/dashboard/settings" }
 ];
 

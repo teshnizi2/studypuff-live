@@ -27,8 +27,10 @@ export default function Header() {
         <Link href="/" className="inline-flex shrink-0 items-center" aria-label="StudyPuff Academy">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/studypuff-logo-v3.png"
+            src="/studypuff-logo-sm.png"
             alt="StudyPuff Academy"
+            width={320}
+            height={320}
             className="h-14 w-auto object-contain lg:h-16"
           />
         </Link>

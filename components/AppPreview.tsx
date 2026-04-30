@@ -15,12 +15,12 @@ export default function AppPreview() {
       {/* Ambient blob behind the device */}
       <span
         aria-hidden
-        className="blob animate-float"
+        className="blob"
         style={{ left: -60, top: -60, width: 240, height: 240, background: "#c7e2c7" }}
       />
       <span
         aria-hidden
-        className="blob animate-bobble"
+        className="blob"
         style={{ right: -40, bottom: -40, width: 200, height: 200, background: "#fbe9a5" }}
       />
 

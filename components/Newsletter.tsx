@@ -9,8 +9,8 @@ export default function Newsletter() {
 
   return (
     <section className="relative overflow-hidden py-16 lg:py-24">
-      <span className="blob animate-float" style={{ left: "10%", top: "-40px", width: 280, height: 280, background: "#fbe9a5" }} />
-      <span className="blob animate-bobble" style={{ right: "8%", bottom: "-60px", width: 260, height: 260, background: "#f3c6c2" }} />
+      <span className="blob" style={{ left: "10%", top: "-40px", width: 280, height: 280, background: "#fbe9a5" }} />
+      <span className="blob" style={{ right: "8%", bottom: "-60px", width: 260, height: 260, background: "#f3c6c2" }} />
 
       <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
         <div className="relative overflow-hidden rounded-[32px] border border-ink-900/10 bg-cream-50 p-8 shadow-soft sm:p-12 lg:p-16">
