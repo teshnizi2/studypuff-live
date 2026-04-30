@@ -1,11 +1,34 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://studypuff.com";
+
 export const metadata: Metadata = {
-  title: "StudyPuff — Learn science-based study techniques",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "StudyPuff — A cozy study app + community for students",
+    template: "%s · StudyPuff"
+  },
   description:
-    "Research-backed workshops that teach you how to focus, improve grades, manage time, and study without burning out.",
-  icons: { icon: "/favicon-v3.png" }
+    "StudyPuff is the home for students who want to improve their performance, without burning out. Join a workshop, drop into a free livestream, or use one of our free templates.",
+  icons: { icon: "/favicon-v3.png" },
+  openGraph: {
+    type: "website",
+    siteName: "StudyPuff Academy",
+    url: siteUrl,
+    title: "StudyPuff — A cozy study app + community for students",
+    description:
+      "Workshops, livestreams, and tools for students who want to study well without burning out.",
+    images: [{ url: "/studypuff-hero.png" }]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StudyPuff — A cozy study app + community for students",
+    description:
+      "Workshops, livestreams, and tools for students who want to study well without burning out.",
+    images: ["/studypuff-hero.png"]
+  }
 };
 
 export default function RootLayout({
