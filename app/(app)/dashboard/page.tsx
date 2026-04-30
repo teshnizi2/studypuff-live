@@ -34,8 +34,8 @@ export default async function DashboardPage() {
   return (
     <DashboardShell profile={profile}>
       {/* One unified workspace — sheep in the middle, everything one click away */}
-      <div className="mx-auto max-w-[860px]">
-        <div className="rounded-[36px] border border-ink-900/10 bg-cream-50 p-5 shadow-soft sm:p-8">
+      <div className="mx-auto max-w-[820px]">
+        <div className="space-y-4">
           {/* Centerpiece: timer with sheep */}
           <TimerCircle
             focusMinutes={settings?.focus_minutes ?? 25}
@@ -49,24 +49,24 @@ export default async function DashboardPage() {
             equippedAccessory={settings?.equipped_accessory ?? null}
           />
 
-          {/* Today's goal progress, full width */}
-          <div className="mt-6 rounded-2xl bg-cream-100 px-5 py-4">
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="font-semibold text-ink-900">Today&apos;s goal</p>
-              <span className="text-ink-700">
+          {/* Today's goal progress — slim strip */}
+          <div className="rounded-2xl border border-ink-900/10 bg-cream-50 px-5 py-3 shadow-soft">
+            <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-widest text-ink-700">
+              <p>Today&apos;s goal</p>
+              <span className="text-ink-900">
                 {workspace.todayMinutes} / {dailyGoal} min
               </span>
             </div>
-            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-ink-900/10">
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink-900/10">
               <div
-                className="h-full rounded-full bg-ink-900 transition-all"
+                className="h-full rounded-full bg-emerald-700 transition-all"
                 style={{ width: `${goalPct}%` }}
               />
             </div>
           </div>
 
           {/* Action grid — every action opens a modal in-place */}
-          <div className="mt-6">
+          <div>
             <DashboardActions
               userId={user.id}
               tasks={workspace.tasks.map((t) => ({
@@ -127,3 +127,4 @@ export default async function DashboardPage() {
     </DashboardShell>
   );
 }
+

@@ -94,26 +94,26 @@ export function DashboardActions(props: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <ActionTile
           Icon={ListChecks}
           tone="bg-brand-butter text-amber-700"
           label="Tasks"
-          hint={`${openTasks} open`}
+          hint={openTasks === 0 ? "Inbox zero" : `${openTasks} open`}
           onClick={() => setOpen("tasks")}
         />
         <ActionTile
           Icon={Users}
           tone="bg-brand-sky text-sky-800"
           label="Rooms"
-          hint={`${activeRooms} active`}
+          hint={activeRooms === 0 ? "None active" : `${activeRooms} active`}
           onClick={() => setOpen("rooms")}
         />
         <ActionTile
           Icon={FolderTree}
           tone="bg-brand-mint text-emerald-800"
           label="Topics"
-          hint={`${props.topics.length} total`}
+          hint={`${props.topics.length} ${props.topics.length === 1 ? "topic" : "topics"}`}
           onClick={() => setOpen("topics")}
         />
         <ActionTile
@@ -127,14 +127,14 @@ export function DashboardActions(props: Props) {
           Icon={SettingsIcon}
           tone="bg-brand-lilac text-violet-800"
           label="Settings"
-          hint={`${props.settings?.focus_minutes ?? 25}/${props.settings?.short_break_minutes ?? 5} min`}
+          hint={`${props.settings?.focus_minutes ?? 25} min focus`}
           onClick={() => setOpen("settings")}
         />
         <ActionTile
           Icon={Sparkles}
           tone="bg-brand-peach text-orange-700"
           label="Rewards"
-          hint={`🪙 ${props.coins}`}
+          hint={`${props.coins} coins`}
           href="/dashboard/rewards"
         />
       </div>
@@ -414,17 +414,17 @@ function ActionTile({
 }) {
   const inner = (
     <>
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tone}`}>
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>
         <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
       </span>
-      <div className="min-w-0 text-left">
-        <p className="font-display text-base text-ink-900">{label}</p>
-        <p className="truncate text-xs text-ink-700">{hint}</p>
+      <div className="min-w-0 flex-1 text-left">
+        <p className="font-display text-base leading-tight text-ink-900">{label}</p>
+        <p className="mt-0.5 text-xs text-ink-700">{hint}</p>
       </div>
     </>
   );
   const cls =
-    "group flex h-full items-center gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-4 py-3 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-cream-100";
+    "group flex h-full items-center gap-3 rounded-2xl border border-ink-900/10 bg-cream-50 px-4 py-3.5 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-cream-100";
   if (href) {
     return (
       <a href={href} className={cls}>

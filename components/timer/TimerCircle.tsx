@@ -134,46 +134,20 @@ export function TimerCircle({
   const selectedTaskLabel = tasks.find((t) => t.id === taskId)?.text;
 
   return (
-    <div className="relative overflow-hidden rounded-[32px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] p-8 text-ink-900 shadow-soft">
-      {/* Top right: today studied badge */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex flex-wrap gap-2">
-          {(["focus", "short", "long"] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest transition ${
-                mode === m
-                  ? "bg-ink-900 text-cream-50"
-                  : "bg-cream-50/60 text-ink-900 hover:bg-cream-50"
-              }`}
-            >
-              {m === "focus"
-                ? `Focus · ${focusMinutes}m`
-                : m === "short"
-                  ? `Short · ${shortBreakMinutes}m`
-                  : `Long · ${longBreakMinutes}m`}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 rounded-full bg-cream-50/70 px-3 py-1.5 text-xs font-semibold text-ink-900">
-          <span aria-hidden>⏱️</span>
-          {todayMinutes} min today
-        </div>
-      </div>
-
-      {/* Ring + sheep */}
-      <div className="my-4 flex flex-col items-center">
-        <div className="relative h-[300px] w-[300px]">
+    <div className="relative overflow-hidden rounded-[28px] border border-ink-900/10 bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] px-6 py-6 text-ink-900 shadow-soft sm:px-8">
+      {/* Ring + sheep — centred, no top-corner clutter */}
+      <div className="flex flex-col items-center">
+        <div className="relative h-[260px] w-[260px] sm:h-[280px] sm:w-[280px]">
           <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full">
+            {/* Soft white halo behind the ring for contrast */}
+            <circle cx={150} cy={150} r={radius + 2} fill="rgba(255,255,255,0.35)" />
             <circle
               cx={150}
               cy={150}
               r={radius}
               fill="none"
-              stroke="rgba(0,0,0,0.10)"
-              strokeWidth={6}
+              stroke="rgba(31,77,44,0.18)"
+              strokeWidth={10}
             />
             <circle
               cx={150}
@@ -181,16 +155,16 @@ export function TimerCircle({
               r={radius}
               fill="none"
               stroke="#1f4d2c"
-              strokeWidth={6}
+              strokeWidth={10}
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
               transform="rotate(-90 150 150)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }}
             />
-            <circle cx={dotX} cy={dotY} r={9} fill="#fff" stroke="#1f4d2c" strokeWidth={3} />
+            <circle cx={dotX} cy={dotY} r={11} fill="#fff" stroke="#1f4d2c" strokeWidth={3} />
           </svg>
-          <div className="absolute inset-[18%] flex items-center justify-center overflow-hidden rounded-full bg-[#5b8a55]">
+          <div className="absolute inset-[16%] flex items-center justify-center overflow-hidden rounded-full bg-[#5b8a55] shadow-[inset_0_4px_8px_rgba(0,0,0,0.15)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/studypuff-sheep.png"
@@ -212,19 +186,41 @@ export function TimerCircle({
           </div>
         </div>
 
-        <p className="mt-6 font-display text-6xl tabular-nums tracking-[0.05em] text-ink-900">
+        <p className="mt-5 font-display text-5xl tabular-nums tracking-[0.05em] text-ink-900 sm:text-6xl">
           {mm}:{ss}
         </p>
 
         {selectedTaskLabel && (
-          <p className="mt-2 max-w-md text-center text-sm text-ink-700">
+          <p className="mt-1 max-w-md text-center text-sm text-ink-700">
             Working on <span className="font-semibold text-ink-900">{selectedTaskLabel}</span>
           </p>
         )}
+
+        {/* Mode tabs — sit right under the time, balanced and integrated */}
+        <div className="mt-4 inline-flex rounded-full bg-cream-50/70 p-1 shadow-soft">
+          {(["focus", "short", "long"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMode(m)}
+              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:px-4 sm:text-xs ${
+                mode === m
+                  ? "bg-ink-900 text-cream-50 shadow-soft"
+                  : "text-ink-900/70 hover:text-ink-900"
+              }`}
+            >
+              {m === "focus"
+                ? `Focus · ${focusMinutes}m`
+                : m === "short"
+                  ? `Short · ${shortBreakMinutes}m`
+                  : `Long · ${longBreakMinutes}m`}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Controls */}
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
         <div className="relative">
           <button
             type="button"
