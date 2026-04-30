@@ -1,4 +1,13 @@
 import Link from "next/link";
+import {
+  Youtube,
+  Twitch,
+  MessageCircle,
+  Clock,
+  Globe,
+  Gamepad2,
+  type LucideIcon
+} from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -56,7 +65,8 @@ export default function StudyPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-brand-pink px-5 py-2 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5"
               >
-                ▶ YouTube · @StudyPuffAcademy
+                <Youtube className="h-4 w-4 text-rose-700" strokeWidth={1.75} aria-hidden />
+                YouTube · @StudyPuffAcademy
               </a>
               <a
                 href="https://www.twitch.tv/studypuffacademy"
@@ -64,7 +74,8 @@ export default function StudyPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-brand-lilac px-5 py-2 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5"
               >
-                💜 Twitch · live evenings
+                <Twitch className="h-4 w-4 text-violet-800" strokeWidth={1.75} aria-hidden />
+                Twitch · live evenings
               </a>
               <a
                 href="https://discord.gg/hb8bKpbjEz"
@@ -72,7 +83,8 @@ export default function StudyPage() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-brand-sky px-5 py-2 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5"
               >
-                💬 Discord · in-between hangouts
+                <MessageCircle className="h-4 w-4 text-sky-800" strokeWidth={1.75} aria-hidden />
+                Discord · in-between hangouts
               </a>
             </div>
           </Reveal>
@@ -142,15 +154,19 @@ export default function StudyPage() {
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: "⏰", label: "50/10 Pomodoros", body: "Structured focus rounds with built-in rests." },
-              { icon: "🌍", label: "All ages welcome", body: "From high schoolers to PhDs from 46 countries." },
-              { icon: "💬", label: "Chat during breaks", body: "Cheer each other on between rounds." },
-              { icon: "🎮", label: "Cozy game streams", body: "Off-weeks we hang out with cozy games." }
-            ].map((b, i) => (
+            {(
+              [
+                { Icon: Clock, label: "50/10 Pomodoros", body: "Structured focus rounds with built-in rests.", tone: "bg-brand-butter text-amber-700" },
+                { Icon: Globe, label: "All ages welcome", body: "From high schoolers to PhDs from 46 countries.", tone: "bg-brand-mint text-emerald-800" },
+                { Icon: MessageCircle, label: "Chat during breaks", body: "Cheer each other on between rounds.", tone: "bg-brand-sky text-sky-800" },
+                { Icon: Gamepad2, label: "Cozy game streams", body: "Off-weeks we hang out with cozy games.", tone: "bg-brand-lilac text-violet-800" }
+              ] as { Icon: LucideIcon; label: string; body: string; tone: string }[]
+            ).map((b, i) => (
               <Reveal key={b.label} delay={i * 70}>
                 <div className="h-full rounded-3xl border border-ink-900/10 bg-cream-50 p-6">
-                  <div className="text-3xl" aria-hidden>{b.icon}</div>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${b.tone}`}>
+                    <b.Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                  </div>
                   <h3 className="mt-3 font-display text-lg text-ink-900">{b.label}</h3>
                   <p className="mt-2 text-sm text-ink-700">{b.body}</p>
                 </div>
@@ -190,7 +206,9 @@ export default function StudyPage() {
         <div className="mx-auto max-w-[1100px] px-6 lg:px-10">
           <Reveal>
             <div className="flex flex-col items-center gap-6 rounded-[28px] border border-ink-900/10 bg-brand-sky/40 p-8 text-center shadow-soft sm:flex-row sm:text-left">
-              <div className="text-5xl" aria-hidden>💬</div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cream-50 text-sky-800 shadow-soft">
+                <MessageCircle className="h-8 w-8" strokeWidth={1.5} aria-hidden />
+              </div>
               <div className="flex-1">
                 <h3 className="font-display text-2xl text-ink-900">
                   Hang out between sessions

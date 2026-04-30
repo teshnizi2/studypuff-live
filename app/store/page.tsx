@@ -2,17 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import {
+  Notebook,
+  Image as ImageIcon,
+  Sparkles,
+  Coffee,
+  StickyNote,
+  ShoppingBag,
+  type LucideIcon
+} from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
 
-const TEASERS = [
-  { name: "Weekly Reset Planner", tone: "bg-brand-butter", emoji: "📓" },
-  { name: "Memory Curve Poster", tone: "bg-brand-pink", emoji: "🖼️" },
-  { name: "Study Sheep Pin", tone: "bg-brand-mint", emoji: "🐑" },
-  { name: "Focus Mode Mug", tone: "bg-brand-sky", emoji: "☕" },
-  { name: "Pomodoro Cue Card", tone: "bg-brand-lilac", emoji: "🎴" },
-  { name: "Cozy Tote Bag", tone: "bg-brand-peach", emoji: "👜" }
+const TEASERS: { name: string; tone: string; Icon: LucideIcon; iconColor: string }[] = [
+  { name: "Weekly Reset Planner", tone: "bg-brand-butter", Icon: Notebook, iconColor: "text-amber-700" },
+  { name: "Memory Curve Poster", tone: "bg-brand-pink", Icon: ImageIcon, iconColor: "text-rose-700" },
+  { name: "Study Sheep Pin", tone: "bg-brand-mint", Icon: Sparkles, iconColor: "text-emerald-800" },
+  { name: "Focus Mode Mug", tone: "bg-brand-sky", Icon: Coffee, iconColor: "text-sky-800" },
+  { name: "Pomodoro Cue Card", tone: "bg-brand-lilac", Icon: StickyNote, iconColor: "text-violet-800" },
+  { name: "Cozy Tote Bag", tone: "bg-brand-peach", Icon: ShoppingBag, iconColor: "text-orange-700" }
 ];
 
 export default function StorePage() {
@@ -84,9 +93,11 @@ export default function StorePage() {
               {TEASERS.map((t, i) => (
                 <Reveal key={t.name} delay={(i % 6) * 40}>
                   <div
-                    className={`flex aspect-[5/6] flex-col items-center justify-center gap-2 rounded-2xl ${t.tone} p-4 text-center shadow-soft transition hover:-translate-y-1`}
+                    className={`flex aspect-[5/6] flex-col items-center justify-center gap-3 rounded-2xl ${t.tone} p-4 text-center shadow-soft transition hover:-translate-y-1`}
                   >
-                    <span className="text-3xl" aria-hidden>{t.emoji}</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-cream-50/80">
+                      <t.Icon className={`h-6 w-6 ${t.iconColor}`} strokeWidth={1.75} aria-hidden />
+                    </span>
                     <p className="text-xs font-semibold leading-tight text-ink-900">{t.name}</p>
                   </div>
                 </Reveal>

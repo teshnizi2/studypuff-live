@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Youtube, Twitch, Instagram, MessageCircle } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -171,8 +172,8 @@ export default function ContactPage() {
               <div className="rounded-3xl border border-ink-900/10 bg-brand-sky p-8">
                 <h3 className="font-display text-xl text-ink-900">Find us elsewhere</h3>
                 <ul className="mt-3 space-y-2 text-ink-900/80">
-                  <li>
-                    🎥{" "}
+                  <li className="flex items-center gap-2">
+                    <Youtube className="h-4 w-4 text-rose-700" strokeWidth={1.75} aria-hidden />
                     <a
                       href="https://www.youtube.com/@StudyPuffAcademy"
                       target="_blank"
@@ -182,8 +183,8 @@ export default function ContactPage() {
                       YouTube — StudyPuffAcademy
                     </a>
                   </li>
-                  <li>
-                    💜{" "}
+                  <li className="flex items-center gap-2">
+                    <Twitch className="h-4 w-4 text-violet-800" strokeWidth={1.75} aria-hidden />
                     <a
                       href="https://www.twitch.tv/studypuffacademy"
                       target="_blank"
@@ -193,8 +194,8 @@ export default function ContactPage() {
                       Twitch — StudyPuffAcademy
                     </a>
                   </li>
-                  <li>
-                    📷{" "}
+                  <li className="flex items-center gap-2">
+                    <Instagram className="h-4 w-4 text-pink-700" strokeWidth={1.75} aria-hidden />
                     <a
                       href="https://www.instagram.com/studypuffacademy"
                       target="_blank"
@@ -204,8 +205,8 @@ export default function ContactPage() {
                       Instagram — @studypuffacademy
                     </a>
                   </li>
-                  <li>
-                    💬{" "}
+                  <li className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-emerald-700" strokeWidth={1.75} aria-hidden />
                     <a
                       href="https://discord.gg/hb8bKpbjEz"
                       target="_blank"

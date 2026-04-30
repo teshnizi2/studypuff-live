@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  NotebookText,
+  CheckCircle2,
+  CloudRain,
+  Brain,
+  MessageCircle,
+  Clock
+} from "lucide-react";
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
@@ -54,9 +62,14 @@ export default function ResourcesPage() {
                   </ul>
                 </div>
                 <div className="mt-6 flex items-center justify-between">
-                  <span className="font-display text-7xl text-ink-900/15 leading-none" aria-hidden>
-                    🐑
-                  </span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/studypuff-sheep-sm.png"
+                    alt=""
+                    width={112}
+                    height={112}
+                    className="h-20 w-20 object-contain opacity-90"
+                  />
                   <span className="btn-primary">
                     Open the app <span aria-hidden>→</span>
                   </span>
@@ -71,7 +84,7 @@ export default function ResourcesPage() {
                   <span className="rounded-full bg-cream-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
                     Template
                   </span>
-                  <span className="text-3xl" aria-hidden>📝</span>
+                  <NotebookText className="h-7 w-7 text-rose-700" strokeWidth={1.75} aria-hidden />
                 </div>
                 <h3 className="mt-4 font-display text-xl text-ink-900">
                   Cornell Note Taking Template
@@ -92,7 +105,7 @@ export default function ResourcesPage() {
                   <span className="rounded-full bg-cream-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
                     Checklist
                   </span>
-                  <span className="text-3xl" aria-hidden>✅</span>
+                  <CheckCircle2 className="h-7 w-7 text-emerald-700" strokeWidth={1.75} aria-hidden />
                 </div>
                 <h3 className="mt-4 font-display text-xl text-ink-900">Exam checklist</h3>
                 <p className="mt-1 text-sm text-ink-900/80">
@@ -111,14 +124,15 @@ export default function ResourcesPage() {
                   <span className="rounded-full bg-cream-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
                     Audio
                   </span>
-                  <span className="text-3xl" aria-hidden>🌧️</span>
+                  <CloudRain className="h-7 w-7 text-sky-700" strokeWidth={1.75} aria-hidden />
                 </div>
                 <h3 className="mt-4 font-display text-xl text-ink-900">Background sounds</h3>
                 <p className="mt-1 text-sm text-ink-900/80">
                   Calm, real-time backgrounds we use during the livestreams.
                 </p>
-                <span className="mt-auto pt-3 inline-flex w-fit items-center gap-2 rounded-full bg-cream-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
-                  ⏳ Coming soon
+                <span className="mt-auto inline-flex w-fit items-center gap-2 rounded-full bg-cream-50/70 px-3 py-1 pt-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
+                  <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                  Coming soon
                 </span>
               </article>
             </Reveal>
@@ -130,7 +144,7 @@ export default function ResourcesPage() {
                   <span className="rounded-full bg-cream-50/70 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-ink-900">
                     Template
                   </span>
-                  <span className="text-3xl" aria-hidden>🧠</span>
+                  <Brain className="h-7 w-7 text-violet-800" strokeWidth={1.75} aria-hidden />
                 </div>
                 <h3 className="mt-4 font-display text-xl text-ink-900">
                   Spaced-repetition starter kit
@@ -153,8 +167,8 @@ export default function ResourcesPage() {
                 className="group flex h-full flex-col items-start justify-between overflow-hidden rounded-3xl bg-brand-peach p-6 transition hover:-translate-y-1 hover:shadow-soft sm:flex-row sm:items-center sm:gap-8"
               >
                 <div className="flex items-center gap-5">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cream-50/70 text-3xl" aria-hidden>
-                    💬
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cream-50/70 text-emerald-800">
+                    <MessageCircle className="h-7 w-7" strokeWidth={1.75} aria-hidden />
                   </span>
                   <div>
                     <span className="rounded-full bg-cream-50/70 px-3 py-0.5 text-xs font-semibold uppercase tracking-widest text-ink-900">
