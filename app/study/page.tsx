@@ -18,9 +18,7 @@ const GOOGLE_CALENDAR =
 const SCHEDULE = [
   { day: "Monday", time: "8:00 AM CET", platform: "YouTube", topic: "Cozy morning focus" },
   { day: "Tuesday", time: "12:00 PM CET", platform: "YouTube", topic: "Deep work" },
-  { day: "Wednesday", time: "4:00 PM CET", platform: "Twitch", topic: "Deep-work block" },
-  { day: "Friday", time: "12:00 PM CET", platform: "YouTube", topic: "Last focus sprint" },
-  { day: "Saturday", time: "10:00 AM CET", platform: "YouTube", topic: "Weekend reset + planning" }
+  { day: "Friday", time: "12:00 PM CET", platform: "YouTube", topic: "Last focus sprint" }
 ];
 
 const STEPS = [
