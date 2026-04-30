@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Reveal from "./Reveal";
+import { StudyingNow } from "./StudyingNow";
 
 export default function Hero() {
   return (
@@ -83,8 +84,10 @@ export default function Hero() {
                 alt="StudyPuff sheep mascot — open the app"
                 className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition group-hover:-translate-y-1"
               />
-              <div className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 shadow-soft ring-1 ring-black/5">
-                Open the app · join 17,074+ studying now →
+              <div className="pointer-events-none absolute -bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 shadow-soft ring-1 ring-black/5">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                <StudyingNow />
+                <span aria-hidden>→</span>
               </div>
             </Link>
 
