@@ -4,7 +4,7 @@ import { addStudySessionAction } from "@/lib/app-data/actions";
 import { getUserWorkspace } from "@/lib/app-data/queries";
 
 export default async function TimerPage() {
-  const { user } = await requireUser();
+  const { user, profile } = await requireUser();
   const workspace = await getUserWorkspace(user.id);
   const focusMinutes = workspace.settings?.focus_minutes || 25;
 
@@ -12,6 +12,7 @@ export default async function TimerPage() {
     <DashboardShell
       title="Focus timer"
       subtitle="Log focused study blocks with optional topic, task, and focus score."
+      profile={profile}
     >
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <section className="rounded-[32px] border border-ink-900/10 bg-cream-50 p-8 text-center shadow-soft">

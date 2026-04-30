@@ -12,6 +12,12 @@ export interface Database {
           id: string;
           email: string;
           display_name: string | null;
+          username: string | null;
+          bio: string | null;
+          avatar_url: string | null;
+          pronouns: string | null;
+          study_field: string | null;
+          birthday: string | null;
           role: UserRole;
           is_suspended: boolean;
           created_at: string;
@@ -22,6 +28,12 @@ export interface Database {
           id: string;
           email: string;
           display_name?: string | null;
+          username?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          pronouns?: string | null;
+          study_field?: string | null;
+          birthday?: string | null;
           role?: UserRole;
           is_suspended?: boolean;
           created_at?: string;
@@ -31,6 +43,12 @@ export interface Database {
         Update: {
           email?: string;
           display_name?: string | null;
+          username?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          pronouns?: string | null;
+          study_field?: string | null;
+          birthday?: string | null;
           role?: UserRole;
           is_suspended?: boolean;
           updated_at?: string;

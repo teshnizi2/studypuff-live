@@ -23,14 +23,86 @@ function nullableValue(formData: FormData, key: string) {
 export async function updateProfileAction(formData: FormData) {
   const { user } = await requireUser();
   const supabase = createSupabaseServerClient();
-  const displayName = stringValue(formData, "display_name");
 
-  await supabase
-    .from("profiles")
-    .update({ display_name: displayName || null, last_seen_at: new Date().toISOString() })
-    .eq("id", user.id);
+  const usernameRaw = stringValue(formData, "username").toLowerCase();
+  if (usernameRaw && !/^[a-z0-9_]{3,24}$/.test(usernameRaw)) {
+    throw new Error("Username must be 3–24 chars: lowercase letters, numbers, or underscore.");
+  }
 
+  const updates = {
+    display_name: stringValue(formData, "display_name") || null,
+    username: usernameRaw || null,
+    bio: stringValue(formData, "bio").slice(0, 500) || null,
+    pronouns: stringValue(formData, "pronouns").slice(0, 40) || null,
+    study_field: stringValue(formData, "study_field").slice(0, 80) || null,
+    birthday: nullableValue(formData, "birthday"),
+    last_seen_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("That username is already taken.");
+    }
+    throw error;
+  }
+
+  revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard");
+}
+
+export async function uploadAvatarAction(formData: FormData) {
+  const { user, profile } = await requireUser();
+  const file = formData.get("avatar");
+
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Pick an image to upload.");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Image must be 5 MB or smaller.");
+  }
+  if (!/^image\/(png|jpe?g|webp|gif)$/i.test(file.type)) {
+    throw new Error("Image must be PNG, JPG, WEBP, or GIF.");
+  }
+
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().slice(0, 5);
+  const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+  const supabase = createSupabaseServerClient();
+
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrl } = supabase.storage.from("avatars").getPublicUrl(path);
+
+  const previousUrl = profile?.avatar_url;
+  await supabase.from("profiles").update({ avatar_url: publicUrl.publicUrl }).eq("id", user.id);
+
+  if (previousUrl) {
+    const previousPath = previousUrl.split("/avatars/")[1];
+    if (previousPath && previousPath.startsWith(`${user.id}/`)) {
+      await supabase.storage.from("avatars").remove([previousPath]);
+    }
+  }
+
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/dashboard");
+}
+
+export async function removeAvatarAction() {
+  const { user, profile } = await requireUser();
+  if (!profile?.avatar_url) return;
+
+  const supabase = createSupabaseServerClient();
+  const previousPath = profile.avatar_url.split("/avatars/")[1];
+  if (previousPath && previousPath.startsWith(`${user.id}/`)) {
+    await supabase.storage.from("avatars").remove([previousPath]);
+  }
+  await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+
+  revalidatePath("/dashboard/profile");
   revalidatePath("/dashboard");
 }
 

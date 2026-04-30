@@ -4,13 +4,14 @@ import { createTaskAction, createTopicAction, toggleTaskAction } from "@/lib/app
 import { getUserWorkspace } from "@/lib/app-data/queries";
 
 export default async function TasksPage() {
-  const { user } = await requireUser();
+  const { user, profile } = await requireUser();
   const workspace = await getUserWorkspace(user.id);
 
   return (
     <DashboardShell
       title="Tasks and topics"
       subtitle="Organize study work into topic groups and mark progress as you move through the day."
+      profile={profile}
     >
       <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
         <section className="space-y-6">

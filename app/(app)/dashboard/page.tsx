@@ -13,6 +13,7 @@ export default async function DashboardPage() {
     <DashboardShell
       title={`Welcome, ${firstName}`}
       subtitle="A calm control center for today's study sessions, task priorities, and momentum."
+      profile={profile}
     >
       <div className="grid gap-5 md:grid-cols-4">
         <StatCard label="Today studied" value={`${workspace.todayMinutes} min`} tone="bg-brand-mint" />
