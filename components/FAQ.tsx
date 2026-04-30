@@ -28,7 +28,7 @@ export default function FAQ() {
     <section className="relative py-16 lg:py-24">
       <div className="mx-auto max-w-3xl px-6 lg:px-10">
         <Reveal className="mb-12 text-center">
-          <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
+          <p className="eyebrow-squiggle mb-3 inline-flex flex-col items-center text-xs uppercase tracking-[0.25em] text-ink-700">
             Questions & answers
           </p>
           <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">

@@ -93,14 +93,14 @@ export default function Hero() {
             />
             <Link
               href="/dashboard"
-              className="group relative block animate-float"
+              className="group relative block animate-float focus-visible:outline-none"
               aria-label="Open the StudyPuff app"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/studypuff-hero.png"
                 alt="StudyPuff sheep mascot — open the app"
-                className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition group-hover:-translate-y-1"
+                className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition duration-300 ease-out group-hover:-translate-y-1.5 group-hover:rotate-[-2deg] group-active:scale-[0.98]"
               />
               <div className="pointer-events-none absolute -bottom-2 left-1/2 inline-flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 shadow-soft ring-1 ring-black/5">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />

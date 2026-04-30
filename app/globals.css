@@ -69,7 +69,10 @@ body {
   font-family: "Quattrocento", Georgia, serif;
   font-size: 0.95rem;
   letter-spacing: 0.02em;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 220ms ease;
   cursor: pointer;
 }
 
@@ -77,6 +80,17 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.35);
   background: #2e2e2e;
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 120ms;
+}
+
+.btn-primary:focus-visible,
+.btn-outline:focus-visible {
+  outline: 3px solid var(--accent-butter);
+  outline-offset: 2px;
 }
 
 .btn-outline {
@@ -89,7 +103,10 @@ body {
   color: var(--ink);
   border: 1.5px solid var(--ink);
   border-radius: 999px;
-  transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 220ms ease,
+    color 220ms ease;
   cursor: pointer;
 }
 
@@ -97,6 +114,11 @@ body {
   background: var(--ink);
   color: #fdfbf7;
   transform: translateY(-2px);
+}
+
+.btn-outline:active {
+  transform: translateY(0) scale(0.97);
+  transition-duration: 120ms;
 }
 
 /* Headline feel */
@@ -205,3 +227,42 @@ html::-webkit-scrollbar { width: 10px; }
 html::-webkit-scrollbar-track { background: var(--bg); }
 html::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
 html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
+
+/* Decorative hand-drawn squiggle used under section eyebrows */
+.eyebrow-squiggle::after {
+  content: "";
+  display: block;
+  margin-top: 6px;
+  width: 38px;
+  height: 6px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 38 6' fill='none' stroke='%23c97f72' stroke-width='1.5' stroke-linecap='round'><path d='M1 4 Q 6 1 12 3 T 24 3 T 36 3'/></svg>");
+  background-repeat: no-repeat;
+}
+
+/* Honour user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-bobble,
+  .animate-wiggle,
+  .animate-breathe,
+  .animate-marquee,
+  .marquee-track,
+  .animate-pulse,
+  .animate-gradient {
+    animation: none !important;
+  }
+
+  .reveal {
+    transition: opacity 200ms ease !important;
+    transform: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

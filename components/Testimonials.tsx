@@ -54,7 +54,7 @@ export default function Testimonials() {
       <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
         <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">Student stories</p>
+            <p className="eyebrow-squiggle mb-3 inline-flex flex-col text-xs uppercase tracking-[0.25em] text-ink-700">Student stories</p>
             <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">
               What students <em className="italic">tell us</em>.
             </h2>

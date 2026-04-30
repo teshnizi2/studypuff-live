@@ -16,7 +16,7 @@ export default function Newsletter() {
         <div className="relative overflow-hidden rounded-[32px] border border-ink-900/10 bg-cream-50 p-8 shadow-soft sm:p-12 lg:p-16">
           <div className="max-w-xl">
             <Reveal>
-              <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
+              <p className="eyebrow-squiggle mb-3 inline-flex flex-col text-xs uppercase tracking-[0.25em] text-ink-700">
                 Semi-weekly newsletter
               </p>
               <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">
