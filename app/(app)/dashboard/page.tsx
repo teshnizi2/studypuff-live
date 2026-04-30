@@ -1,10 +1,8 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { TimerCircle } from "@/components/timer/TimerCircle";
 import { DashboardActions } from "@/components/dashboard/DashboardActions";
 import { requireUser } from "@/lib/auth/guards";
 import { getUserWorkspace } from "@/lib/app-data/queries";
 import { getMyRooms } from "@/lib/app-data/rooms";
-import { addStudySessionAction } from "@/lib/app-data/actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -33,18 +31,61 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell profile={profile}>
-      {/* One unified workspace — sheep in the middle, everything one click away */}
       <div className="mx-auto max-w-[820px]">
         <div className="space-y-4">
-          {/* Centerpiece: timer with sheep */}
-          <TimerCircle
-            focusMinutes={settings?.focus_minutes ?? 25}
-            shortBreakMinutes={settings?.short_break_minutes ?? 5}
-            longBreakMinutes={settings?.long_break_minutes ?? 20}
-            todayMinutes={workspace.todayMinutes}
-            tasks={workspace.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
+          <DashboardActions
+            userId={user.id}
+            tasks={workspace.tasks.map((t) => ({
+              id: t.id,
+              text: t.text,
+              done: t.done,
+              priority: t.priority,
+              topic_id: t.topic_id
+            }))}
             topics={workspace.topics.map((t) => ({ id: t.id, name: t.name }))}
-            onComplete={addStudySessionAction}
+            rooms={myRooms.map((r) => ({
+              id: r.id,
+              code: r.code,
+              name: r.name,
+              is_open: r.is_open,
+              ended_at: r.ended_at,
+              owner_id: r.owner_id
+            }))}
+            settings={
+              settings
+                ? {
+                    focus_minutes: settings.focus_minutes,
+                    short_break_minutes: settings.short_break_minutes,
+                    long_break_minutes: settings.long_break_minutes,
+                    daily_goal_minutes: settings.daily_goal_minutes,
+                    ambient: settings.ambient,
+                    chime: settings.chime,
+                    auto_cycle: settings.auto_cycle
+                  }
+                : null
+            }
+            profile={
+              profileFull
+                ? profileFull
+                : {
+                    id: user.id,
+                    email: user.email || "",
+                    display_name: null,
+                    username: null,
+                    bio: null,
+                    avatar_url: null,
+                    pronouns: null,
+                    study_field: null,
+                    school: null,
+                    year_level: null,
+                    city: null,
+                    time_zone: null,
+                    favorite_subjects: null,
+                    birthday: null
+                  }
+            }
+            coins={settings?.coins ?? 0}
+            todayMinutes={workspace.todayMinutes}
             equippedSound={settings?.equipped_sound ?? null}
             equippedAccessory={settings?.equipped_accessory ?? null}
           />
@@ -64,67 +105,8 @@ export default async function DashboardPage() {
               />
             </div>
           </div>
-
-          {/* Action grid — every action opens a modal in-place */}
-          <div>
-            <DashboardActions
-              userId={user.id}
-              tasks={workspace.tasks.map((t) => ({
-                id: t.id,
-                text: t.text,
-                done: t.done,
-                priority: t.priority,
-                topic_id: t.topic_id
-              }))}
-              topics={workspace.topics.map((t) => ({ id: t.id, name: t.name }))}
-              rooms={myRooms.map((r) => ({
-                id: r.id,
-                code: r.code,
-                name: r.name,
-                is_open: r.is_open,
-                ended_at: r.ended_at,
-                owner_id: r.owner_id
-              }))}
-              settings={
-                settings
-                  ? {
-                      focus_minutes: settings.focus_minutes,
-                      short_break_minutes: settings.short_break_minutes,
-                      long_break_minutes: settings.long_break_minutes,
-                      daily_goal_minutes: settings.daily_goal_minutes,
-                      ambient: settings.ambient,
-                      chime: settings.chime,
-                      auto_cycle: settings.auto_cycle
-                    }
-                  : null
-              }
-              profile={
-                profileFull
-                  ? profileFull
-                  : {
-                      id: user.id,
-                      email: user.email || "",
-                      display_name: null,
-                      username: null,
-                      bio: null,
-                      avatar_url: null,
-                      pronouns: null,
-                      study_field: null,
-                      school: null,
-                      year_level: null,
-                      city: null,
-                      time_zone: null,
-                      favorite_subjects: null,
-                      birthday: null
-                    }
-              }
-              coins={settings?.coins ?? 0}
-              todayMinutes={workspace.todayMinutes}
-            />
-          </div>
         </div>
       </div>
     </DashboardShell>
   );
 }
-

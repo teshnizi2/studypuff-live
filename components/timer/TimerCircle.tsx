@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Settings as SettingsIcon } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { AmbientPlayer } from "./AmbientPlayer";
 
@@ -17,6 +18,7 @@ type Props = {
   onComplete: (form: FormData) => Promise<void>;
   equippedSound?: string | null;
   equippedAccessory?: string | null;
+  onSettingsClick?: () => void;
 };
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
@@ -37,7 +39,8 @@ export function TimerCircle({
   topics,
   onComplete,
   equippedSound,
-  equippedAccessory
+  equippedAccessory,
+  onSettingsClick
 }: Props) {
   const minutesByMode: Record<Mode, number> = useMemo(
     () => ({
@@ -154,6 +157,18 @@ export function TimerCircle({
         <path d="M50 10 Q 30 30 50 50 Q 70 30 50 10 Z" />
         <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
       </svg>
+
+      {/* Settings gear — top right */}
+      {onSettingsClick && (
+        <button
+          type="button"
+          onClick={onSettingsClick}
+          aria-label="Open settings"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/80 text-ink-900 shadow-soft ring-1 ring-ink-900/10 transition hover:-translate-y-0.5 hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+        >
+          <SettingsIcon className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+      )}
 
       {/* Ring + sheep — centred, no top-corner clutter */}
       <div className="flex flex-col items-center">

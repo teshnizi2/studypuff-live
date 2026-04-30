@@ -4,16 +4,15 @@ import { useState } from "react";
 import {
   ListChecks,
   Users,
-  FolderTree,
-  Settings as SettingsIcon,
   Sparkles,
   BarChart3,
-  User as UserIcon,
   Trash2,
   Plus
 } from "lucide-react";
 import { Dialog } from "./Dialog";
+import { TimerCircle } from "@/components/timer/TimerCircle";
 import {
+  addStudySessionAction,
   createTaskAction,
   createTopicAction,
   deleteTaskAction,
@@ -81,9 +80,11 @@ type Props = {
   profile: ProfileRow;
   coins: number;
   todayMinutes: number;
+  equippedSound: string | null;
+  equippedAccessory: string | null;
 };
 
-type ModalKey = "tasks" | "rooms" | "topics" | "settings" | "profile" | null;
+type ModalKey = "tasks" | "rooms" | "settings" | null;
 
 export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
@@ -92,43 +93,47 @@ export function DashboardActions(props: Props) {
   const openTasks = props.tasks.filter((t) => !t.done).length;
   const activeRooms = props.rooms.filter((r) => !r.ended_at).length;
 
+  // Group tasks by topic for the Tasks dialog
+  const tasksByTopic = new Map<string | null, TaskRow[]>();
+  for (const t of props.tasks) tasksByTopic.set(t.topic_id, [...(tasksByTopic.get(t.topic_id) || []), t]);
+
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <TimerCircle
+        focusMinutes={props.settings?.focus_minutes ?? 25}
+        shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
+        longBreakMinutes={props.settings?.long_break_minutes ?? 20}
+        todayMinutes={props.todayMinutes}
+        tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
+        topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+        onComplete={addStudySessionAction}
+        equippedSound={props.equippedSound}
+        equippedAccessory={props.equippedAccessory}
+        onSettingsClick={() => setOpen("settings")}
+      />
+
+      {/* 4 action tiles */}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <ActionTile
           Icon={ListChecks}
           tone="bg-brand-butter text-amber-700"
           label="Tasks"
-          hint={openTasks === 0 ? "Inbox zero" : `${openTasks} open`}
+          hint={openTasks === 0 ? "Inbox zero" : `${openTasks} open · ${props.topics.length} topics`}
           onClick={() => setOpen("tasks")}
         />
         <ActionTile
           Icon={Users}
           tone="bg-brand-sky text-sky-800"
           label="Rooms"
-          hint={activeRooms === 0 ? "None active" : `${activeRooms} active`}
+          hint={activeRooms === 0 ? "Create or join" : `${activeRooms} active`}
           onClick={() => setOpen("rooms")}
         />
         <ActionTile
-          Icon={FolderTree}
+          Icon={BarChart3}
           tone="bg-brand-mint text-emerald-800"
-          label="Topics"
-          hint={`${props.topics.length} ${props.topics.length === 1 ? "topic" : "topics"}`}
-          onClick={() => setOpen("topics")}
-        />
-        <ActionTile
-          Icon={UserIcon}
-          tone="bg-brand-pink text-rose-700"
-          label="Profile"
-          hint={props.profile.display_name || "Set up"}
-          onClick={() => setOpen("profile")}
-        />
-        <ActionTile
-          Icon={SettingsIcon}
-          tone="bg-brand-lilac text-violet-800"
-          label="Settings"
-          hint={`${props.settings?.focus_minutes ?? 25} min focus`}
-          onClick={() => setOpen("settings")}
+          label="Stats"
+          hint={`${props.todayMinutes} min today`}
+          href="/dashboard/stats"
         />
         <ActionTile
           Icon={Sparkles}
@@ -138,30 +143,41 @@ export function DashboardActions(props: Props) {
           href="/dashboard/rewards"
         />
       </div>
-      <a
-        href="/dashboard/stats"
-        className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-ink-700 hover:text-ink-900"
-      >
-        <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> Full stats →
-      </a>
 
-      {/* Tasks dialog */}
-      <Dialog open={open === "tasks"} onClose={close} title="Tasks" description="Add, complete, and clean up your task list." size="md">
-        <form action={createTaskAction} className="flex flex-wrap gap-2">
-          <input
-            name="text"
-            required
-            maxLength={280}
-            placeholder="What's next?"
-            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
-          />
-          <select name="priority" defaultValue="normal" className="rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2.5 text-sm">
-            <option value="low">Low</option>
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-          </select>
-          {props.topics.length > 0 && (
-            <select name="topic_id" defaultValue="" className="rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2.5 text-sm">
+      {/* Tasks + Topics dialog (tasks live inside topics) */}
+      <Dialog
+        open={open === "tasks"}
+        onClose={close}
+        title="Tasks & Topics"
+        description="Topics are folders. Tasks live inside them. Use 'No topic' for one-off items."
+        size="md"
+      >
+        <form action={createTaskAction} className="rounded-2xl bg-cream-100 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">
+            Quick add task
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <input
+              name="text"
+              required
+              maxLength={280}
+              placeholder="What's next?"
+              className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-50 px-4 py-2.5 text-sm"
+            />
+            <select
+              name="priority"
+              defaultValue="normal"
+              className="rounded-2xl border border-ink-900/15 bg-cream-50 px-3 py-2.5 text-sm"
+            >
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+            </select>
+            <select
+              name="topic_id"
+              defaultValue=""
+              className="rounded-2xl border border-ink-900/15 bg-cream-50 px-3 py-2.5 text-sm"
+            >
               <option value="">No topic</option>
               {props.topics.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -169,49 +185,46 @@ export function DashboardActions(props: Props) {
                 </option>
               ))}
             </select>
-          )}
-          <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
-            <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Add
-          </button>
+            <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
+              <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Add
+            </button>
+          </div>
         </form>
 
-        <ul className="mt-5 space-y-2">
-          {props.tasks.length === 0 && (
-            <li className="rounded-2xl bg-cream-100 px-4 py-3 text-sm text-ink-700">
-              Nothing on the list yet. Add your first task above.
-            </li>
-          )}
-          {props.tasks.map((t) => (
-            <li
-              key={t.id}
-              className={`flex items-center justify-between gap-3 rounded-2xl bg-cream-100 px-4 py-2.5 text-sm ${t.done ? "opacity-60" : ""}`}
-            >
-              <form action={toggleTaskAction} className="flex flex-1 items-center gap-3">
-                <input type="hidden" name="id" value={t.id} />
-                <input type="hidden" name="done" value={String(t.done)} />
-                <button
-                  type="submit"
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${t.done ? "bg-ink-900 border-ink-900 text-cream-50" : "border-ink-900/30"}`}
-                  aria-label={t.done ? "Mark incomplete" : "Mark complete"}
-                >
-                  {t.done ? "✓" : ""}
-                </button>
-                <span className={`flex-1 ${t.done ? "line-through" : ""}`}>{t.text}</span>
-              </form>
-              <span className="hidden text-[10px] uppercase tracking-widest text-ink-700 sm:inline">{t.priority}</span>
-              <form action={deleteTaskAction}>
-                <input type="hidden" name="id" value={t.id} />
-                <button type="submit" className="text-ink-700 hover:text-red-700" aria-label="Delete task">
-                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-5 space-y-4">
+          {props.topics.map((topic) => {
+            const items = tasksByTopic.get(topic.id) || [];
+            return (
+              <TopicGroup key={topic.id} topic={topic} items={items} />
+            );
+          })}
+
+          {/* No-topic group */}
+          <NoTopicGroup items={tasksByTopic.get(null) || []} />
+        </div>
+
+        <form action={createTopicAction} className="mt-5 flex gap-2 rounded-2xl bg-cream-100 p-3">
+          <input
+            name="name"
+            required
+            maxLength={120}
+            placeholder="New topic name (e.g. Calculus)"
+            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-50 px-4 py-2.5 text-sm"
+          />
+          <button type="submit" className="btn-outline px-4 py-2.5 text-sm">
+            <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Topic
+          </button>
+        </form>
       </Dialog>
 
       {/* Rooms dialog */}
-      <Dialog open={open === "rooms"} onClose={close} title="Study rooms" description="Join with a code, see your active rooms, or jump into one." size="md">
+      <Dialog
+        open={open === "rooms"}
+        onClose={close}
+        title="Study rooms"
+        description="Join with a code, see your active rooms, or jump into one."
+        size="md"
+      >
         <form action={joinRoomAction} className="flex gap-2">
           <input
             name="code"
@@ -259,107 +272,87 @@ export function DashboardActions(props: Props) {
         </a>
       </Dialog>
 
-      {/* Topics dialog */}
-      <Dialog open={open === "topics"} onClose={close} title="Topics" description="Group tasks by topic to track progress." size="sm">
-        <form action={createTopicAction} className="flex gap-2">
-          <input
-            name="name"
-            required
-            maxLength={120}
-            placeholder="e.g. Calculus"
-            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
-          />
-          <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
-            <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Add
-          </button>
-        </form>
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {props.topics.length === 0 && (
-            <li className="text-sm text-ink-700">No topics yet — add one above.</li>
-          )}
-          {props.topics.map((t) => (
-            <li key={t.id} className="inline-flex items-center gap-2 rounded-full bg-cream-100 px-3 py-1.5 text-sm text-ink-900">
-              {t.name}
-              <form action={deleteTopicAction}>
-                <input type="hidden" name="id" value={t.id} />
-                <button type="submit" className="text-ink-700 hover:text-red-700" aria-label={`Delete topic ${t.name}`}>
-                  <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      </Dialog>
-
-      {/* Settings dialog */}
-      <Dialog open={open === "settings"} onClose={close} title="Timer settings" description="Tune the durations and ambient defaults." size="sm">
-        <form action={updateSettingsAction} className="grid gap-4">
-          <div className="grid grid-cols-3 gap-3">
-            <NumField name="focus_minutes" label="Focus" defaultValue={props.settings?.focus_minutes ?? 25} />
-            <NumField name="short_break_minutes" label="Short break" defaultValue={props.settings?.short_break_minutes ?? 5} />
-            <NumField name="long_break_minutes" label="Long break" defaultValue={props.settings?.long_break_minutes ?? 20} />
-          </div>
-          <NumField name="daily_goal_minutes" label="Daily goal (min)" defaultValue={props.settings?.daily_goal_minutes ?? 90} />
-          <label className="flex items-center gap-3 text-sm font-semibold text-ink-900">
-            <input name="auto_cycle" type="checkbox" defaultChecked={props.settings?.auto_cycle ?? false} />
-            Auto-cycle focus and breaks
-          </label>
-          <label className="flex items-center gap-3 text-sm font-semibold text-ink-900">
-            <input name="chime" type="checkbox" defaultChecked={props.settings?.chime ?? true} />
-            Play session chime
-          </label>
-          <button type="submit" className="btn-primary w-fit text-sm">
-            Save settings
-          </button>
-        </form>
-      </Dialog>
-
-      {/* Profile dialog */}
-      <Dialog open={open === "profile"} onClose={close} title="Your profile" description="What other StudyPuffs see when you join their room." size="lg">
-        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+      {/* Settings + Profile dialog */}
+      <Dialog
+        open={open === "settings"}
+        onClose={close}
+        title="Settings & profile"
+        description="Tune the timer and update what other StudyPuffs see when you join their room."
+        size="lg"
+      >
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* TIMER SETTINGS */}
           <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-700">Avatar</p>
-            <div className="mt-3 flex flex-col items-center gap-3">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-ink-900/10 bg-brand-butter/40">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-700">
+              Timer settings
+            </p>
+            <form action={updateSettingsAction} className="grid gap-3">
+              <div className="grid grid-cols-3 gap-2">
+                <NumField name="focus_minutes" label="Focus" defaultValue={props.settings?.focus_minutes ?? 25} />
+                <NumField name="short_break_minutes" label="Short" defaultValue={props.settings?.short_break_minutes ?? 5} />
+                <NumField name="long_break_minutes" label="Long" defaultValue={props.settings?.long_break_minutes ?? 20} />
+              </div>
+              <NumField name="daily_goal_minutes" label="Daily goal (min)" defaultValue={props.settings?.daily_goal_minutes ?? 90} />
+              <label className="flex items-center gap-3 text-sm text-ink-900">
+                <input name="auto_cycle" type="checkbox" defaultChecked={props.settings?.auto_cycle ?? false} />
+                Auto-cycle focus and breaks
+              </label>
+              <label className="flex items-center gap-3 text-sm text-ink-900">
+                <input name="chime" type="checkbox" defaultChecked={props.settings?.chime ?? true} />
+                Play session chime
+              </label>
+              <button type="submit" className="btn-primary w-fit text-sm">
+                Save settings
+              </button>
+            </form>
+          </section>
+
+          {/* PROFILE */}
+          <section>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-700">
+              Profile
+            </p>
+
+            <div className="flex items-start gap-4">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-ink-900/10 bg-brand-butter/40">
                 {props.profile.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={props.profile.avatar_url} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center font-display text-3xl text-ink-900">
+                  <div className="flex h-full w-full items-center justify-center font-display text-2xl text-ink-900">
                     {(props.profile.display_name || props.profile.email).charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
-              <form action={uploadAvatarAction} encType="multipart/form-data" className="flex w-full flex-col gap-2">
-                <input
-                  type="file"
-                  name="avatar"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
-                  required
-                  className="block w-full text-xs text-ink-700 file:mr-3 file:rounded-full file:border-0 file:bg-brand-butter file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-ink-900"
-                />
-                <button type="submit" className="btn-primary w-full text-sm">
-                  Upload new
-                </button>
-              </form>
-              {props.profile.avatar_url && (
-                <form action={removeAvatarAction} className="w-full">
-                  <button type="submit" className="btn-outline w-full text-xs">
-                    Remove avatar
+              <div className="flex-1 space-y-2">
+                <form action={uploadAvatarAction} encType="multipart/form-data" className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    name="avatar"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    required
+                    className="block w-full text-xs text-ink-700 file:mr-3 file:rounded-full file:border-0 file:bg-brand-butter file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-ink-900"
+                  />
+                  <button type="submit" className="btn-primary text-sm">
+                    Upload avatar
                   </button>
                 </form>
-              )}
-              <p className="text-center text-[10px] text-ink-700">PNG/JPG/WEBP/GIF · 5 MB max</p>
+                {props.profile.avatar_url && (
+                  <form action={removeAvatarAction}>
+                    <button type="submit" className="text-xs font-semibold text-ink-700 underline underline-offset-4 hover:text-red-700">
+                      Remove avatar
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
-          </section>
 
-          <section>
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-700">Personal info</p>
-            <p className="mt-1 text-xs text-ink-700">Email: {props.profile.email}</p>
+            <p className="mt-3 text-xs text-ink-700">Email: {props.profile.email}</p>
+
             <form action={updateProfileAction} className="mt-3 grid gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <Field name="display_name" label="Display name" defaultValue={props.profile.display_name || ""} placeholder="How you appear to others" />
-                <Field name="username" label="Username" defaultValue={props.profile.username || ""} placeholder="lowercase, 3-24" hint="letters, numbers, _" />
+                <Field name="username" label="Username" defaultValue={props.profile.username || ""} placeholder="lowercase, 3-24" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field name="pronouns" label="Pronouns" defaultValue={props.profile.pronouns || ""} placeholder="she/her" maxLength={40} />
@@ -375,7 +368,7 @@ export function DashboardActions(props: Props) {
               </div>
               <Field name="favorite_subjects" label="Favourite subjects" defaultValue={props.profile.favorite_subjects || ""} placeholder="Algorithms, statistics, Dutch literature" maxLength={200} />
               <Field name="time_zone" label="Time zone" defaultValue={props.profile.time_zone || ""} placeholder="Europe/Amsterdam" maxLength={60} />
-              <label className="block text-sm font-semibold text-ink-900">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-ink-700">
                 Bio
                 <textarea
                   name="bio"
@@ -383,7 +376,7 @@ export function DashboardActions(props: Props) {
                   maxLength={500}
                   rows={3}
                   placeholder="A short blurb about you (max 500 chars)"
-                  className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
                 />
               </label>
               <button type="submit" className="btn-primary w-fit text-sm">
@@ -394,6 +387,91 @@ export function DashboardActions(props: Props) {
         </div>
       </Dialog>
     </>
+  );
+}
+
+function TopicGroup({ topic, items }: { topic: TopicRow; items: TaskRow[] }) {
+  return (
+    <div className="rounded-2xl border border-ink-900/10 bg-cream-50 p-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display text-base text-ink-900">
+          {topic.name}{" "}
+          <span className="text-xs font-normal text-ink-700">
+            ({items.length} {items.length === 1 ? "task" : "tasks"})
+          </span>
+        </h3>
+        <form action={deleteTopicAction}>
+          <input type="hidden" name="id" value={topic.id} />
+          <button
+            type="submit"
+            className="text-ink-700 hover:text-red-700"
+            aria-label={`Delete topic ${topic.name}`}
+            title="Delete topic"
+          >
+            <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+          </button>
+        </form>
+      </div>
+      {items.length === 0 ? (
+        <p className="mt-2 text-xs text-ink-700">No tasks yet — use the Quick add above and pick this topic.</p>
+      ) : (
+        <ul className="mt-2 space-y-1.5">
+          {items.map((t) => (
+            <TaskItem key={t.id} task={t} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function NoTopicGroup({ items }: { items: TaskRow[] }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-ink-900/15 bg-cream-50 p-3">
+      <h3 className="font-display text-base text-ink-900/70">
+        No topic{" "}
+        <span className="text-xs font-normal text-ink-700">
+          ({items.length})
+        </span>
+      </h3>
+      {items.length === 0 ? (
+        <p className="mt-2 text-xs text-ink-700">One-off tasks land here.</p>
+      ) : (
+        <ul className="mt-2 space-y-1.5">
+          {items.map((t) => (
+            <TaskItem key={t.id} task={t} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function TaskItem({ task }: { task: TaskRow }) {
+  return (
+    <li
+      className={`flex items-center justify-between gap-3 rounded-xl bg-cream-100 px-3 py-2 text-sm ${task.done ? "opacity-60" : ""}`}
+    >
+      <form action={toggleTaskAction} className="flex flex-1 items-center gap-3">
+        <input type="hidden" name="id" value={task.id} />
+        <input type="hidden" name="done" value={String(task.done)} />
+        <button
+          type="submit"
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${task.done ? "border-ink-900 bg-ink-900 text-cream-50" : "border-ink-900/30"}`}
+          aria-label={task.done ? "Mark incomplete" : "Mark complete"}
+        >
+          {task.done ? "✓" : ""}
+        </button>
+        <span className={`flex-1 ${task.done ? "line-through" : ""}`}>{task.text}</span>
+      </form>
+      <span className="hidden text-[10px] uppercase tracking-widest text-ink-700 sm:inline">{task.priority}</span>
+      <form action={deleteTaskAction}>
+        <input type="hidden" name="id" value={task.id} />
+        <button type="submit" className="text-ink-700 hover:text-red-700" aria-label="Delete task">
+          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+        </button>
+      </form>
+    </li>
   );
 }
 
@@ -444,7 +522,6 @@ function Field({
   label,
   defaultValue,
   placeholder,
-  hint,
   type = "text",
   maxLength
 }: {
@@ -452,7 +529,6 @@ function Field({
   label: string;
   defaultValue: string;
   placeholder?: string;
-  hint?: string;
   type?: string;
   maxLength?: number;
 }) {
@@ -467,7 +543,6 @@ function Field({
         maxLength={maxLength}
         className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
       />
-      {hint && <span className="mt-1 block text-[10px] font-normal normal-case tracking-normal text-ink-700">{hint}</span>}
     </label>
   );
 }
