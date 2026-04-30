@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Settings as SettingsIcon,
   ListChecks,
@@ -12,6 +13,7 @@ import {
   ChevronDown,
   Plus,
   Check,
+  Loader2,
   type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
@@ -93,7 +95,8 @@ export function TimerCircle({
   const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-lofi");
   const [newTopicName, setNewTopicName] = useState("");
   const [newTaskText, setNewTaskText] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [creating, startCreating] = useTransition();
+  const router = useRouter();
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset timer when total changes
@@ -170,32 +173,42 @@ export function TimerCircle({
   const selectedSoundLabel =
     SOUND_OPTIONS.find((s) => s.id === sessionSound)?.label || "Silence";
 
-  const handleAddTopic = async () => {
+  const handleAddTopic = () => {
     if (!onCreateTopic || !newTopicName.trim()) return;
-    setCreating(true);
-    const fd = new FormData();
-    fd.set("name", newTopicName.trim());
-    try {
-      await onCreateTopic(fd);
-      setNewTopicName("");
-    } finally {
-      setCreating(false);
-    }
+    const name = newTopicName.trim();
+    startCreating(async () => {
+      const fd = new FormData();
+      fd.set("name", name);
+      try {
+        await onCreateTopic(fd);
+        setNewTopicName("");
+        // server action's revalidatePath has already fired; router.refresh()
+        // makes the parent server component re-fetch so the new topic shows
+        // up immediately in the list passed to this component
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
   };
 
-  const handleAddTask = async () => {
+  const handleAddTask = () => {
     if (!onCreateTask || !newTaskText.trim()) return;
-    setCreating(true);
-    const fd = new FormData();
-    fd.set("text", newTaskText.trim());
-    fd.set("priority", "normal");
-    if (topicId) fd.set("topic_id", topicId);
-    try {
-      await onCreateTask(fd);
-      setNewTaskText("");
-    } finally {
-      setCreating(false);
-    }
+    const text = newTaskText.trim();
+    const tid = topicId;
+    startCreating(async () => {
+      const fd = new FormData();
+      fd.set("text", text);
+      fd.set("priority", "normal");
+      if (tid) fd.set("topic_id", tid);
+      try {
+        await onCreateTask(fd);
+        setNewTaskText("");
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
   };
 
   return (
@@ -439,7 +452,8 @@ export function TimerCircle({
                       }
                     }}
                     placeholder="+ New topic"
-                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs"
+                    disabled={creating}
+                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs disabled:opacity-50"
                   />
                   <button
                     type="button"
@@ -447,7 +461,11 @@ export function TimerCircle({
                     disabled={!newTopicName.trim() || creating}
                     className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
                   >
-                    <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    {creating ? (
+                      <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
+                    ) : (
+                      <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    )}
                     Add
                   </button>
                 </div>
@@ -479,7 +497,8 @@ export function TimerCircle({
                       }
                     }}
                     placeholder={topicId ? "+ New task in this topic" : "+ New task"}
-                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs"
+                    disabled={creating}
+                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs disabled:opacity-50"
                   />
                   <button
                     type="button"
@@ -487,7 +506,11 @@ export function TimerCircle({
                     disabled={!newTaskText.trim() || creating}
                     className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
                   >
-                    <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    {creating ? (
+                      <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
+                    ) : (
+                      <Plus className="h-3 w-3" strokeWidth={2.5} />
+                    )}
                     Add
                   </button>
                 </div>
