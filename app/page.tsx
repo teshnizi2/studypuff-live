@@ -9,12 +9,12 @@ import Newsletter from "@/components/Newsletter";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 
-const COSTUDY_BULLETS = [
-  "50/10 Pomodoros",
-  "All ages welcome",
-  "Chatting during breaks",
-  "Cozy community",
-  "Regular cozy game streams"
+const COSTUDY_BULLETS: { icon: string; label: string }[] = [
+  { icon: "⏰", label: "50/10 Pomodoros" },
+  { icon: "🌍", label: "All ages welcome" },
+  { icon: "💬", label: "Chatting during breaks" },
+  { icon: "🫶", label: "Cozy community" },
+  { icon: "🎮", label: "Regular cozy game streams" }
 ];
 
 const LIVE_SESSIONS_THIS_WEEK: number = 3;
@@ -51,20 +51,21 @@ export default function Page() {
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
               Live this week · {LIVE_SESSIONS_THIS_WEEK} livestreams →
             </Link>
-            <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
-              Study with us · free livestreams
-            </p>
             <h2 className="display-heading text-[clamp(2rem,3.5vw,3rem)] text-ink-900">
               Co-study sessions with focus timer and accountability.
             </h2>
-            <p className="mt-5 max-w-[44ch] text-lg leading-relaxed text-ink-700">
-              Drop in to join a community of StudyPuffs getting their things done.
+            <p className="mt-5 max-w-[48ch] text-lg leading-relaxed text-ink-700">
+              Free livestreams on YouTube and Twitch. Drop in, set your intention, and get
+              your things done alongside students from 46 countries.
             </p>
-            <ul className="mt-6 grid grid-cols-1 gap-2 text-sm text-ink-900/80 sm:grid-cols-2">
+            <ul className="mt-6 grid grid-cols-1 gap-2.5 text-sm sm:grid-cols-2">
               {COSTUDY_BULLETS.map((b) => (
-                <li key={b} className="flex items-start gap-2">
-                  <span aria-hidden className="mt-1.5 inline-block h-1.5 w-1.5 rounded-full bg-ink-900" />
-                  {b}
+                <li
+                  key={b.label}
+                  className="flex items-center gap-3 rounded-2xl bg-cream-50/70 px-3 py-2 text-ink-900"
+                >
+                  <span className="text-lg" aria-hidden>{b.icon}</span>
+                  <span className="font-semibold">{b.label}</span>
                 </li>
               ))}
             </ul>

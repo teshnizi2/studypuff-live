@@ -23,7 +23,7 @@ export default function PageHero({
   accent = "butter"
 }: Props) {
   return (
-    <section className="relative overflow-x-hidden py-20 lg:py-28">
+    <section className="relative py-20 lg:py-28">
       <span
         className="blob animate-float"
         style={{

@@ -32,13 +32,12 @@ export default function WhySection() {
           <p className="mb-3 text-xs uppercase tracking-[0.25em] text-ink-700">
             Why StudyPuff
           </p>
-          <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl lg:text-6xl">
+          <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl lg:text-5xl">
             Because we believe that <em className="italic">students deserve better</em>.
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-ink-700">
-            At StudyPuff, we teach you how to study. However, it doesn&apos;t stop there. We offer
-            continuous support with the help of our community. Because you don&apos;t have to do this
-            alone.
+          <p className="mx-auto mt-5 max-w-xl text-base text-ink-700 sm:text-lg">
+            We teach you how to study, then keep showing up — with workshops, livestreams, and a
+            community that believes you don&apos;t have to do this alone.
           </p>
         </Reveal>
 

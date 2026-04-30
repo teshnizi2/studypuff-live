@@ -4,7 +4,7 @@ import { StudyingNow } from "./StudyingNow";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-x-hidden">
+    <section className="relative">
       <span
         className="blob animate-float"
         style={{ left: "-80px", top: "80px", width: 260, height: 260, background: "#f3c6c2" }}
@@ -21,9 +21,14 @@ export default function Hero() {
       <div className="mx-auto grid max-w-[1280px] grid-cols-1 items-center gap-12 px-6 pb-16 pt-10 md:grid-cols-12 lg:px-10 lg:pb-20 lg:pt-14">
         <div className="md:col-span-7">
           <Reveal>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">
+            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-ink-900 animate-pulse" />
               Cozy · science-based · student-led
+            </p>
+          </Reveal>
+          <Reveal delay={50}>
+            <p className="mb-4 text-base font-semibold text-ink-700 sm:text-lg">
+              A cozy study app + community for students.
             </p>
           </Reveal>
           <Reveal delay={100}>
@@ -33,18 +38,17 @@ export default function Hero() {
           </Reveal>
           <Reveal delay={200}>
             <p className="mt-6 max-w-[44ch] text-lg leading-relaxed text-ink-700">
-              StudyPuff is the home for students who want to improve their performance, without
-              burning out. Join a workshop, drop into a free livestream, or use one of our free
-              templates.
+              Join free livestreams, use our focus timer + co-study rooms, and learn how to study
+              without burning out. No credit card needed.
             </p>
           </Reveal>
           <Reveal delay={300}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/workshops" className="btn-primary">
-                Join a workshop <span aria-hidden>→</span>
+              <Link href="/study" className="btn-primary">
+                Try a free session <span aria-hidden>→</span>
               </Link>
-              <Link href="/study" className="btn-outline">
-                Try a free session
+              <Link href="/workshops" className="btn-outline">
+                Browse workshops
               </Link>
             </div>
           </Reveal>
