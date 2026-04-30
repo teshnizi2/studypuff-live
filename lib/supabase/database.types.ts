@@ -199,9 +199,64 @@ export interface Database {
         };
         Update: never;
       };
+      study_rooms: {
+        Row: {
+          id: string;
+          code: string;
+          owner_id: string;
+          name: string;
+          topic_id: string | null;
+          focus_minutes: number;
+          is_open: boolean;
+          started_at: string | null;
+          ended_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code?: string;
+          owner_id: string;
+          name: string;
+          topic_id?: string | null;
+          focus_minutes?: number;
+          is_open?: boolean;
+          started_at?: string | null;
+          ended_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          topic_id?: string | null;
+          focus_minutes?: number;
+          is_open?: boolean;
+          started_at?: string | null;
+          ended_at?: string | null;
+          updated_at?: string;
+        };
+      };
+      study_room_members: {
+        Row: {
+          room_id: string;
+          user_id: string;
+          joined_at: string;
+        };
+        Insert: {
+          room_id: string;
+          user_id: string;
+          joined_at?: string;
+        };
+        Update: never;
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      join_room_by_code: {
+        Args: { p_code: string };
+        Returns: string;
+      };
+    };
     Enums: {
       user_role: UserRole;
       study_mode: StudyMode;

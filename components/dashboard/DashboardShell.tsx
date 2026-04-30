@@ -8,6 +8,7 @@ const dashboardLinks = [
   { label: "Overview", href: "/dashboard" },
   { label: "Timer", href: "/dashboard/timer" },
   { label: "Tasks", href: "/dashboard/tasks" },
+  { label: "Rooms", href: "/dashboard/rooms" },
   { label: "Profile", href: "/dashboard/profile" },
   { label: "Settings", href: "/dashboard/settings" }
 ];
