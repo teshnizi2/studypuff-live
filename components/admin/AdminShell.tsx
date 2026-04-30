@@ -14,9 +14,17 @@ export function AdminShell({
     <main className="min-h-screen bg-[#181512] text-cream-50">
       <header className="border-b border-white/10 bg-[#181512]/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <Link href="/admin" className="font-display text-3xl">
-            StudyPuff Admin
-          </Link>
+          <div className="flex flex-col gap-1">
+            <Link
+              href="/"
+              className="inline-flex w-fit items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream-200 hover:text-cream-50"
+            >
+              <span aria-hidden>←</span> Back to site
+            </Link>
+            <Link href="/admin" className="font-display text-3xl">
+              StudyPuff Admin
+            </Link>
+          </div>
           <nav className="flex flex-wrap items-center gap-4 text-sm">
             <Link href="/admin" className="nav-link text-cream-100">
               Overview

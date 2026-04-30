@@ -31,9 +31,17 @@ export function DashboardShell({
     <main className="min-h-screen bg-cream-100">
       <header className="border-b border-ink-900/10 bg-cream-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-5 px-6 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-          <Link href="/" className="font-display text-3xl text-ink-900">
-            StudyPuff
-          </Link>
+          <div className="flex flex-col gap-1">
+            <Link
+              href="/"
+              className="inline-flex w-fit items-center gap-1 text-xs font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900"
+            >
+              <span aria-hidden>←</span> Back to site
+            </Link>
+            <Link href="/" className="font-display text-3xl text-ink-900">
+              StudyPuff
+            </Link>
+          </div>
           <nav className="flex flex-wrap items-center gap-4 text-sm">
             {dashboardLinks.map((link) => (
               <Link key={link.href} href={link.href} className="nav-link text-ink-700">
