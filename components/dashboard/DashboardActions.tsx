@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, ListTree } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
@@ -91,7 +91,25 @@ export function DashboardActions(props: Props) {
   const [currentTaskId, setCurrentTaskId] = useState<string>("");
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
+  const [tasksOpen, setTasksOpen] = useState(true);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
+
+  // Restore tasks-panel collapsed state from localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("studypuff:tasks-open");
+      if (raw === "false") setTasksOpen(false);
+    } catch { /* ignore */ }
+  }, []);
+
+  const setTasksOpenPersist = (next: boolean) => {
+    setTasksOpen(next);
+    if (typeof window !== "undefined") {
+      try { window.localStorage.setItem("studypuff:tasks-open", String(next)); }
+      catch { /* ignore */ }
+    }
+  };
   const defaultSound = props.equippedSound ?? "sound-lofi";
   const [soundsByMode, setSoundsByMode] = useState<Record<TimerSoundMode, string | null>>({
     focus: defaultSound,
@@ -163,30 +181,58 @@ export function DashboardActions(props: Props) {
       <div className="bg-paper-grain relative">
         <LeavesAccent />
 
+        {/* Re-open tasks tab — only visible when collapsed on lg+ */}
+        {!tasksOpen && (
+          <button
+            type="button"
+            onClick={() => setTasksOpenPersist(true)}
+            aria-label="Show tasks"
+            title="Show tasks"
+            className="fixed left-3 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 rounded-r-3xl bg-cream-50 px-3 py-5 text-ink-900 shadow-[0_18px_40px_-15px_rgba(31,77,44,0.35)] ring-1 ring-ink-900/10 transition hover:bg-cream-100 lg:flex"
+          >
+            <ListTree className="h-4 w-4" strokeWidth={1.75} />
+            <span className="font-display text-[10px] italic uppercase tracking-[0.22em]" style={{ writingMode: "vertical-rl" }}>
+              tasks
+            </span>
+          </button>
+        )}
+
         {/* Tasks LEFT, timer RIGHT — flowing two-column */}
-        <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
+        <div
+          className={`grid grid-cols-1 gap-y-12 ${
+            tasksOpen
+              ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]"
+              : "lg:grid-cols-1 lg:place-items-center"
+          }`}
+        >
           {/* Tasks panel — LEFT (mobile: 2nd, lg: 1st) */}
-          <div className="order-2 lg:order-1 lg:max-w-[640px]">
-            <TaskPanel
-              tasks={props.tasks.map((t) => ({
-                id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
-              }))}
-              topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-              todayMinutes={props.todayMinutes}
-              currentTaskId={currentTaskId}
-              currentTopicId={currentTopicId}
-              onSelectTask={handleSelectTask}
-              onSelectTopic={handleSelectTopic}
-              onCreateTask={createTaskAction}
-              onCreateTopic={createTopicAction}
-              onToggleTask={toggleTaskAction}
-              onDeleteTask={deleteTaskAction}
-              onDeleteTopic={deleteTopicAction}
-            />
-          </div>
+          {tasksOpen && (
+            <div className="order-2 lg:order-1 lg:max-w-[640px]">
+              <TaskPanel
+                tasks={props.tasks.map((t) => ({
+                  id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
+                }))}
+                topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+                todayMinutes={props.todayMinutes}
+                currentTaskId={currentTaskId}
+                currentTopicId={currentTopicId}
+                onSelectTask={handleSelectTask}
+                onSelectTopic={handleSelectTopic}
+                onCreateTask={createTaskAction}
+                onCreateTopic={createTopicAction}
+                onToggleTask={toggleTaskAction}
+                onDeleteTask={deleteTaskAction}
+                onDeleteTopic={deleteTopicAction}
+                onClose={() => setTasksOpenPersist(false)}
+              />
+            </div>
+          )}
 
           {/* Timer — RIGHT, sticky on lg+ */}
-          <div className="order-1 lg:order-2 lg:sticky lg:top-8 lg:self-start">
+          <div className={tasksOpen
+            ? "order-1 lg:order-2 lg:sticky lg:top-8 lg:self-start"
+            : "order-1"
+          }>
             <div className="journal-rise jrise-2">
               <TimerCircle
                 focusMinutes={props.settings?.focus_minutes ?? 25}

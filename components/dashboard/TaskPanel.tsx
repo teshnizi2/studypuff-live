@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2, X, Minus } from "lucide-react";
+import { Loader2, Plus, Trash2, X, Minus, PanelLeftClose } from "lucide-react";
 import { Squiggle } from "./Squiggle";
 
 type Task = { id: string; text: string; done: boolean; topic_id: string | null };
@@ -21,6 +21,7 @@ type Props = {
   onToggleTask: (form: FormData) => Promise<void>;
   onDeleteTask: (form: FormData) => Promise<void>;
   onDeleteTopic?: (form: FormData) => Promise<void>;
+  onClose?: () => void;
 };
 
 export function TaskPanel(p: Props) {
@@ -135,8 +136,21 @@ export function TaskPanel(p: Props) {
 
   return (
     <div className="relative flex flex-col gap-7">
+      {/* Close button — top right */}
+      {p.onClose && (
+        <button
+          type="button"
+          onClick={p.onClose}
+          aria-label="Hide tasks"
+          title="Hide tasks"
+          className="absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full text-ink-900/55 transition hover:bg-cream-50/60 hover:text-ink-900"
+        >
+          <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
+        </button>
+      )}
+
       {/* Today header */}
-      <header className="journal-rise jrise-1">
+      <header className="journal-rise jrise-1 pr-12">
         <p className="text-[10px] uppercase tracking-[0.4em] text-ink-700">today</p>
         <h2 className="mt-3 font-display text-[clamp(2.25rem,3.6vw,3.5rem)] leading-[1.05] text-ink-900">
           {p.todayMinutes > 0 ? (
@@ -328,16 +342,26 @@ function TopicSection({
   const openCount = tasks.filter((t) => !t.done).length;
   const name = topic?.name || "No topic";
 
+  const hasChildren = !collapsed && (tasks.length > 0 || isAddingHere);
+
   return (
     <div className="group/topic relative">
-      <div className="flex items-baseline gap-3 border-b border-ink-900/10 pb-2.5">
+      {/* Topic header — diagram node */}
+      <div className="relative flex items-center gap-3">
         <button
           type="button"
           onClick={onCollapse}
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-ink-900/55 transition hover:bg-cream-50/60 hover:text-ink-900"
+          className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
+            isCurrent
+              ? "border-emerald-700 bg-emerald-700 text-cream-50"
+              : "border-ink-900/30 bg-cream-50 text-ink-900/55 hover:border-ink-900/60 hover:text-ink-900"
+          }`}
           aria-label={collapsed ? "Expand" : "Collapse"}
         >
-          {collapsed ? <Plus className="h-3 w-3" strokeWidth={1.75} /> : <Minus className="h-3 w-3" strokeWidth={1.75} />}
+          {collapsed
+            ? <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+            : <Minus className="h-3.5 w-3.5" strokeWidth={2} />
+          }
         </button>
 
         <button
@@ -348,10 +372,9 @@ function TopicSection({
             isCurrent ? "text-ink-900" : "text-ink-900/85 hover:text-ink-900"
           }`}
         >
-          <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${isCurrent ? "animate-pulse bg-emerald-700" : "bg-ink-900/30"}`} />
           <span className="font-display text-xl italic">{name}</span>
           <span className="text-[11px] italic text-ink-700">
-            {openCount > 0 ? `${openCount} open` : "all clear"}
+            {openCount > 0 ? `· ${openCount} open` : "· all clear"}
           </span>
         </button>
 
@@ -381,7 +404,7 @@ function TopicSection({
       </div>
 
       {confirmingDelete && (
-        <div className="animate-task-in mt-3 flex items-center justify-between gap-3 px-1 text-sm text-rose-900/90">
+        <div className="animate-task-in mt-3 ml-10 flex items-center justify-between gap-3 text-sm text-rose-900/90">
           <span className="italic">
             delete <em className="font-semibold not-italic">{name}</em>? tasks fall back to no topic.
           </span>
@@ -400,58 +423,71 @@ function TopicSection({
         </div>
       )}
 
-      {!collapsed && (
-        <ul className="mt-3 flex flex-col">
-          {tasks.length === 0 && !isAddingHere && (
-            <li className="px-1 py-1 text-sm italic text-ink-700/70">No tasks yet.</li>
-          )}
-          {tasks.map((task) => (
-            <TaskRow
-              key={task.id}
-              task={task}
-              isCurrent={task.id === currentTaskId}
-              pending={pending}
-              onToggle={() => onToggle(task.id)}
-              onSelect={() => onSelectTask(task.id)}
-              onDelete={() => onDelete(task.id)}
-            />
-          ))}
+      {hasChildren && (
+        <div className="relative mt-1 pb-1">
+          {/* Trunk line dropping from the topic node */}
+          <span
+            aria-hidden
+            className="absolute left-3.5 top-0 bottom-3 w-px bg-ink-900/20"
+          />
 
-          {isAddingHere && (
-            <li className="animate-task-in mt-2 flex items-baseline gap-3 px-1">
-              <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} />
-              <input
-                autoFocus
-                type="text"
-                value={newTaskText}
-                onChange={(e) => setNewTaskText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); handleCreateTask(); }
-                  if (e.key === "Escape") cancelAdd();
-                }}
-                placeholder={`new task${topic ? ` in ${topic.name}` : ""}`}
-                disabled={pending}
-                className="flex-1 border-0 border-b border-dashed border-ink-900/20 bg-transparent pb-1 text-sm italic text-ink-900 outline-none placeholder:text-ink-700/55 focus:border-ink-900/45 disabled:opacity-50"
+          <ul className="flex flex-col">
+            {tasks.length === 0 && !isAddingHere && (
+              <li className="ml-10 py-1 text-sm italic text-ink-700/70">No tasks yet.</li>
+            )}
+            {tasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                isCurrent={task.id === currentTaskId}
+                pending={pending}
+                onToggle={() => onToggle(task.id)}
+                onSelect={() => onSelectTask(task.id)}
+                onDelete={() => onDelete(task.id)}
               />
-              <button
-                type="button"
-                onClick={handleCreateTask}
-                disabled={!newTaskText.trim() || pending}
-                className="font-display text-xs italic uppercase tracking-[0.2em] text-ink-900 underline-offset-4 hover:underline disabled:opacity-50"
-              >
-                {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "save"}
-              </button>
-              <button
-                type="button"
-                onClick={cancelAdd}
-                className="text-ink-700/60 transition hover:text-ink-900"
-                aria-label="Cancel"
-              >
-                <X className="h-3.5 w-3.5" strokeWidth={1.75} />
-              </button>
-            </li>
-          )}
-        </ul>
+            ))}
+
+            {isAddingHere && (
+              <li className="animate-task-in relative ml-3.5 flex items-baseline gap-3 pl-7 pt-2">
+                {/* Branch connector */}
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-[1.1rem] h-px w-6 bg-ink-900/20"
+                />
+                <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} />
+                <input
+                  autoFocus
+                  type="text"
+                  value={newTaskText}
+                  onChange={(e) => setNewTaskText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); handleCreateTask(); }
+                    if (e.key === "Escape") cancelAdd();
+                  }}
+                  placeholder={`new task${topic ? ` in ${topic.name}` : ""}`}
+                  disabled={pending}
+                  className="flex-1 border-0 border-b border-dashed border-ink-900/20 bg-transparent pb-1 text-sm italic text-ink-900 outline-none placeholder:text-ink-700/55 focus:border-ink-900/45 disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateTask}
+                  disabled={!newTaskText.trim() || pending}
+                  className="font-display text-xs italic uppercase tracking-[0.2em] text-ink-900 underline-offset-4 hover:underline disabled:opacity-50"
+                >
+                  {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelAdd}
+                  className="text-ink-700/60 transition hover:text-ink-900"
+                  aria-label="Cancel"
+                >
+                  <X className="h-3.5 w-3.5" strokeWidth={1.75} />
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -468,11 +504,17 @@ function TaskRow({
   onDelete: () => void;
 }) {
   return (
-    <li className="group/row relative flex items-center gap-3 py-1.5">
+    <li className="group/row relative ml-3.5 flex items-center gap-3 py-1.5 pl-7">
+      {/* Branch connector — short horizontal line from trunk to this row */}
+      <span
+        aria-hidden
+        className="absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 bg-ink-900/20"
+      />
+
       {isCurrent && (
         <div
           aria-hidden
-          className="halo-sage animate-halo absolute -inset-x-3 -inset-y-1 -z-10 rounded-full blur-xl"
+          className="halo-sage animate-halo absolute left-7 right-2 inset-y-0 -z-10 rounded-full blur-xl"
         />
       )}
 
@@ -480,7 +522,7 @@ function TaskRow({
         type="button"
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         disabled={pending}
-        className="flex h-5 w-5 shrink-0 items-center justify-center transition hover:scale-110 active:scale-95"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cream-50 transition hover:scale-110 active:scale-95"
         aria-label={task.done ? "Mark incomplete" : "Mark done"}
         title={task.done ? "Mark incomplete" : "Mark done"}
       >
