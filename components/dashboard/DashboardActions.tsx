@@ -7,6 +7,8 @@ import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
+import { StatsContent, type StatsContentProps } from "./StatsContent";
+import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -78,9 +80,11 @@ type Props = {
   todayMinutes: number;
   equippedSound: string | null;
   equippedAccessory: string | null;
+  stats?: Omit<StatsContentProps, "onCloseHref">;
+  rewards?: RewardsContentProps;
 };
 
-type ModalKey = "tasks" | "rooms" | "settings" | null;
+type ModalKey = "tasks" | "rooms" | "settings" | "stats" | "rewards" | null;
 
 export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
@@ -200,6 +204,8 @@ export function DashboardActions(props: Props) {
                 equippedAccessory={props.equippedAccessory}
                 onSettingsClick={() => setOpen("settings")}
                 onRoomsClick={() => setOpen("rooms")}
+                onStatsClick={props.stats ? () => setOpen("stats") : undefined}
+                onRewardsClick={props.rewards ? () => setOpen("rewards") : undefined}
                 onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
               />
             </div>
@@ -460,6 +466,32 @@ export function DashboardActions(props: Props) {
           </section>
         </div>
       </Dialog>
+
+      {/* Stats dialog */}
+      {props.stats && (
+        <Dialog
+          open={open === "stats"}
+          onClose={close}
+          title="Your stats"
+          description="Quiet pride. Two weeks at a glance."
+          size="lg"
+        >
+          <StatsContent {...props.stats} />
+        </Dialog>
+      )}
+
+      {/* Rewards dialog */}
+      {props.rewards && (
+        <Dialog
+          open={open === "rewards"}
+          onClose={close}
+          title="Rewards"
+          description="Earn coins by finishing focus sessions. Spend them on tiny upgrades."
+          size="lg"
+        >
+          <RewardsContent {...props.rewards} />
+        </Dialog>
+      )}
     </>
   );
 }

@@ -27,6 +27,8 @@ type Props = {
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
   onRoomsClick?: () => void;
+  onStatsClick?: () => void;
+  onRewardsClick?: () => void;
   onModeChange?: (mode: StudyMode) => void;
 };
 
@@ -43,7 +45,7 @@ export function TimerCircle({
   tasks, topics, taskId, topicId,
   running, onRunningChange,
   onComplete, equippedAccessory,
-  onSettingsClick, onRoomsClick, onModeChange
+  onSettingsClick, onRoomsClick, onStatsClick, onRewardsClick, onModeChange
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
@@ -147,8 +149,16 @@ export function TimerCircle({
       <div className="mb-6 flex w-full items-center justify-between">
         <div className="flex items-center gap-1.5">
           {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
-          <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
-          <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
+          {onStatsClick ? (
+            <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
+          ) : (
+            <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
+          )}
+          {onRewardsClick ? (
+            <IconButton Icon={Sparkles} label="Rewards" onClick={onRewardsClick} />
+          ) : (
+            <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
+          )}
         </div>
         {onSettingsClick && (
           <IconButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
