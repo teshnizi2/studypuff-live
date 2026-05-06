@@ -142,6 +142,7 @@ export function DashboardActions(props: Props) {
             onCreateTopic={createTopicAction}
             onToggleTask={toggleTaskAction}
             onDeleteTask={deleteTaskAction}
+            onDeleteTopic={deleteTopicAction}
           />
         </div>
       </div>

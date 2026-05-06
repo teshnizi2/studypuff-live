@@ -220,6 +220,62 @@ html::-webkit-scrollbar-track { background: var(--bg); }
 html::-webkit-scrollbar-thumb { background: #d8d3cc; border-radius: 10px; }
 html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 
+/* Dashboard task animations */
+@keyframes task-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-task-in {
+  animation: task-fade-in 240ms ease-out both;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-in {
+  animation: scale-in 180ms ease-out both;
+}
+
+@keyframes pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(58, 138, 76, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(58, 138, 76, 0.25);
+  }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s ease-in-out infinite;
+}
+
+/* Smooth collapsing accordion via grid-template-rows trick */
+.collapse-grid {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 240ms ease;
+}
+.collapse-grid[data-collapsed="true"] {
+  grid-template-rows: 0fr;
+}
+.collapse-grid > .collapse-content {
+  overflow: hidden;
+  min-height: 0;
+}
+
 /* Policy / long-form copy */
 .prose-policy p {
   color: #3a3a3a;

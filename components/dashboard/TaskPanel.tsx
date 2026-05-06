@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Circle, Plus, Loader2, Trash2, Folder, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, Circle, Plus, Loader2, Trash2, Folder, ChevronDown, ChevronRight, X } from "lucide-react";
 
 type Task = { id: string; text: string; done: boolean; topic_id: string | null };
 type Topic = { id: string; name: string };
@@ -18,6 +18,7 @@ type Props = {
   onCreateTopic: (form: FormData) => Promise<void>;
   onToggleTask: (form: FormData) => Promise<void>;
   onDeleteTask: (form: FormData) => Promise<void>;
+  onDeleteTopic?: (form: FormData) => Promise<void>;
 };
 
 export function TaskPanel({
@@ -30,7 +31,8 @@ export function TaskPanel({
   onCreateTask,
   onCreateTopic,
   onToggleTask,
-  onDeleteTask
+  onDeleteTask,
+  onDeleteTopic
 }: Props) {
   const router = useRouter();
   const [pending, startPending] = useTransition();
@@ -122,6 +124,24 @@ export function TaskPanel({
       fd.set("id", taskId);
       try {
         await onDeleteTask(fd);
+        // If we just deleted the current task, clear the selection
+        if (taskId === currentTaskId) onSelectTask("", "");
+        router.refresh();
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  };
+
+  const handleDeleteTopic = (topicId: string) => {
+    if (!onDeleteTopic) return;
+    if (!confirm("Delete this topic? Its tasks will move to No topic.")) return;
+    startPending(async () => {
+      const fd = new FormData();
+      fd.set("id", topicId);
+      try {
+        await onDeleteTopic(fd);
+        if (topicId === currentTopicId) onSelectTopic("");
         router.refresh();
       } catch (err) {
         console.error(err);
@@ -146,10 +166,10 @@ export function TaskPanel({
     return (
       <li
         key={task.id}
-        className={`group flex items-center gap-2 rounded-2xl px-3 py-2 transition ${
+        className={`group animate-task-in flex items-center gap-2 rounded-2xl px-3 py-2 transition-all duration-200 ${
           isCurrent
-            ? "bg-ink-900 text-cream-50 shadow-soft"
-            : "hover:bg-cream-50/70"
+            ? "bg-ink-900 text-cream-50 shadow-soft animate-pulse-ring"
+            : "hover:bg-cream-50/70 hover:translate-x-0.5"
         }`}
       >
         <button
@@ -211,7 +231,12 @@ export function TaskPanel({
     const isAddingHere = addingToTopic === id;
 
     return (
-      <div key={id} className="rounded-3xl bg-cream-50/35 p-3 ring-1 ring-ink-900/5">
+      <div
+        key={id}
+        className={`group/topic animate-task-in rounded-3xl bg-cream-50/35 p-3 ring-1 ring-ink-900/5 transition-all duration-200 hover:bg-cream-50/55 hover:ring-ink-900/10 ${
+          isCurrentTopic ? "ring-emerald-700/30 bg-cream-50/60" : ""
+        }`}
+      >
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -245,12 +270,24 @@ export function TaskPanel({
               setAddingToTopic(isAddingHere ? null : id);
               setNewTaskText("");
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-900/60 transition hover:bg-cream-50/60 hover:text-ink-900"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-900/60 transition hover:rotate-90 hover:bg-cream-50/60 hover:text-ink-900"
             aria-label="Add task to this topic"
             title="Add task"
           >
             <Plus className="h-4 w-4" strokeWidth={2} />
           </button>
+          {topic && onDeleteTopic && (
+            <button
+              type="button"
+              onClick={() => handleDeleteTopic(topic.id)}
+              disabled={pending}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-ink-900/40 opacity-0 transition group-hover/topic:opacity-100 hover:bg-rose-100/60 hover:text-rose-700"
+              aria-label="Delete topic"
+              title="Delete topic"
+            >
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+            </button>
+          )}
         </div>
 
         {!collapsed && (
