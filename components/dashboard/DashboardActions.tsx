@@ -5,6 +5,8 @@ import { Trash2, Plus } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
+import { LeavesAccent } from "./LeavesAccent";
+import { SoundDock } from "./SoundDock";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -84,6 +86,8 @@ export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
   const [currentTaskId, setCurrentTaskId] = useState<string>("");
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
+  const [running, setRunning] = useState(false);
+  const [sound, setSound] = useState<string | null>(props.equippedSound ?? "sound-lofi");
   const close = () => setOpen(null);
 
   const handleSelectTask = (taskId: string, topicId: string) => {
@@ -94,58 +98,75 @@ export function DashboardActions(props: Props) {
 
   const handleSelectTopic = (topicId: string) => {
     setCurrentTopicId(topicId);
-    // If the current task isn't in this topic, clear it
     if (currentTaskId) {
       const task = props.tasks.find((t) => t.id === currentTaskId);
       if (!task || task.topic_id !== topicId) setCurrentTaskId("");
     }
   };
 
-  // Group tasks by topic for the Tasks dialog
+  // Group tasks by topic for the Tasks dialog (legacy modal; still used)
   const tasksByTopic = new Map<string | null, TaskRow[]>();
   for (const t of props.tasks) tasksByTopic.set(t.topic_id, [...(tasksByTopic.get(t.topic_id) || []), t]);
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="order-1 mx-auto w-full max-w-[700px] lg:order-1">
-          <TimerCircle
-            focusMinutes={props.settings?.focus_minutes ?? 25}
-            shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
-            longBreakMinutes={props.settings?.long_break_minutes ?? 20}
-            todayMinutes={props.todayMinutes}
-            tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
-            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-            taskId={currentTaskId}
-            topicId={currentTopicId}
-            onComplete={addStudySessionAction}
-            equippedSound={props.equippedSound}
-            equippedAccessory={props.equippedAccessory}
-            onSettingsClick={() => setOpen("settings")}
-            onRoomsClick={() => setOpen("rooms")}
-          />
-        </div>
-        <div className="order-2 lg:order-2 lg:max-h-[calc(100vh-160px)] lg:overflow-hidden">
-          <TaskPanel
-            tasks={props.tasks.map((t) => ({
-              id: t.id,
-              text: t.text,
-              done: t.done,
-              topic_id: t.topic_id
-            }))}
-            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-            currentTaskId={currentTaskId}
-            currentTopicId={currentTopicId}
-            onSelectTask={handleSelectTask}
-            onSelectTopic={handleSelectTopic}
-            onCreateTask={createTaskAction}
-            onCreateTopic={createTopicAction}
-            onToggleTask={toggleTaskAction}
-            onDeleteTask={deleteTaskAction}
-            onDeleteTopic={deleteTopicAction}
-          />
+      <div className="bg-paper-grain relative">
+        <LeavesAccent />
+
+        {/* Tasks LEFT, timer RIGHT — flowing two-column */}
+        <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
+          {/* Tasks panel — LEFT (mobile: 2nd, lg: 1st) */}
+          <div className="order-2 lg:order-1 lg:max-w-[640px]">
+            <TaskPanel
+              tasks={props.tasks.map((t) => ({
+                id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
+              }))}
+              topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+              todayMinutes={props.todayMinutes}
+              currentTaskId={currentTaskId}
+              currentTopicId={currentTopicId}
+              onSelectTask={handleSelectTask}
+              onSelectTopic={handleSelectTopic}
+              onCreateTask={createTaskAction}
+              onCreateTopic={createTopicAction}
+              onToggleTask={toggleTaskAction}
+              onDeleteTask={deleteTaskAction}
+              onDeleteTopic={deleteTopicAction}
+            />
+          </div>
+
+          {/* Timer — RIGHT, sticky on lg+ */}
+          <div className="order-1 lg:order-2 lg:sticky lg:top-8 lg:self-start">
+            <div className="journal-rise jrise-2">
+              <TimerCircle
+                focusMinutes={props.settings?.focus_minutes ?? 25}
+                shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
+                longBreakMinutes={props.settings?.long_break_minutes ?? 20}
+                todayMinutes={props.todayMinutes}
+                dailyGoalMinutes={props.settings?.daily_goal_minutes ?? 0}
+                tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
+                topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+                taskId={currentTaskId}
+                topicId={currentTopicId}
+                running={running}
+                onRunningChange={setRunning}
+                onComplete={addStudySessionAction}
+                equippedAccessory={props.equippedAccessory}
+                onSettingsClick={() => setOpen("settings")}
+                onRoomsClick={() => setOpen("rooms")}
+              />
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Floating sound dock — bottom center, persistent */}
+      <SoundDock
+        sound={sound}
+        playing={running && !!sound}
+        onSelect={setSound}
+        onTogglePlay={() => setRunning((r) => !r)}
+      />
 
       {/* Tasks + Topics dialog (tasks live inside topics) */}
       <Dialog

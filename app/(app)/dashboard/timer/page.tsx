@@ -1,5 +1,5 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { TimerCircle } from "@/components/timer/TimerCircle";
+import { TimerStandalone } from "@/components/timer/TimerStandalone";
 import { requireUser } from "@/lib/auth/guards";
 import { addStudySessionAction } from "@/lib/app-data/actions";
 import { getUserWorkspace } from "@/lib/app-data/queries";
@@ -17,7 +17,7 @@ export default async function TimerPage() {
   const supabase = createSupabaseServerClient();
   const { data: equipped } = await supabase
     .from("user_settings")
-    .select("equipped_sound, equipped_accessory")
+    .select("equipped_sound, equipped_accessory, daily_goal_minutes")
     .eq("user_id", user.id)
     .single();
 
@@ -31,16 +31,16 @@ export default async function TimerPage() {
       title="Focus timer"
       subtitle="A cozy circle, a sheep in the middle, and a little chime when you finish. Keep going."
       profile={profile}
+      bg="green"
     >
-      <TimerCircle
+      <TimerStandalone
         focusMinutes={focusMinutes}
         shortBreakMinutes={shortBreakMinutes}
         longBreakMinutes={longBreakMinutes}
         todayMinutes={workspace.todayMinutes}
+        dailyGoalMinutes={equipped?.daily_goal_minutes ?? 0}
         tasks={tasks}
         topics={topics}
-        taskId=""
-        topicId=""
         onComplete={addStudySessionAction}
         equippedSound={equipped?.equipped_sound ?? null}
         equippedAccessory={equipped?.equipped_accessory ?? null}

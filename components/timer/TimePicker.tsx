@@ -33,14 +33,8 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
     if (disabled) return;
     let s = seconds + delta;
     let m = minutes;
-    if (s < 0) {
-      s = 59;
-      m = Math.max(0, m - 1);
-    }
-    if (s > 59) {
-      s = 0;
-      m = Math.min(MAX_MINUTES, m + 1);
-    }
+    if (s < 0)  { s = 59; m = Math.max(0, m - 1); }
+    if (s > 59) { s = 0;  m = Math.min(MAX_MINUTES, m + 1); }
     set(m, s);
   };
 
@@ -48,42 +42,32 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
     if (disabled) return;
     e.preventDefault();
     const now = Date.now();
-    if (now - wheelLockRef.current < 80) return;
+    if (now - wheelLockRef.current < 90) return;
     wheelLockRef.current = now;
     handler(e.deltaY > 0 ? -1 : 1);
   };
 
-  const prevMinute = (minutes - 1 + (MAX_MINUTES + 1)) % (MAX_MINUTES + 1);
-  const nextMinute = (minutes + 1) % (MAX_MINUTES + 1);
-  const prevSecond = (seconds - 1 + 60) % 60;
-  const nextSecond = (seconds + 1) % 60;
+  const prevM = (minutes - 1 + (MAX_MINUTES + 1)) % (MAX_MINUTES + 1);
+  const nextM = (minutes + 1) % (MAX_MINUTES + 1);
+  const prevS = (seconds - 1 + 60) % 60;
+  const nextS = (seconds + 1) % 60;
 
   return (
     <div
-      className={`flex select-none items-center justify-center gap-2 ${
-        disabled ? "opacity-90" : ""
-      }`}
+      className="flex select-none items-center justify-center gap-1"
       aria-label="Set timer duration"
     >
       <Column
-        prev={prevMinute}
-        current={minutes}
-        next={nextMinute}
-        onPrev={() => stepMinute(-1)}
-        onNext={() => stepMinute(1)}
-        onWheel={onWheel(stepMinute)}
-        disabled={disabled}
+        prev={prevM} current={minutes} next={nextM}
+        onPrev={() => stepMinute(-1)} onNext={() => stepMinute(1)}
+        onWheel={onWheel(stepMinute)} disabled={disabled}
         ariaLabel="minutes"
       />
-      <span className="font-display text-6xl text-ink-900/60 sm:text-7xl">:</span>
+      <span className="-mt-2 font-display text-[clamp(4rem,9vw,7rem)] font-light italic leading-none text-ink-900/30">:</span>
       <Column
-        prev={prevSecond}
-        current={seconds}
-        next={nextSecond}
-        onPrev={() => stepSecond(-1)}
-        onNext={() => stepSecond(1)}
-        onWheel={onWheel(stepSecond)}
-        disabled={disabled}
+        prev={prevS} current={seconds} next={nextS}
+        onPrev={() => stepSecond(-1)} onNext={() => stepSecond(1)}
+        onWheel={onWheel(stepSecond)} disabled={disabled}
         ariaLabel="seconds"
       />
     </div>
@@ -91,23 +75,13 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
 }
 
 function Column({
-  prev,
-  current,
-  next,
-  onPrev,
-  onNext,
-  onWheel,
-  disabled,
-  ariaLabel
+  prev, current, next,
+  onPrev, onNext, onWheel, disabled, ariaLabel
 }: {
-  prev: number;
-  current: number;
-  next: number;
-  onPrev: () => void;
-  onNext: () => void;
+  prev: number; current: number; next: number;
+  onPrev: () => void; onNext: () => void;
   onWheel: (e: React.WheelEvent) => void;
-  disabled?: boolean;
-  ariaLabel: string;
+  disabled?: boolean; ariaLabel: string;
 }) {
   return (
     <div
@@ -117,36 +91,21 @@ function Column({
       aria-label={ariaLabel}
       aria-valuenow={current}
     >
-      {/* Prev (shadow above) */}
       <button
-        type="button"
-        onClick={onPrev}
-        disabled={disabled}
+        type="button" onClick={onPrev} disabled={disabled}
         aria-label={`previous ${ariaLabel}`}
-        className="group relative flex h-9 w-24 items-center justify-center font-display text-3xl tabular-nums text-ink-900/30 transition hover:text-ink-900/60 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-ink-900/30 sm:text-4xl"
+        className="font-display text-3xl italic tabular-nums text-ink-900/25 transition hover:text-ink-900/55 disabled:opacity-30 disabled:hover:text-ink-900/25 sm:text-4xl"
       >
-        <span className="pointer-events-none absolute -top-1 left-1/2 h-px w-12 -translate-x-1/2 bg-ink-900/0 transition group-hover:bg-ink-900/15" />
         {String(prev).padStart(2, "0")}
       </button>
-
-      {/* Current — big, bold */}
-      <div
-        className={`relative flex h-24 w-24 items-center justify-center font-display text-6xl tabular-nums text-ink-900 sm:h-28 sm:w-28 sm:text-7xl ${
-          !disabled ? "rounded-3xl bg-cream-50/55 shadow-[inset_0_2px_0_rgba(255,255,255,0.5),0_4px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-ink-900/5" : ""
-        }`}
-      >
+      <div className="font-display text-[clamp(4rem,9vw,7rem)] italic leading-[1] tabular-nums text-ink-900">
         {String(current).padStart(2, "0")}
       </div>
-
-      {/* Next (shadow below) */}
       <button
-        type="button"
-        onClick={onNext}
-        disabled={disabled}
+        type="button" onClick={onNext} disabled={disabled}
         aria-label={`next ${ariaLabel}`}
-        className="group relative flex h-9 w-24 items-center justify-center font-display text-3xl tabular-nums text-ink-900/30 transition hover:text-ink-900/60 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:text-ink-900/30 sm:text-4xl"
+        className="font-display text-3xl italic tabular-nums text-ink-900/25 transition hover:text-ink-900/55 disabled:opacity-30 disabled:hover:text-ink-900/25 sm:text-4xl"
       >
-        <span className="pointer-events-none absolute -bottom-1 left-1/2 h-px w-12 -translate-x-1/2 bg-ink-900/0 transition group-hover:bg-ink-900/15" />
         {String(next).padStart(2, "0")}
       </button>
     </div>

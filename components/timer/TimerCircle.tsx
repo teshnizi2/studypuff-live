@@ -2,20 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Settings as SettingsIcon,
-  Users,
-  BarChart3,
-  Sparkles,
-  Music,
-  RotateCcw,
-  ChevronDown,
-  Check,
-  Play,
-  Pause,
-  type LucideIcon
+  Settings as SettingsIcon, Users, BarChart3, Sparkles,
+  RotateCcw, Play, Pause, type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
-import { AmbientPlayer } from "./AmbientPlayer";
 import { TimePicker } from "./TimePicker";
 
 type Task = { id: string; text: string };
@@ -26,12 +16,14 @@ type Props = {
   shortBreakMinutes: number;
   longBreakMinutes: number;
   todayMinutes: number;
+  dailyGoalMinutes?: number;
   tasks: Task[];
   topics: Topic[];
   taskId: string;
   topicId: string;
+  running: boolean;
+  onRunningChange: (running: boolean) => void;
   onComplete: (form: FormData) => Promise<void>;
-  equippedSound?: string | null;
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
   onRoomsClick?: () => void;
@@ -39,52 +31,32 @@ type Props = {
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
   "sheep-glasses": { emoji: "🤓", top: "32%", left: "50%", size: "text-3xl" },
-  "sheep-cap": { emoji: "🎓", top: "8%", left: "50%", size: "text-4xl" },
-  "sheep-scarf": { emoji: "🧣", top: "60%", left: "50%", size: "text-3xl" },
-  "sheep-mug": { emoji: "🍵", top: "55%", left: "82%", size: "text-2xl" }
+  "sheep-cap":     { emoji: "🎓", top: "8%",  left: "50%", size: "text-4xl" },
+  "sheep-scarf":   { emoji: "🧣", top: "60%", left: "50%", size: "text-3xl" },
+  "sheep-mug":     { emoji: "🍵", top: "55%", left: "82%", size: "text-2xl" }
 };
 
-const SOUND_OPTIONS: { id: string | null; label: string }[] = [
-  { id: null, label: "Silence" },
-  { id: "sound-lofi", label: "Lo-fi pad" },
-  { id: "sound-rain", label: "Soft rain" },
-  { id: "sound-library", label: "Quiet library" },
-  { id: "sound-forest", label: "Forest morning" },
-  { id: "sound-cafe", label: "Cosy café" },
-  { id: "sound-fire", label: "Fireplace" },
-  { id: "sound-ocean", label: "Ocean waves" }
-];
-
 export function TimerCircle({
-  focusMinutes,
-  shortBreakMinutes,
-  longBreakMinutes,
-  todayMinutes,
-  tasks,
-  topics,
-  taskId,
-  topicId,
-  onComplete,
-  equippedSound,
-  equippedAccessory,
-  onSettingsClick,
-  onRoomsClick
+  focusMinutes, shortBreakMinutes, longBreakMinutes,
+  todayMinutes, dailyGoalMinutes,
+  tasks, topics, taskId, topicId,
+  running, onRunningChange,
+  onComplete, equippedAccessory,
+  onSettingsClick, onRoomsClick
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
-  const [running, setRunning] = useState(false);
-  const [soundOpen, setSoundOpen] = useState(false);
-  const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-lofi");
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
-  // When the picker or a preset tab changes the duration, reset remaining
+  // Reset when total changes
   useEffect(() => {
     setRemaining(totalSeconds);
-    setRunning(false);
+    onRunningChange(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalSeconds]);
 
-  // Countdown loop
+  // Countdown
   useEffect(() => {
     if (!running) {
       if (tickRef.current) clearInterval(tickRef.current);
@@ -101,14 +73,12 @@ export function TimerCircle({
         return r - 1;
       });
     }, 1000);
-    return () => {
-      if (tickRef.current) clearInterval(tickRef.current);
-    };
+    return () => { if (tickRef.current) clearInterval(tickRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   const handleComplete = useCallback(() => {
-    setRunning(false);
+    onRunningChange(false);
     const minutes = Math.max(1, Math.round(totalSeconds / 60));
     const fd = new FormData();
     fd.set("minutes", String(minutes));
@@ -125,288 +95,187 @@ export function TimerCircle({
     }
     onComplete(fd).catch(() => {});
     chime();
-  }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete]);
+  }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete, onRunningChange]);
 
-  const reset = () => {
-    setRunning(false);
-    setRemaining(totalSeconds);
-  };
-
-  const skip = () => {
-    setRemaining(0);
-    handleComplete();
-  };
+  const reset = () => { onRunningChange(false); setRemaining(totalSeconds); };
+  const skip  = () => { setRemaining(0); handleComplete(); };
 
   const setPreset = (m: StudyMode, mins: number) => {
     setMode(m);
     setTotalSeconds(mins * 60);
   };
 
-  const radius = 140;
+  const radius = 142;
   const circumference = 2 * Math.PI * radius;
   const progress = totalSeconds === 0 ? 0 : 1 - remaining / totalSeconds;
   const dashOffset = circumference * (1 - progress);
   const angleDeg = -90 + 360 * progress;
-  const dotX = 150 + radius * Math.cos((angleDeg * Math.PI) / 180);
-  const dotY = 150 + radius * Math.sin((angleDeg * Math.PI) / 180);
+  const dotX = 160 + radius * Math.cos((angleDeg * Math.PI) / 180);
+  const dotY = 160 + radius * Math.sin((angleDeg * Math.PI) / 180);
 
-  // Always show the actual remaining time (paused or running). Only fall back
-  // to totalSeconds after completion, when remaining hits 0 — so the picker
-  // shows the configured duration ready to restart.
+  // Always show actual remaining time (paused or running). Fall back to total
+  // only after completion (remaining === 0) so the picker shows the duration
+  // ready to restart.
   const visibleSeconds = remaining > 0 ? remaining : totalSeconds;
   const mm = Math.floor(visibleSeconds / 60);
   const ss = visibleSeconds % 60;
 
   const presets: { id: StudyMode; label: string; mins: number }[] = useMemo(
     () => [
-      { id: "focus", label: "Focus", mins: focusMinutes },
-      { id: "short", label: "Short", mins: shortBreakMinutes },
-      { id: "long", label: "Long", mins: longBreakMinutes }
+      { id: "focus", label: "focus", mins: focusMinutes },
+      { id: "short", label: "short", mins: shortBreakMinutes },
+      { id: "long",  label: "long",  mins: longBreakMinutes }
     ],
     [focusMinutes, shortBreakMinutes, longBreakMinutes]
   );
   const activePresetId =
     presets.find((p) => p.mins * 60 === totalSeconds && p.id === mode)?.id ?? null;
 
-  const selectedTaskLabel = tasks.find((t) => t.id === taskId)?.text;
-  const selectedTopicLabel = topics.find((t) => t.id === topicId)?.name;
-  const selectedSoundLabel =
-    SOUND_OPTIONS.find((s) => s.id === sessionSound)?.label || "Silence";
-
-  const handlePickerChange = (next: number) => {
-    setTotalSeconds(next);
-    // Picker overrides preset so we don't keep the preset highlighted incorrectly
-    // Mode stays as the last user choice (used purely for session logging)
-  };
+  const goal = dailyGoalMinutes && dailyGoalMinutes > 0 ? dailyGoalMinutes : 0;
+  const goalPct = goal > 0 ? Math.min(1, todayMinutes / goal) : 0;
 
   return (
-    <div className="relative px-5 pb-6 pt-4 text-ink-900 sm:px-7 sm:pt-5">
-      {/* Top bar */}
-      <div className="relative z-10 flex items-center justify-between">
+    <div className="relative flex flex-col items-center text-ink-900">
+      {/* Top utility row */}
+      <div className="mb-6 flex w-full items-center justify-between">
         <div className="flex items-center gap-1.5">
           {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
           <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
           <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
         </div>
         {onSettingsClick && (
-          <IconButton Icon={SettingsIcon} label="Settings & profile" onClick={onSettingsClick} />
+          <IconButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
         )}
       </div>
 
-      {/* Ring + sheep */}
-      <div className="mt-2 flex flex-col items-center">
-        <div className="relative h-[280px] w-[280px] sm:h-[300px] sm:w-[300px]">
-          <svg viewBox="0 0 300 300" className="absolute inset-0 h-full w-full">
+      {/* Sheep ring — floating, no card */}
+      <div className="relative">
+        <div
+          aria-hidden
+          className={`absolute inset-0 -z-10 rounded-full halo-sage blur-2xl ${running ? "animate-halo" : ""}`}
+        />
+        <div className="relative h-[320px] w-[320px] sm:h-[340px] sm:w-[340px]">
+          <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3a8a4c" />
+                <stop offset="0%"   stopColor="#3a8a4c" />
                 <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
             </defs>
-            <circle
-              cx={150}
-              cy={150}
-              r={radius}
-              fill="none"
-              stroke="rgba(31,77,44,0.14)"
-              strokeWidth={14}
-            />
-            <circle
-              cx={150}
-              cy={150}
-              r={radius}
-              fill="none"
-              stroke="url(#ring-grad)"
-              strokeWidth={14}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={dashOffset}
-              transform="rotate(-90 150 150)"
-              style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }}
-            />
-            <circle cx={dotX} cy={dotY} r={10} fill="#fff" stroke="#1a4d2a" strokeWidth={3} />
+            <circle cx={160} cy={160} r={radius} fill="none"
+              stroke="rgba(31,77,44,0.10)" strokeWidth={12} />
+            <circle cx={160} cy={160} r={radius} fill="none"
+              stroke="url(#ring-grad)" strokeWidth={12} strokeLinecap="round"
+              strokeDasharray={circumference} strokeDashoffset={dashOffset}
+              transform="rotate(-90 160 160)"
+              style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }} />
+            <circle cx={dotX} cy={dotY} r={9} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
           </svg>
-          <div className="absolute inset-[20%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_12px_rgba(0,0,0,0.18)]">
+          <div className="absolute inset-[18%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_14px_rgba(0,0,0,0.20)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/studypuff-sheep.png"
               alt=""
-              className={`h-[82%] w-[82%] object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] ${running ? "animate-breathe" : ""}`}
+              className={`h-[82%] w-[82%] object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)] ${running ? "animate-breathe" : ""}`}
             />
             {equippedAccessory && ACCESSORY_OVERLAY[equippedAccessory] && (
               <span
                 aria-hidden
                 className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 select-none ${ACCESSORY_OVERLAY[equippedAccessory].size}`}
-                style={{
-                  top: ACCESSORY_OVERLAY[equippedAccessory].top,
-                  left: ACCESSORY_OVERLAY[equippedAccessory].left
-                }}
+                style={{ top: ACCESSORY_OVERLAY[equippedAccessory].top, left: ACCESSORY_OVERLAY[equippedAccessory].left }}
               >
                 {ACCESSORY_OVERLAY[equippedAccessory].emoji}
               </span>
             )}
           </div>
         </div>
-
-        {/* Time picker — click prev/next or scroll wheel to adjust */}
-        <div className="mt-5">
-          <TimePicker
-            minutes={mm}
-            seconds={ss}
-            disabled={running}
-            onChange={handlePickerChange}
-          />
-        </div>
-
-        {(selectedTaskLabel || selectedTopicLabel) && (
-          <p className="mt-3 max-w-md text-center text-sm text-ink-700">
-            {selectedTaskLabel && selectedTopicLabel ? (
-              <>
-                Working on{" "}
-                <span className="font-semibold text-ink-900">{selectedTaskLabel}</span> from{" "}
-                <span className="font-semibold text-ink-900">{selectedTopicLabel}</span>
-              </>
-            ) : selectedTaskLabel ? (
-              <>
-                Working on{" "}
-                <span className="font-semibold text-ink-900">{selectedTaskLabel}</span>
-              </>
-            ) : (
-              <>
-                Studying{" "}
-                <span className="font-semibold text-ink-900">{selectedTopicLabel}</span>
-              </>
-            )}
-          </p>
-        )}
-
-        {/* Preset tabs */}
-        <div className="mt-4 inline-flex flex-wrap justify-center rounded-full bg-cream-50/70 p-1 shadow-soft">
-          {presets.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => setPreset(p.id, p.mins)}
-              className={`rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:text-xs ${
-                activePresetId === p.id
-                  ? "bg-ink-900 text-cream-50 shadow-soft"
-                  : "text-ink-900/70 hover:text-ink-900"
-              }`}
-            >
-              {p.label} · {p.mins}m
-            </button>
-          ))}
-        </div>
-
-        {/* Sound popover trigger */}
-        <div className="relative mt-3">
-          <button
-            type="button"
-            onClick={() => setSoundOpen((o) => !o)}
-            className="inline-flex items-center gap-2 rounded-full bg-cream-50/80 px-4 py-1.5 text-xs font-semibold text-ink-900 shadow-soft transition hover:bg-cream-50"
-            aria-haspopup="listbox"
-            aria-expanded={soundOpen}
-          >
-            <Music className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-            {selectedSoundLabel}
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition ${soundOpen ? "rotate-180" : ""}`}
-              strokeWidth={1.75}
-              aria-hidden
-            />
-          </button>
-          {soundOpen && (
-            <div
-              role="listbox"
-              className="absolute left-1/2 top-full z-30 mt-2 max-h-72 w-56 -translate-x-1/2 overflow-y-auto rounded-2xl border border-ink-900/10 bg-cream-50 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
-            >
-              {SOUND_OPTIONS.map((s) => (
-                <button
-                  key={s.label}
-                  type="button"
-                  role="option"
-                  aria-selected={sessionSound === s.id}
-                  onClick={() => {
-                    setSessionSound(s.id);
-                    setSoundOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-sm transition hover:bg-cream-100 ${
-                    sessionSound === s.id ? "font-semibold text-ink-900" : "text-ink-900/80"
-                  }`}
-                >
-                  <span>{s.label}</span>
-                  {sessionSound === s.id && <Check className="h-4 w-4" strokeWidth={2} aria-hidden />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* Controls — circular play / pause + reset */}
-      <div className="relative z-10 mt-6 flex items-center justify-center gap-4">
+      {/* Time picker */}
+      <div className="mt-6">
+        <TimePicker minutes={mm} seconds={ss} disabled={running} onChange={setTotalSeconds} />
+      </div>
+
+      {/* Preset chips — minimal italic, dot-separated */}
+      <div className="mt-3 flex items-center gap-3 text-sm">
+        {presets.map((p, i) => (
+          <span key={p.id} className="flex items-center gap-3">
+            {i > 0 && <span aria-hidden className="h-1 w-1 rounded-full bg-ink-900/25" />}
+            <button
+              type="button"
+              onClick={() => setPreset(p.id, p.mins)}
+              className={`font-display italic transition draw-underline ${
+                activePresetId === p.id
+                  ? "font-semibold text-ink-900"
+                  : "text-ink-700 hover:text-ink-900"
+              }`}
+            >
+              {p.label} <span className="text-ink-700/60">· {p.mins}m</span>
+            </button>
+          </span>
+        ))}
+      </div>
+
+      {/* Play / pause — the only solid focal element */}
+      <div className="mt-7 flex items-center gap-5">
         <button
           type="button"
           onClick={reset}
-          aria-label="Reset timer"
-          title="Reset timer"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 text-ink-900 shadow-soft transition hover:bg-cream-100 active:scale-[0.95]"
+          aria-label="Reset" title="Reset"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink-900/60 transition hover:bg-cream-50/55 hover:text-ink-900 active:scale-95"
         >
-          <RotateCcw className="h-4 w-4" strokeWidth={2} aria-hidden />
+          <RotateCcw className="h-4 w-4" strokeWidth={1.75} />
         </button>
 
         <button
           type="button"
-          onClick={() => setRunning((r) => !r)}
-          aria-label={running ? "Pause timer" : "Start timer"}
-          title={running ? "Pause timer" : "Start timer"}
-          className="group relative flex h-20 w-20 items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_18px_40px_-10px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
+          onClick={() => onRunningChange(!running)}
+          aria-label={running ? "Pause" : "Start"}
+          className="group relative flex h-[88px] w-[88px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
         >
-          {/* Subtle outer ring */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-cream-50/15"
-          />
+          <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
           {running ? (
-            <Pause className="h-8 w-8 fill-current" strokeWidth={0} />
+            <Pause className="h-9 w-9 fill-current" strokeWidth={0} />
           ) : (
-            <Play className="ml-1 h-8 w-8 fill-current" strokeWidth={0} />
+            <Play className="ml-1 h-9 w-9 fill-current" strokeWidth={0} />
           )}
         </button>
 
         <button
           type="button"
           onClick={skip}
-          aria-label="Skip and log session"
-          title="Skip · log session"
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 font-display text-xs font-semibold uppercase text-ink-900/70 shadow-soft transition hover:bg-cream-100 hover:text-ink-900 active:scale-[0.95]"
+          aria-label="Skip" title="Skip · log session"
+          className="font-display text-xs italic uppercase tracking-[0.22em] text-ink-700 transition hover:text-ink-900"
         >
-          Skip
+          skip
         </button>
       </div>
 
-      <div className="relative z-10 mt-4 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60">
-        <span>{todayMinutes} min today</span>
+      {/* Today's gauge */}
+      <div className="mt-7 w-full max-w-[300px]">
+        <div className="flex items-baseline justify-between text-[11px] uppercase tracking-[0.28em] text-ink-700">
+          <span>today</span>
+          <span>
+            <em className="not-italic font-display text-base text-ink-900">{todayMinutes}</em> min
+            {goal > 0 && <span className="text-ink-700/60"> / {goal}</span>}
+          </span>
+        </div>
+        <div className="mt-2 h-[3px] w-full overflow-hidden rounded-full bg-ink-900/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-emerald-700 to-emerald-500 transition-[width] duration-500"
+            style={{ width: `${(goal > 0 ? goalPct : Math.min(1, todayMinutes / 60)) * 100}%` }}
+          />
+        </div>
       </div>
-
-      <AmbientPlayer sound={sessionSound} playing={running} />
     </div>
   );
 }
 
-function IconButton({
-  Icon,
-  label,
-  onClick,
-  href
-}: {
-  Icon: LucideIcon;
-  label: string;
-  onClick?: () => void;
-  href?: string;
+function IconButton({ Icon, label, onClick, href }: {
+  Icon: LucideIcon; label: string; onClick?: () => void; href?: string;
 }) {
   const cls =
-    "flex h-9 w-9 items-center justify-center rounded-full bg-cream-50/80 text-ink-900 shadow-soft ring-1 ring-ink-900/10 transition hover:-translate-y-0.5 hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
+    "flex h-9 w-9 items-center justify-center rounded-full text-ink-900/70 transition hover:-translate-y-0.5 hover:bg-cream-50/60 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
   if (href) {
     return (
       <a href={href} className={cls} aria-label={label} title={label}>
@@ -424,7 +293,8 @@ function IconButton({
 function chime() {
   if (typeof window === "undefined") return;
   try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const Ctx = window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new Ctx();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
@@ -437,7 +307,5 @@ function chime() {
     o.connect(g).connect(ctx.destination);
     o.start();
     o.stop(ctx.currentTime + 0.85);
-  } catch {
-    // ignore
-  }
+  } catch { /* ignore */ }
 }
