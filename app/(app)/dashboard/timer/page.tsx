@@ -39,6 +39,8 @@ export default async function TimerPage() {
         todayMinutes={workspace.todayMinutes}
         tasks={tasks}
         topics={topics}
+        taskId=""
+        topicId=""
         onComplete={addStudySessionAction}
         equippedSound={equipped?.equipped_sound ?? null}
         equippedAccessory={equipped?.equipped_accessory ?? null}

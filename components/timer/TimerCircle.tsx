@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Settings as SettingsIcon,
-  ListChecks,
   Users,
   BarChart3,
   Sparkles,
   Music,
   RotateCcw,
   ChevronDown,
-  Plus,
   Check,
-  Loader2,
+  Play,
+  Pause,
   type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
@@ -30,13 +28,12 @@ type Props = {
   todayMinutes: number;
   tasks: Task[];
   topics: Topic[];
+  taskId: string;
+  topicId: string;
   onComplete: (form: FormData) => Promise<void>;
-  onCreateTask?: (form: FormData) => Promise<void>;
-  onCreateTopic?: (form: FormData) => Promise<void>;
   equippedSound?: string | null;
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
-  onTasksClick?: () => void;
   onRoomsClick?: () => void;
 };
 
@@ -65,30 +62,20 @@ export function TimerCircle({
   todayMinutes,
   tasks,
   topics,
+  taskId,
+  topicId,
   onComplete,
-  onCreateTask,
-  onCreateTopic,
   equippedSound,
   equippedAccessory,
   onSettingsClick,
-  onTasksClick,
   onRoomsClick
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
   const [running, setRunning] = useState(false);
-  const [taskId, setTaskId] = useState<string>("");
-  const [topicId, setTopicId] = useState<string>("");
-  const [taskPickerOpen, setTaskPickerOpen] = useState(false);
   const [soundOpen, setSoundOpen] = useState(false);
   const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-lofi");
-  const [newTopicName, setNewTopicName] = useState("");
-  const [newTaskText, setNewTaskText] = useState("");
-  const [pendingTopicName, setPendingTopicName] = useState<string | null>(null);
-  const [pendingTaskText, setPendingTaskText] = useState<string | null>(null);
-  const [creating, startCreating] = useTransition();
-  const router = useRouter();
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
   // When the picker or a preset tab changes the duration, reset remaining
@@ -119,26 +106,6 @@ export function TimerCircle({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
-
-  // Auto-select a freshly created topic when it appears in the list
-  useEffect(() => {
-    if (!pendingTopicName) return;
-    const found = topics.find((t) => t.name === pendingTopicName);
-    if (found) {
-      setTopicId(found.id);
-      setPendingTopicName(null);
-    }
-  }, [topics, pendingTopicName]);
-
-  // Auto-select a freshly created task when it appears
-  useEffect(() => {
-    if (!pendingTaskText) return;
-    const found = tasks.find((t) => t.text === pendingTaskText);
-    if (found) {
-      setTaskId(found.id);
-      setPendingTaskText(null);
-    }
-  }, [tasks, pendingTaskText]);
 
   const handleComplete = useCallback(() => {
     setRunning(false);
@@ -204,45 +171,6 @@ export function TimerCircle({
   const selectedSoundLabel =
     SOUND_OPTIONS.find((s) => s.id === sessionSound)?.label || "Silence";
 
-  const handleAddTopic = () => {
-    if (!onCreateTopic || !newTopicName.trim()) return;
-    const name = newTopicName.trim();
-    setPendingTopicName(name);
-    startCreating(async () => {
-      const fd = new FormData();
-      fd.set("name", name);
-      try {
-        await onCreateTopic(fd);
-        setNewTopicName("");
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-        setPendingTopicName(null);
-      }
-    });
-  };
-
-  const handleAddTask = () => {
-    if (!onCreateTask || !newTaskText.trim()) return;
-    const text = newTaskText.trim();
-    const tid = topicId;
-    setPendingTaskText(text);
-    startCreating(async () => {
-      const fd = new FormData();
-      fd.set("text", text);
-      fd.set("priority", "normal");
-      if (tid) fd.set("topic_id", tid);
-      try {
-        await onCreateTask(fd);
-        setNewTaskText("");
-        router.refresh();
-      } catch (err) {
-        console.error(err);
-        setPendingTaskText(null);
-      }
-    });
-  };
-
   const handlePickerChange = (next: number) => {
     setTotalSeconds(next);
     // Picker overrides preset so we don't keep the preset highlighted incorrectly
@@ -254,7 +182,6 @@ export function TimerCircle({
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          {onTasksClick && <IconButton Icon={ListChecks} label="Tasks" onClick={onTasksClick} />}
           {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
           <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
           <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
@@ -414,127 +341,8 @@ export function TimerCircle({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-2.5">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setTaskPickerOpen((o) => !o)}
-            className="rounded-full bg-cream-50 px-5 py-3 text-sm font-semibold text-ink-900 shadow-soft hover:bg-cream-100"
-          >
-            {taskId ? "Change task" : "Select task"}
-          </button>
-          {taskPickerOpen && (
-            <div className="absolute bottom-full left-1/2 z-20 mb-2 w-80 -translate-x-1/2 rounded-2xl border border-ink-900/10 bg-cream-50 p-4 text-left shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Topic</p>
-              <select
-                value={topicId}
-                onChange={(e) => setTopicId(e.target.value)}
-                className="mb-2 w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
-              >
-                <option value="">General study</option>
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-              {onCreateTopic && (
-                <div className="mb-3 flex gap-1.5">
-                  <input
-                    type="text"
-                    value={newTopicName}
-                    onChange={(e) => setNewTopicName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTopic();
-                      }
-                    }}
-                    placeholder="+ New topic"
-                    disabled={creating}
-                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs disabled:opacity-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddTopic}
-                    disabled={!newTopicName.trim() || creating}
-                    className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
-                  >
-                    {creating ? (
-                      <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
-                    ) : (
-                      <Plus className="h-3 w-3" strokeWidth={2.5} />
-                    )}
-                    Add
-                  </button>
-                </div>
-              )}
-
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">Task</p>
-              <select
-                value={taskId}
-                onChange={(e) => setTaskId(e.target.value)}
-                className="mb-2 w-full rounded-xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm"
-              >
-                <option value="">No specific task</option>
-                {tasks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.text}
-                  </option>
-                ))}
-              </select>
-              {onCreateTask && (
-                <div className="mb-3 flex gap-1.5">
-                  <input
-                    type="text"
-                    value={newTaskText}
-                    onChange={(e) => setNewTaskText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddTask();
-                      }
-                    }}
-                    placeholder={topicId ? "+ New task in this topic" : "+ New task"}
-                    disabled={creating}
-                    className="flex-1 rounded-xl border border-dashed border-ink-900/20 bg-transparent px-3 py-1.5 text-xs disabled:opacity-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddTask}
-                    disabled={!newTaskText.trim() || creating}
-                    className="inline-flex items-center gap-1 rounded-xl bg-ink-900 px-3 py-1.5 text-xs font-semibold text-cream-50 disabled:opacity-40"
-                  >
-                    {creating ? (
-                      <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
-                    ) : (
-                      <Plus className="h-3 w-3" strokeWidth={2.5} />
-                    )}
-                    Add
-                  </button>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setTaskPickerOpen(false)}
-                className="mt-2 block w-full rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-cream-50"
-              >
-                Done
-              </button>
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setRunning((r) => !r)}
-          className="rounded-full bg-ink-900 px-9 py-3.5 text-sm font-semibold uppercase tracking-widest text-cream-50 shadow-[0_10px_30px_-10px_rgba(31,77,44,0.6)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.98]"
-        >
-          {running ? "Pause" : remaining === 0 ? "Restart" : "Start session"}
-        </button>
-
+      {/* Controls — circular play / pause + reset */}
+      <div className="relative z-10 mt-6 flex items-center justify-center gap-4">
         <button
           type="button"
           onClick={reset}
@@ -544,19 +352,39 @@ export function TimerCircle({
         >
           <RotateCcw className="h-4 w-4" strokeWidth={2} aria-hidden />
         </button>
-      </div>
 
-      <div className="relative z-10 mt-3 flex items-center justify-center gap-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60">
-        <span>{todayMinutes} min today</span>
-        <span aria-hidden>·</span>
+        <button
+          type="button"
+          onClick={() => setRunning((r) => !r)}
+          aria-label={running ? "Pause timer" : "Start timer"}
+          title={running ? "Pause timer" : "Start timer"}
+          className="group relative flex h-20 w-20 items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_18px_40px_-10px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
+        >
+          {/* Subtle outer ring */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-cream-50/15"
+          />
+          {running ? (
+            <Pause className="h-8 w-8 fill-current" strokeWidth={0} />
+          ) : (
+            <Play className="ml-1 h-8 w-8 fill-current" strokeWidth={0} />
+          )}
+        </button>
+
         <button
           type="button"
           onClick={skip}
-          className="underline-offset-4 hover:text-ink-900 hover:underline"
-          title="Mark complete and log the session"
+          aria-label="Skip and log session"
+          title="Skip · log session"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-cream-50 font-display text-xs font-semibold uppercase text-ink-900/70 shadow-soft transition hover:bg-cream-100 hover:text-ink-900 active:scale-[0.95]"
         >
-          Skip · log session
+          Skip
         </button>
+      </div>
+
+      <div className="relative z-10 mt-4 flex items-center justify-center text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-900/60">
+        <span>{todayMinutes} min today</span>
       </div>
 
       <AmbientPlayer sound={sessionSound} playing={running} />
