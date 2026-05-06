@@ -93,22 +93,22 @@ export function StatsContent(p: StatsContentProps) {
               No focus sessions yet. Start one from the timer.
             </p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {p.topTopics.map(([name, mins]) => {
-                const pct = Math.round((mins / p.topTopics[0][1]) * 100);
-                return (
-                  <li key={name}>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-semibold text-ink-900">{name}</span>
-                      <span className="text-ink-700">{mins} min</span>
-                    </div>
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-ink-900/10">
-                      <div className="h-full rounded-full bg-ink-900/70" style={{ width: `${pct}%` }} />
-                    </div>
+            <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+              <TopicDonut data={p.topTopics} />
+              <ul className="flex-1 space-y-2.5">
+                {p.topTopics.map(([name, mins], idx) => (
+                  <li key={name} className="flex items-center gap-3 text-sm">
+                    <span
+                      aria-hidden
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ background: TOPIC_COLORS[idx % TOPIC_COLORS.length] }}
+                    />
+                    <span className="flex-1 truncate text-ink-900">{name}</span>
+                    <span className="tabular-nums text-ink-700">{mins}m</span>
                   </li>
-                );
-              })}
-            </ul>
+                ))}
+              </ul>
+            </div>
           )}
         </section>
 
@@ -165,6 +165,61 @@ function StatCard({
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-700">{label}</p>
       <p className="mt-2 font-display text-2xl text-ink-900">{value}</p>
       <p className="mt-1 text-xs text-ink-700">{hint}</p>
+    </div>
+  );
+}
+
+const TOPIC_COLORS = [
+  "#1f4d2c", // deep moss
+  "#3a8a4c", // emerald
+  "#7fb069", // sage
+  "#d4a574", // ochre
+  "#c97f5e"  // terracotta
+];
+
+function TopicDonut({ data }: { data: [string, number][] }) {
+  const total = data.reduce((a, [, m]) => a + m, 0);
+  if (total === 0) return null;
+
+  const radius = 56;
+  const stroke = 18;
+  const cx = 72;
+  const cy = 72;
+  const circumference = 2 * Math.PI * radius;
+
+  let offset = 0;
+  const arcs = data.map(([name, mins], idx) => {
+    const fraction = mins / total;
+    const dash = fraction * circumference;
+    const seg = (
+      <circle
+        key={name}
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill="none"
+        stroke={TOPIC_COLORS[idx % TOPIC_COLORS.length]}
+        strokeWidth={stroke}
+        strokeDasharray={`${dash} ${circumference - dash}`}
+        strokeDashoffset={-offset}
+        transform={`rotate(-90 ${cx} ${cy})`}
+        className="transition-[stroke-dasharray] duration-500"
+      />
+    );
+    offset += dash;
+    return seg;
+  });
+
+  return (
+    <div className="relative h-[144px] w-[144px] shrink-0">
+      <svg viewBox="0 0 144 144" className="h-full w-full">
+        <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(31,77,44,0.08)" strokeWidth={stroke} />
+        {arcs}
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <p className="font-display text-2xl text-ink-900">{total}</p>
+        <p className="text-[10px] uppercase tracking-[0.22em] text-ink-700">min total</p>
+      </div>
     </div>
   );
 }

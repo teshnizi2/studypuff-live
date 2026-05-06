@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, Plus, ListTree } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
@@ -92,15 +91,17 @@ export function DashboardActions(props: Props) {
   const [currentTaskId, setCurrentTaskId] = useState<string>("");
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
-  const [tasksOpen, setTasksOpen] = useState(true);
+  // Tasks live in a popup by default — the dashboard stays calm and
+  // timer-focused. Power users can pin them to the side via the panel close
+  // button (state restored from localStorage).
+  const [tasksPinned, setTasksPinned] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
 
-  // Restore tasks-panel collapsed state from localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = window.localStorage.getItem("studypuff:tasks-open");
-      if (raw === "false") setTasksOpen(false);
+      const raw = window.localStorage.getItem("studypuff:tasks-pinned");
+      if (raw === "true") setTasksPinned(true);
     } catch { /* ignore */ }
   }, []);
 
@@ -112,10 +113,10 @@ export function DashboardActions(props: Props) {
     return () => window.removeEventListener(PROFILE_OPEN_EVENT, handler);
   }, []);
 
-  const setTasksOpenPersist = (next: boolean) => {
-    setTasksOpen(next);
+  const setTasksPinnedPersist = (next: boolean) => {
+    setTasksPinned(next);
     if (typeof window !== "undefined") {
-      try { window.localStorage.setItem("studypuff:tasks-open", String(next)); }
+      try { window.localStorage.setItem("studypuff:tasks-pinned", String(next)); }
       catch { /* ignore */ }
     }
   };
@@ -181,41 +182,21 @@ export function DashboardActions(props: Props) {
     }
   };
 
-  // Group tasks by topic for the Tasks dialog (legacy modal; still used)
-  const tasksByTopic = new Map<string | null, TaskRow[]>();
-  for (const t of props.tasks) tasksByTopic.set(t.topic_id, [...(tasksByTopic.get(t.topic_id) || []), t]);
-
   return (
     <>
       <div className="bg-paper-grain relative">
         <LeavesAccent />
 
-        {/* Re-open tasks tab — only visible when collapsed on lg+ */}
-        {!tasksOpen && (
-          <button
-            type="button"
-            onClick={() => setTasksOpenPersist(true)}
-            aria-label="Show tasks"
-            title="Show tasks"
-            className="fixed left-3 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 rounded-r-3xl bg-cream-50 px-3 py-5 text-ink-900 shadow-[0_18px_40px_-15px_rgba(31,77,44,0.35)] ring-1 ring-ink-900/10 transition hover:bg-cream-100 lg:flex"
-          >
-            <ListTree className="h-4 w-4" strokeWidth={1.75} />
-            <span className="font-display text-[10px] italic uppercase tracking-[0.22em]" style={{ writingMode: "vertical-rl" }}>
-              tasks
-            </span>
-          </button>
-        )}
-
-        {/* Tasks LEFT, timer RIGHT — flowing two-column */}
+        {/* Tasks LEFT (when pinned), timer CENTER */}
         <div
           className={`grid grid-cols-1 gap-y-12 ${
-            tasksOpen
+            tasksPinned
               ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]"
               : "lg:grid-cols-1 lg:place-items-center"
           }`}
         >
-          {/* Tasks panel — LEFT (mobile: 2nd, lg: 1st) */}
-          {tasksOpen && (
+          {/* Pinned tasks panel — LEFT (mobile: 2nd, lg: 1st) */}
+          {tasksPinned && (
             <div className="order-2 lg:order-1 lg:max-w-[640px]">
               <TaskPanel
                 tasks={props.tasks.map((t) => ({
@@ -232,15 +213,15 @@ export function DashboardActions(props: Props) {
                 onToggleTask={toggleTaskAction}
                 onDeleteTask={deleteTaskAction}
                 onDeleteTopic={deleteTopicAction}
-                onClose={() => setTasksOpenPersist(false)}
+                onClose={() => setTasksPinnedPersist(false)}
               />
             </div>
           )}
 
-          {/* Timer — RIGHT, sticky on lg+ */}
-          <div className={tasksOpen
+          {/* Timer — RIGHT (when pinned) or CENTER (default) */}
+          <div className={tasksPinned
             ? "order-1 lg:order-2 lg:sticky lg:top-8 lg:self-start"
-            : "order-1"
+            : "order-1 lg:max-w-[680px]"
           }>
             <div className="journal-rise jrise-2">
               <TimerCircle
@@ -259,9 +240,11 @@ export function DashboardActions(props: Props) {
                 equippedAccessory={props.equippedAccessory}
                 onSettingsClick={() => setOpen("settings")}
                 onRoomsClick={() => setOpen("rooms")}
+                onTasksClick={tasksPinned ? undefined : () => setOpen("tasks")}
                 onStatsClick={props.stats ? () => setOpen("stats") : undefined}
                 onRewardsClick={props.rewards ? () => setOpen("rewards") : undefined}
                 onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
+                weekly={props.stats?.last7}
               />
             </div>
           </div>
@@ -279,77 +262,43 @@ export function DashboardActions(props: Props) {
         onSelectForMode={handleSelectSoundForMode}
       />
 
-      {/* Tasks + Topics dialog (tasks live inside topics) */}
+      {/* Tasks dialog — the rich diagram view */}
       <Dialog
         open={open === "tasks"}
         onClose={close}
-        title="Tasks & Topics"
-        description="Topics are folders. Tasks live inside them. Use 'No topic' for one-off items."
-        size="md"
+        title="Topics & tasks"
+        description="A small map of what you're working on. Click a topic or task to focus on it."
+        size="lg"
       >
-        <form action={createTaskAction} className="rounded-2xl bg-cream-100 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">
-            Quick add task
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <input
-              name="text"
-              required
-              maxLength={280}
-              placeholder="What's next?"
-              className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-50 px-4 py-2.5 text-sm"
-            />
-            <select
-              name="priority"
-              defaultValue="normal"
-              className="rounded-2xl border border-ink-900/15 bg-cream-50 px-3 py-2.5 text-sm"
+        <div className="-mt-2">
+          <TaskPanel
+            compact
+            tasks={props.tasks.map((t) => ({
+              id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
+            }))}
+            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+            todayMinutes={props.todayMinutes}
+            currentTaskId={currentTaskId}
+            currentTopicId={currentTopicId}
+            onSelectTask={handleSelectTask}
+            onSelectTopic={handleSelectTopic}
+            onCreateTask={createTaskAction}
+            onCreateTopic={createTopicAction}
+            onToggleTask={toggleTaskAction}
+            onDeleteTask={deleteTaskAction}
+            onDeleteTopic={deleteTopicAction}
+          />
+
+          <div className="mt-6 flex items-center justify-end border-t border-ink-900/10 pt-4">
+            <button
+              type="button"
+              onClick={() => { setTasksPinnedPersist(true); close(); }}
+              className="font-display text-xs italic uppercase tracking-[0.22em] text-ink-700 underline-offset-4 hover:text-ink-900 hover:underline"
             >
-              <option value="low">Low</option>
-              <option value="normal">Normal</option>
-              <option value="high">High</option>
-            </select>
-            <select
-              name="topic_id"
-              defaultValue=""
-              className="rounded-2xl border border-ink-900/15 bg-cream-50 px-3 py-2.5 text-sm"
-            >
-              <option value="">No topic</option>
-              {props.topics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
-              <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Add
+              Pin to side panel →
             </button>
           </div>
-        </form>
-
-        <div className="mt-5 space-y-4">
-          {props.topics.map((topic) => {
-            const items = tasksByTopic.get(topic.id) || [];
-            return (
-              <TopicGroup key={topic.id} topic={topic} items={items} />
-            );
-          })}
-
-          {/* No-topic group */}
-          <NoTopicGroup items={tasksByTopic.get(null) || []} />
         </div>
-
-        <form action={createTopicAction} className="mt-5 flex gap-2 rounded-2xl bg-cream-100 p-3">
-          <input
-            name="name"
-            required
-            maxLength={120}
-            placeholder="New topic name (e.g. Calculus)"
-            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-50 px-4 py-2.5 text-sm"
-          />
-          <button type="submit" className="btn-outline px-4 py-2.5 text-sm">
-            <Plus className="h-4 w-4" strokeWidth={2} aria-hidden /> Topic
-          </button>
-        </form>
       </Dialog>
 
       {/* Rooms dialog */}
@@ -547,91 +496,6 @@ export function DashboardActions(props: Props) {
         </Dialog>
       )}
     </>
-  );
-}
-
-function TopicGroup({ topic, items }: { topic: TopicRow; items: TaskRow[] }) {
-  return (
-    <div className="rounded-2xl border border-ink-900/10 bg-cream-50 p-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display text-base text-ink-900">
-          {topic.name}{" "}
-          <span className="text-xs font-normal text-ink-700">
-            ({items.length} {items.length === 1 ? "task" : "tasks"})
-          </span>
-        </h3>
-        <form action={deleteTopicAction}>
-          <input type="hidden" name="id" value={topic.id} />
-          <button
-            type="submit"
-            className="text-ink-700 hover:text-red-700"
-            aria-label={`Delete topic ${topic.name}`}
-            title="Delete topic"
-          >
-            <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-          </button>
-        </form>
-      </div>
-      {items.length === 0 ? (
-        <p className="mt-2 text-xs text-ink-700">No tasks yet — use the Quick add above and pick this topic.</p>
-      ) : (
-        <ul className="mt-2 space-y-1.5">
-          {items.map((t) => (
-            <TaskItem key={t.id} task={t} />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function NoTopicGroup({ items }: { items: TaskRow[] }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-ink-900/15 bg-cream-50 p-3">
-      <h3 className="font-display text-base text-ink-900/70">
-        No topic{" "}
-        <span className="text-xs font-normal text-ink-700">
-          ({items.length})
-        </span>
-      </h3>
-      {items.length === 0 ? (
-        <p className="mt-2 text-xs text-ink-700">One-off tasks land here.</p>
-      ) : (
-        <ul className="mt-2 space-y-1.5">
-          {items.map((t) => (
-            <TaskItem key={t.id} task={t} />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function TaskItem({ task }: { task: TaskRow }) {
-  return (
-    <li
-      className={`flex items-center justify-between gap-3 rounded-xl bg-cream-100 px-3 py-2 text-sm ${task.done ? "opacity-60" : ""}`}
-    >
-      <form action={toggleTaskAction} className="flex flex-1 items-center gap-3">
-        <input type="hidden" name="id" value={task.id} />
-        <input type="hidden" name="done" value={String(task.done)} />
-        <button
-          type="submit"
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${task.done ? "border-ink-900 bg-ink-900 text-cream-50" : "border-ink-900/30"}`}
-          aria-label={task.done ? "Mark incomplete" : "Mark complete"}
-        >
-          {task.done ? "✓" : ""}
-        </button>
-        <span className={`flex-1 ${task.done ? "line-through" : ""}`}>{task.text}</span>
-      </form>
-      <span className="hidden text-[10px] uppercase tracking-widest text-ink-700 sm:inline">{task.priority}</span>
-      <form action={deleteTaskAction}>
-        <input type="hidden" name="id" value={task.id} />
-        <button type="submit" className="text-ink-700 hover:text-red-700" aria-label="Delete task">
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-        </button>
-      </form>
-    </li>
   );
 }
 

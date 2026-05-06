@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Settings as SettingsIcon, Users, BarChart3, Sparkles,
-  RotateCcw, Play, Pause, type LucideIcon
+  RotateCcw, Play, Pause, ListTree, type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
@@ -29,7 +29,10 @@ type Props = {
   onRoomsClick?: () => void;
   onStatsClick?: () => void;
   onRewardsClick?: () => void;
+  onTasksClick?: () => void;
   onModeChange?: (mode: StudyMode) => void;
+  /** Last 7 days in chronological order, ending today. Used for the dashboard sparkline. */
+  weekly?: { date: string; minutes: number }[];
 };
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
@@ -45,7 +48,8 @@ export function TimerCircle({
   tasks, topics, taskId, topicId,
   running, onRunningChange,
   onComplete, equippedAccessory,
-  onSettingsClick, onRoomsClick, onStatsClick, onRewardsClick, onModeChange
+  onSettingsClick, onRoomsClick, onStatsClick, onRewardsClick, onTasksClick, onModeChange,
+  weekly
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
@@ -150,6 +154,7 @@ export function TimerCircle({
       {/* Top utility row */}
       <div className="mb-6 flex w-full items-center justify-between">
         <div className="flex items-center gap-1.5">
+          {onTasksClick && <IconButton Icon={ListTree} label="Tasks" onClick={onTasksClick} />}
           {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
           {onStatsClick ? (
             <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
@@ -286,6 +291,49 @@ export function TimerCircle({
           />
         </div>
       </div>
+
+      {/* Weekly sparkline — small bars under the today gauge */}
+      {weekly && weekly.length > 0 && (
+        <div className="mt-5 w-full max-w-[300px]">
+          <div className="mb-1 flex items-baseline justify-between text-[10px] uppercase tracking-[0.28em] text-ink-700">
+            <span>this week</span>
+            <span className="tabular-nums text-ink-700/70">
+              {weekly.reduce((a, d) => a + d.minutes, 0)}m
+            </span>
+          </div>
+          <WeeklySparkline data={weekly} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }) {
+  const max = Math.max(60, ...data.map((d) => d.minutes));
+  const todayIdx = data.length - 1;
+  return (
+    <div className="flex h-12 items-end justify-between gap-1">
+      {data.map((d, i) => {
+        const h = d.minutes === 0 ? 4 : Math.max(6, (d.minutes / max) * 44);
+        const isToday = i === todayIdx;
+        const day = new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "narrow" });
+        return (
+          <div key={d.date} className="flex flex-1 flex-col items-center gap-1">
+            <div
+              className={`w-full rounded-md ${isToday
+                ? "bg-emerald-700"
+                : d.minutes > 0
+                  ? "bg-emerald-700/35"
+                  : "bg-ink-900/10"}`}
+              style={{ height: `${h}px` }}
+              title={`${d.date}: ${d.minutes}m`}
+            />
+            <span className={`text-[9px] tabular-nums ${isToday ? "font-semibold text-ink-900" : "text-ink-700/60"}`}>
+              {day}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

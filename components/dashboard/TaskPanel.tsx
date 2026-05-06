@@ -22,6 +22,9 @@ type Props = {
   onDeleteTask: (form: FormData) => Promise<void>;
   onDeleteTopic?: (form: FormData) => Promise<void>;
   onClose?: () => void;
+  // Compact mode = inside a popup. Drops the giant "today" header,
+  // tighter spacing, and a smaller "currently studying" callout.
+  compact?: boolean;
 };
 
 export function TaskPanel(p: Props) {
@@ -135,8 +138,8 @@ export function TaskPanel(p: Props) {
   const mins = p.todayMinutes % 60;
 
   return (
-    <div className="relative flex flex-col gap-7">
-      {/* Close button — top right */}
+    <div className={`relative flex flex-col ${p.compact ? "gap-5" : "gap-7"}`}>
+      {/* Close button — top right (pinned mode only) */}
       {p.onClose && (
         <button
           type="button"
@@ -149,72 +152,78 @@ export function TaskPanel(p: Props) {
         </button>
       )}
 
-      {/* Today header */}
-      <header className="journal-rise jrise-1 pr-12">
-        <p className="text-[10px] uppercase tracking-[0.4em] text-ink-700">today</p>
-        <h2 className="mt-3 font-display text-[clamp(2.25rem,3.6vw,3.5rem)] leading-[1.05] text-ink-900">
-          {p.todayMinutes > 0 ? (
-            <>
-              <em className="italic">
-                {hours > 0 && <>{hours}h </>}
-                {mins}m
-              </em>
-              <span className="text-ink-700"> of focus,</span>
-              <br />
-              <em className="italic">{doneCount}</em>
-              <span className="text-ink-700"> task{doneCount === 1 ? "" : "s"} done.</span>
-            </>
-          ) : (
-            <>
-              <em className="italic">A fresh page.</em>
-              <br />
-              <span className="text-ink-700">
-                {openCount} task{openCount === 1 ? "" : "s"} ahead.
-              </span>
-            </>
-          )}
-        </h2>
-      </header>
+      {/* Today header — only in pinned mode */}
+      {!p.compact && (
+        <>
+          <header className="journal-rise jrise-1 pr-12">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-ink-700">today</p>
+            <h2 className="mt-3 font-display text-[clamp(2.25rem,3.6vw,3.5rem)] leading-[1.05] text-ink-900">
+              {p.todayMinutes > 0 ? (
+                <>
+                  <em className="italic">
+                    {hours > 0 && <>{hours}h </>}
+                    {mins}m
+                  </em>
+                  <span className="text-ink-700"> of focus,</span>
+                  <br />
+                  <em className="italic">{doneCount}</em>
+                  <span className="text-ink-700"> task{doneCount === 1 ? "" : "s"} done.</span>
+                </>
+              ) : (
+                <>
+                  <em className="italic">A fresh page.</em>
+                  <br />
+                  <span className="text-ink-700">
+                    {openCount} task{openCount === 1 ? "" : "s"} ahead.
+                  </span>
+                </>
+              )}
+            </h2>
+          </header>
 
-      <Squiggle className="journal-rise jrise-2" />
+          <Squiggle className="journal-rise jrise-2" />
+        </>
+      )}
 
       {/* Currently studying */}
       {(currentTask || currentTopic) && (
-        <section className="journal-rise jrise-2 relative">
-          <div
-            aria-hidden
-            className="halo-sage animate-halo absolute -inset-x-6 -inset-y-3 -z-10 rounded-full blur-3xl"
-          />
-          <p className="text-[10px] uppercase tracking-[0.4em] text-ink-700">currently</p>
-          {currentTask ? (
-            <p className="mt-2 font-display text-[clamp(1.5rem,2.2vw,2rem)] italic leading-tight text-ink-900">
-              {currentTask.text}
-            </p>
-          ) : (
-            <p className="mt-2 font-display text-[clamp(1.5rem,2.2vw,2rem)] italic leading-tight text-ink-900">
-              {currentTopic?.name}
-            </p>
-          )}
-          {currentTask && currentTopic && (
-            <p className="mt-1 text-sm text-ink-700">
-              for <span className="italic">{currentTopic.name}</span>
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={() => { p.onSelectTask("", ""); p.onSelectTopic(""); }}
-            className="mt-3 text-[10px] italic uppercase tracking-widest text-ink-700 underline-offset-4 transition hover:text-ink-900 hover:underline"
-          >
-            clear selection
-          </button>
+        <section className="relative rounded-2xl bg-cream-50/60 px-4 py-3 ring-1 ring-emerald-700/20">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.32em] text-emerald-800">
+                Currently studying
+              </p>
+              {currentTask ? (
+                <p className="mt-1.5 truncate font-display text-lg italic text-ink-900">
+                  {currentTask.text}
+                </p>
+              ) : (
+                <p className="mt-1.5 truncate font-display text-lg italic text-ink-900">
+                  {currentTopic?.name}
+                </p>
+              )}
+              {currentTask && currentTopic && (
+                <p className="mt-0.5 text-xs italic text-ink-700">in {currentTopic.name}</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => { p.onSelectTask("", ""); p.onSelectTopic(""); }}
+              className="shrink-0 text-[10px] italic uppercase tracking-widest text-ink-700 underline-offset-4 transition hover:text-ink-900 hover:underline"
+            >
+              clear
+            </button>
+          </div>
         </section>
       )}
 
-      <Squiggle className="journal-rise jrise-3" />
+      {!p.compact && <Squiggle className="journal-rise jrise-3" />}
 
       {/* Topics */}
-      <section className="journal-rise jrise-3">
-        <p className="mb-5 text-[10px] uppercase tracking-[0.4em] text-ink-700">topics & tasks</p>
+      <section className={p.compact ? "" : "journal-rise jrise-3"}>
+        {!p.compact && (
+          <p className="mb-5 text-[10px] uppercase tracking-[0.4em] text-ink-700">topics & tasks</p>
+        )}
 
         {p.topics.length === 0 && untopiced.length === 0 ? (
           <p className="text-base italic text-ink-700">
@@ -425,22 +434,17 @@ function TopicSection({
 
       {hasChildren && (
         <div className="relative mt-1 pb-1">
-          {/* Trunk line dropping from the topic node */}
-          <span
-            aria-hidden
-            className="absolute left-3.5 top-0 bottom-3 w-px bg-ink-900/20"
-          />
-
           <ul className="flex flex-col">
             {tasks.length === 0 && !isAddingHere && (
               <li className="ml-10 py-1 text-sm italic text-ink-700/70">No tasks yet.</li>
             )}
-            {tasks.map((task) => (
+            {tasks.map((task, idx) => (
               <TaskRow
                 key={task.id}
                 task={task}
                 isCurrent={task.id === currentTaskId}
                 pending={pending}
+                showTrunk={idx < tasks.length - 1 || isAddingHere}
                 onToggle={() => onToggle(task.id)}
                 onSelect={() => onSelectTask(task.id)}
                 onDelete={() => onDelete(task.id)}
@@ -448,12 +452,21 @@ function TopicSection({
             ))}
 
             {isAddingHere && (
-              <li className="animate-task-in relative ml-3.5 flex items-baseline gap-3 pl-7 pt-2">
-                {/* Branch connector */}
-                <span
+              <li className="animate-task-in relative flex items-center gap-3 pl-12 pt-2">
+                {/* Curved SVG connector */}
+                <svg
                   aria-hidden
-                  className="absolute left-0 top-[1.1rem] h-px w-6 bg-ink-900/20"
-                />
+                  className="absolute left-0 top-0 h-full w-12 overflow-visible"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M 14 0 V 18 Q 14 28 26 28"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    className="text-ink-900/20"
+                  />
+                </svg>
                 <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} />
                 <input
                   autoFocus
@@ -494,27 +507,44 @@ function TopicSection({
 }
 
 function TaskRow({
-  task, isCurrent, pending, onToggle, onSelect, onDelete
+  task, isCurrent, pending, showTrunk, onToggle, onSelect, onDelete
 }: {
   task: Task;
   isCurrent: boolean;
   pending: boolean;
+  showTrunk: boolean;
   onToggle: () => void;
   onSelect: () => void;
   onDelete: () => void;
 }) {
   return (
-    <li className="group/row relative ml-3.5 flex items-center gap-3 py-1.5 pl-7">
-      {/* Branch connector — short horizontal line from trunk to this row */}
-      <span
+    <li className="group/row relative flex items-center gap-3 py-1.5 pl-12">
+      {/* Curved SVG branch — corner from trunk down-and-right into the row */}
+      <svg
         aria-hidden
-        className="absolute left-0 top-1/2 h-px w-6 -translate-y-1/2 bg-ink-900/20"
-      />
+        className="pointer-events-none absolute left-0 top-0 h-full w-12 overflow-visible"
+        preserveAspectRatio="none"
+      >
+        {/* Continuing trunk down to next sibling */}
+        {showTrunk && (
+          <line
+            x1="14" y1="0" x2="14" y2="100%"
+            stroke="currentColor" strokeWidth="1"
+            className="text-ink-900/15"
+          />
+        )}
+        {/* Branch curve from trunk into this row */}
+        <path
+          d="M 14 0 V 14 Q 14 24 26 24"
+          fill="none" stroke="currentColor" strokeWidth="1"
+          className={isCurrent ? "text-emerald-700/60" : "text-ink-900/20"}
+        />
+      </svg>
 
       {isCurrent && (
         <div
           aria-hidden
-          className="halo-sage animate-halo absolute left-7 right-2 inset-y-0 -z-10 rounded-full blur-xl"
+          className="halo-sage animate-halo absolute inset-y-0 left-12 right-2 -z-10 rounded-full blur-xl"
         />
       )}
 
@@ -522,7 +552,7 @@ function TaskRow({
         type="button"
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         disabled={pending}
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cream-50 transition hover:scale-110 active:scale-95"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition hover:scale-110 active:scale-95"
         aria-label={task.done ? "Mark incomplete" : "Mark done"}
         title={task.done ? "Mark incomplete" : "Mark done"}
       >
