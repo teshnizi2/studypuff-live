@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { AmbientPlayer } from "./AmbientPlayer";
+import { TimePicker } from "./TimePicker";
 
 type Task = { id: string; text: string };
 type Topic = { id: string; name: string };
@@ -46,8 +47,6 @@ const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: stri
   "sheep-mug": { emoji: "🍵", top: "55%", left: "82%", size: "text-2xl" }
 };
 
-type Mode = StudyMode | "custom";
-
 const SOUND_OPTIONS: { id: string | null; label: string }[] = [
   { id: null, label: "Silence" },
   { id: "sound-lofi", label: "Lo-fi pad" },
@@ -75,18 +74,9 @@ export function TimerCircle({
   onTasksClick,
   onRoomsClick
 }: Props) {
-  const [mode, setMode] = useState<Mode>("focus");
-  const [customMinutes, setCustomMinutes] = useState(15);
-  const [customSeconds, setCustomSeconds] = useState(0);
-
-  const totalSeconds = useMemo(() => {
-    if (mode === "focus") return focusMinutes * 60;
-    if (mode === "short") return shortBreakMinutes * 60;
-    if (mode === "long") return longBreakMinutes * 60;
-    return Math.max(1, customMinutes * 60 + customSeconds);
-  }, [mode, focusMinutes, shortBreakMinutes, longBreakMinutes, customMinutes, customSeconds]);
-
-  const [remaining, setRemaining] = useState(totalSeconds);
+  const [mode, setMode] = useState<StudyMode>("focus");
+  const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
+  const [remaining, setRemaining] = useState(focusMinutes * 60);
   const [running, setRunning] = useState(false);
   const [taskId, setTaskId] = useState<string>("");
   const [topicId, setTopicId] = useState<string>("");
@@ -95,17 +85,19 @@ export function TimerCircle({
   const [sessionSound, setSessionSound] = useState<string | null>(equippedSound ?? "sound-lofi");
   const [newTopicName, setNewTopicName] = useState("");
   const [newTaskText, setNewTaskText] = useState("");
+  const [pendingTopicName, setPendingTopicName] = useState<string | null>(null);
+  const [pendingTaskText, setPendingTaskText] = useState<string | null>(null);
   const [creating, startCreating] = useTransition();
   const router = useRouter();
   const tickRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset timer when total changes
+  // When the picker or a preset tab changes the duration, reset remaining
   useEffect(() => {
     setRemaining(totalSeconds);
     setRunning(false);
   }, [totalSeconds]);
 
-  // Countdown
+  // Countdown loop
   useEffect(() => {
     if (!running) {
       if (tickRef.current) clearInterval(tickRef.current);
@@ -128,12 +120,32 @@ export function TimerCircle({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
+  // Auto-select a freshly created topic when it appears in the list
+  useEffect(() => {
+    if (!pendingTopicName) return;
+    const found = topics.find((t) => t.name === pendingTopicName);
+    if (found) {
+      setTopicId(found.id);
+      setPendingTopicName(null);
+    }
+  }, [topics, pendingTopicName]);
+
+  // Auto-select a freshly created task when it appears
+  useEffect(() => {
+    if (!pendingTaskText) return;
+    const found = tasks.find((t) => t.text === pendingTaskText);
+    if (found) {
+      setTaskId(found.id);
+      setPendingTaskText(null);
+    }
+  }, [tasks, pendingTaskText]);
+
   const handleComplete = useCallback(() => {
     setRunning(false);
     const minutes = Math.max(1, Math.round(totalSeconds / 60));
     const fd = new FormData();
     fd.set("minutes", String(minutes));
-    fd.set("mode", mode === "custom" ? "focus" : mode);
+    fd.set("mode", mode);
     if (topicId) fd.set("topic_id", topicId);
     if (taskId) {
       fd.set("task_id", taskId);
@@ -158,6 +170,11 @@ export function TimerCircle({
     handleComplete();
   };
 
+  const setPreset = (m: StudyMode, mins: number) => {
+    setMode(m);
+    setTotalSeconds(mins * 60);
+  };
+
   const radius = 140;
   const circumference = 2 * Math.PI * radius;
   const progress = totalSeconds === 0 ? 0 : 1 - remaining / totalSeconds;
@@ -166,28 +183,41 @@ export function TimerCircle({
   const dotX = 150 + radius * Math.cos((angleDeg * Math.PI) / 180);
   const dotY = 150 + radius * Math.sin((angleDeg * Math.PI) / 180);
 
-  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
-  const ss = String(remaining % 60).padStart(2, "0");
+  // While running, show countdown values; otherwise show the configured duration
+  const visibleSeconds = running ? remaining : totalSeconds;
+  const mm = Math.floor(visibleSeconds / 60);
+  const ss = visibleSeconds % 60;
+
+  const presets: { id: StudyMode; label: string; mins: number }[] = useMemo(
+    () => [
+      { id: "focus", label: "Focus", mins: focusMinutes },
+      { id: "short", label: "Short", mins: shortBreakMinutes },
+      { id: "long", label: "Long", mins: longBreakMinutes }
+    ],
+    [focusMinutes, shortBreakMinutes, longBreakMinutes]
+  );
+  const activePresetId =
+    presets.find((p) => p.mins * 60 === totalSeconds && p.id === mode)?.id ?? null;
 
   const selectedTaskLabel = tasks.find((t) => t.id === taskId)?.text;
+  const selectedTopicLabel = topics.find((t) => t.id === topicId)?.name;
   const selectedSoundLabel =
     SOUND_OPTIONS.find((s) => s.id === sessionSound)?.label || "Silence";
 
   const handleAddTopic = () => {
     if (!onCreateTopic || !newTopicName.trim()) return;
     const name = newTopicName.trim();
+    setPendingTopicName(name);
     startCreating(async () => {
       const fd = new FormData();
       fd.set("name", name);
       try {
         await onCreateTopic(fd);
         setNewTopicName("");
-        // server action's revalidatePath has already fired; router.refresh()
-        // makes the parent server component re-fetch so the new topic shows
-        // up immediately in the list passed to this component
         router.refresh();
       } catch (err) {
         console.error(err);
+        setPendingTopicName(null);
       }
     });
   };
@@ -196,6 +226,7 @@ export function TimerCircle({
     if (!onCreateTask || !newTaskText.trim()) return;
     const text = newTaskText.trim();
     const tid = topicId;
+    setPendingTaskText(text);
     startCreating(async () => {
       const fd = new FormData();
       fd.set("text", text);
@@ -207,34 +238,19 @@ export function TimerCircle({
         router.refresh();
       } catch (err) {
         console.error(err);
+        setPendingTaskText(null);
       }
     });
   };
 
+  const handlePickerChange = (next: number) => {
+    setTotalSeconds(next);
+    // Picker overrides preset so we don't keep the preset highlighted incorrectly
+    // Mode stays as the last user choice (used purely for session logging)
+  };
+
   return (
     <div className="relative px-5 pb-6 pt-4 text-ink-900 sm:px-7 sm:pt-5">
-      {/* Subtle ambient leaves — clipped via inset positioning so they
-          stay inside the rounded card without needing overflow-hidden
-          (which would also clip the sound popover). */}
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute left-2 top-2 h-16 w-16 text-emerald-900/15"
-        viewBox="0 0 100 100"
-        fill="currentColor"
-      >
-        <path d="M50 10 Q 30 30 50 50 Q 70 30 50 10 Z" />
-        <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
-      </svg>
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute right-2 bottom-2 h-20 w-20 rotate-180 text-emerald-900/15"
-        viewBox="0 0 100 100"
-        fill="currentColor"
-      >
-        <path d="M50 10 Q 30 30 50 50 Q 70 30 50 10 Z" />
-        <path d="M30 40 Q 15 55 30 70 Q 45 55 30 40 Z" />
-      </svg>
-
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
@@ -258,7 +274,6 @@ export function TimerCircle({
                 <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
             </defs>
-            {/* Track */}
             <circle
               cx={150}
               cy={150}
@@ -267,7 +282,6 @@ export function TimerCircle({
               stroke="rgba(31,77,44,0.14)"
               strokeWidth={14}
             />
-            {/* Progress arc */}
             <circle
               cx={150}
               cy={150}
@@ -281,10 +295,8 @@ export function TimerCircle({
               transform="rotate(-90 150 150)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }}
             />
-            {/* Dot */}
             <circle cx={dotX} cy={dotY} r={10} fill="#fff" stroke="#1a4d2a" strokeWidth={3} />
           </svg>
-          {/* Sheep disc — sized so the ring clearly breathes around it */}
           <div className="absolute inset-[20%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_12px_rgba(0,0,0,0.18)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -307,65 +319,55 @@ export function TimerCircle({
           </div>
         </div>
 
-        <p className="mt-4 font-display text-5xl tabular-nums tracking-[0.05em] text-ink-900 sm:text-6xl">
-          {mm}:{ss}
-        </p>
+        {/* Time picker — click prev/next or scroll wheel to adjust */}
+        <div className="mt-5">
+          <TimePicker
+            minutes={mm}
+            seconds={ss}
+            disabled={running}
+            onChange={handlePickerChange}
+          />
+        </div>
 
-        {selectedTaskLabel && (
-          <p className="mt-1 max-w-md text-center text-sm text-ink-700">
-            Working on <span className="font-semibold text-ink-900">{selectedTaskLabel}</span>
+        {(selectedTaskLabel || selectedTopicLabel) && (
+          <p className="mt-3 max-w-md text-center text-sm text-ink-700">
+            {selectedTaskLabel && selectedTopicLabel ? (
+              <>
+                Working on{" "}
+                <span className="font-semibold text-ink-900">{selectedTaskLabel}</span> from{" "}
+                <span className="font-semibold text-ink-900">{selectedTopicLabel}</span>
+              </>
+            ) : selectedTaskLabel ? (
+              <>
+                Working on{" "}
+                <span className="font-semibold text-ink-900">{selectedTaskLabel}</span>
+              </>
+            ) : (
+              <>
+                Studying{" "}
+                <span className="font-semibold text-ink-900">{selectedTopicLabel}</span>
+              </>
+            )}
           </p>
         )}
 
-        {/* Mode tabs */}
-        <div className="mt-3 inline-flex flex-wrap justify-center rounded-full bg-cream-50/70 p-1 shadow-soft">
-          {(
-            [
-              ["focus", `Focus · ${focusMinutes}m`],
-              ["short", `Short · ${shortBreakMinutes}m`],
-              ["long", `Long · ${longBreakMinutes}m`],
-              ["custom", "Custom"]
-            ] as [Mode, string][]
-          ).map(([m, label]) => (
+        {/* Preset tabs */}
+        <div className="mt-4 inline-flex flex-wrap justify-center rounded-full bg-cream-50/70 p-1 shadow-soft">
+          {presets.map((p) => (
             <button
-              key={m}
+              key={p.id}
               type="button"
-              onClick={() => setMode(m)}
-              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:text-xs ${
-                mode === m
+              onClick={() => setPreset(p.id, p.mins)}
+              className={`rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition sm:text-xs ${
+                activePresetId === p.id
                   ? "bg-ink-900 text-cream-50 shadow-soft"
                   : "text-ink-900/70 hover:text-ink-900"
               }`}
             >
-              {label}
+              {p.label} · {p.mins}m
             </button>
           ))}
         </div>
-
-        {/* Custom min:sec input */}
-        {mode === "custom" && (
-          <div className="mt-3 flex items-center gap-2 rounded-full bg-cream-50 px-3 py-1.5 shadow-soft">
-            <label className="text-xs font-semibold text-ink-700">Min</label>
-            <input
-              type="number"
-              min={0}
-              max={240}
-              value={customMinutes}
-              onChange={(e) => setCustomMinutes(Math.max(0, Math.min(240, Number(e.target.value) || 0)))}
-              className="w-12 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
-            />
-            <span className="text-ink-700">:</span>
-            <input
-              type="number"
-              min={0}
-              max={59}
-              value={customSeconds}
-              onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, Number(e.target.value) || 0)))}
-              className="w-12 rounded-full bg-transparent text-center text-sm font-semibold tabular-nums text-ink-900 outline-none"
-            />
-            <label className="text-xs font-semibold text-ink-700">Sec</label>
-          </div>
-        )}
 
         {/* Sound popover trigger */}
         <div className="relative mt-3">
