@@ -22,9 +22,6 @@ export default function Marquee() {
       <div className="relative">
         <span className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-cream-50/95 to-transparent" />
         <span className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-cream-50/95 to-transparent" />
-        <span className="absolute left-6 top-1/2 z-10 hidden -translate-y-1/2 rounded-full bg-cream-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700 shadow-soft md:inline-block">
-          Studied at
-        </span>
         <div className="marquee-track gap-12 py-5 px-6">
           {loop.map((t, i) => (
             <span
