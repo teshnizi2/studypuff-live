@@ -6,6 +6,8 @@ import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
 
 export type SoundOption = { id: string | null; label: string; tag?: string };
 
+export type TimerSoundMode = "focus" | "short" | "long";
+
 export const SOUND_OPTIONS: SoundOption[] = [
   { id: null,             label: "Silence",         tag: "calm"    },
   { id: "sound-lofi",     label: "Lo-fi pad",       tag: "music"   },
@@ -20,16 +22,41 @@ export const SOUND_OPTIONS: SoundOption[] = [
   { id: "sound-ocean",    label: "Ocean waves",     tag: "ambient" }
 ];
 
+const MODE_LABEL: Record<TimerSoundMode, string> = {
+  focus: "Focus",
+  short: "Short break",
+  long: "Long break"
+};
+
 type Props = {
   sound: string | null;
   playing: boolean;
   onSelect: (id: string | null) => void;
   onTogglePlay: () => void;
+  // Optional per-mode controls. When provided the panel exposes a mode tab strip
+  // and selecting a sound updates the slot for the active editing mode.
+  timerMode?: TimerSoundMode;
+  soundsByMode?: Record<TimerSoundMode, string | null>;
+  onSelectForMode?: (mode: TimerSoundMode, id: string | null) => void;
 };
 
-export function SoundDock({ sound, playing, onSelect, onTogglePlay }: Props) {
+export function SoundDock({
+  sound, playing, onSelect, onTogglePlay,
+  timerMode, soundsByMode, onSelectForMode
+}: Props) {
   const [open, setOpen] = useState(false);
+  const [editingMode, setEditingMode] = useState<TimerSoundMode>(timerMode ?? "focus");
   const dockRef = useRef<HTMLDivElement>(null);
+  const perModeEnabled = !!(soundsByMode && onSelectForMode);
+
+  // When the timer mode changes externally, follow it in the panel header.
+  useEffect(() => {
+    if (timerMode) setEditingMode(timerMode);
+  }, [timerMode]);
+
+  // Sound currently being edited in the dropdown — defaults to the active sound,
+  // but switches when the user clicks a mode tab.
+  const editingSound = perModeEnabled ? (soundsByMode![editingMode] ?? null) : sound;
 
   useEffect(() => {
     if (!open) return;
@@ -108,51 +135,88 @@ export function SoundDock({ sound, playing, onSelect, onTogglePlay }: Props) {
         {open && (
           <div
             role="listbox"
-            className="animate-task-in absolute bottom-full left-1/2 mb-3 max-h-96 w-72 -translate-x-1/2 overflow-y-auto rounded-3xl bg-cream-50 shadow-[0_30px_80px_-20px_rgba(31,77,44,0.45)] ring-1 ring-ink-900/10"
+            className="animate-task-in absolute bottom-full left-1/2 mb-3 max-h-[26rem] w-72 -translate-x-1/2 overflow-hidden rounded-3xl bg-cream-50 shadow-[0_30px_80px_-20px_rgba(31,77,44,0.45)] ring-1 ring-ink-900/10"
           >
-            {groups.map((g) => {
-              const items = SOUND_OPTIONS.filter((s) => s.tag === g.tag);
-              if (!items.length) return null;
-              return (
-                <div key={g.tag} className="px-2 py-2">
-                  <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-ink-700">
-                    {g.title}
-                  </p>
-                  {items.map((s) => (
+            {perModeEnabled && (
+              <div className="border-b border-ink-900/10 px-3 pb-2 pt-3">
+                <p className="px-1 pb-2 text-[10px] font-semibold uppercase tracking-[0.28em] text-ink-700">
+                  Sound for
+                </p>
+                <div className="flex items-center gap-1 rounded-full bg-ink-900/[0.04] p-1">
+                  {(["focus", "short", "long"] as TimerSoundMode[]).map((m) => (
                     <button
-                      key={s.label}
+                      key={m}
                       type="button"
-                      role="option"
-                      aria-selected={sound === s.id}
-                      onClick={() => {
-                        onSelect(s.id);
-                        setOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
-                        sound === s.id
+                      onClick={() => setEditingMode(m)}
+                      className={`flex-1 rounded-full px-3 py-1.5 text-xs font-display italic transition ${
+                        editingMode === m
                           ? "bg-ink-900 text-cream-50"
-                          : "text-ink-900 hover:bg-cream-100"
+                          : "text-ink-700 hover:text-ink-900"
                       }`}
                     >
-                      <span className="font-display italic">{s.label}</span>
-                      {sound === s.id && (
-                        <span className="flex h-3 w-4 items-end gap-[2px]">
-                          {Array.from({ length: 4 }).map((_, i) => (
-                            <span
-                              key={i}
-                              className={`eq-bar w-[2px] flex-1 rounded-full ${
-                                playing ? "bg-cream-50" : "bg-cream-50/40"
-                              }`}
-                              style={{ height: `${[8, 12, 9, 11][i]}px` }}
-                            />
-                          ))}
-                        </span>
-                      )}
+                      {MODE_LABEL[m]}
                     </button>
                   ))}
                 </div>
-              );
-            })}
+              </div>
+            )}
+            <div className="max-h-80 overflow-y-auto">
+              {groups.map((g) => {
+                const items = SOUND_OPTIONS.filter((s) => s.tag === g.tag);
+                if (!items.length) return null;
+                return (
+                  <div key={g.tag} className="px-2 py-2">
+                    <p className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-ink-700">
+                      {g.title}
+                    </p>
+                    {items.map((s) => {
+                      const selected = editingSound === s.id;
+                      const isLive =
+                        perModeEnabled
+                          ? editingMode === timerMode && selected
+                          : selected;
+                      return (
+                        <button
+                          key={s.label}
+                          type="button"
+                          role="option"
+                          aria-selected={selected}
+                          onClick={() => {
+                            if (perModeEnabled) {
+                              onSelectForMode!(editingMode, s.id);
+                              if (editingMode === timerMode) onSelect(s.id);
+                            } else {
+                              onSelect(s.id);
+                            }
+                            setOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                            selected
+                              ? "bg-ink-900 text-cream-50"
+                              : "text-ink-900 hover:bg-cream-100"
+                          }`}
+                        >
+                          <span className="font-display italic">{s.label}</span>
+                          {isLive && (
+                            <span className="flex h-3 w-4 items-end gap-[2px]">
+                              {Array.from({ length: 4 }).map((_, i) => (
+                                <span
+                                  key={i}
+                                  className={`eq-bar w-[2px] flex-1 rounded-full ${
+                                    playing ? "bg-cream-50" : "bg-cream-50/40"
+                                  }`}
+                                  style={{ height: `${[8, 12, 9, 11][i]}px` }}
+                                />
+                              ))}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

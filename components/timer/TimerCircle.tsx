@@ -27,6 +27,7 @@ type Props = {
   equippedAccessory?: string | null;
   onSettingsClick?: () => void;
   onRoomsClick?: () => void;
+  onModeChange?: (mode: StudyMode) => void;
 };
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
@@ -42,12 +43,18 @@ export function TimerCircle({
   tasks, topics, taskId, topicId,
   running, onRunningChange,
   onComplete, equippedAccessory,
-  onSettingsClick, onRoomsClick
+  onSettingsClick, onRoomsClick, onModeChange
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Notify parent when mode changes (for per-mode sounds, etc.)
+  useEffect(() => {
+    if (onModeChange) onModeChange(mode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // Reset when total changes
   useEffect(() => {

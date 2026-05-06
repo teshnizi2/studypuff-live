@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
-import { SoundDock } from "./SoundDock";
+import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -87,7 +87,53 @@ export function DashboardActions(props: Props) {
   const [currentTaskId, setCurrentTaskId] = useState<string>("");
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
-  const [sound, setSound] = useState<string | null>(props.equippedSound ?? "sound-lofi");
+  const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
+  const defaultSound = props.equippedSound ?? "sound-lofi";
+  const [soundsByMode, setSoundsByMode] = useState<Record<TimerSoundMode, string | null>>({
+    focus: defaultSound,
+    short: "sound-rain",
+    long: "sound-ocean"
+  });
+
+  // Restore per-mode sound prefs from localStorage on mount.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("studypuff:sounds-by-mode");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        setSoundsByMode((prev) => ({
+          focus: typeof parsed.focus !== "undefined" ? parsed.focus : prev.focus,
+          short: typeof parsed.short !== "undefined" ? parsed.short : prev.short,
+          long:  typeof parsed.long  !== "undefined" ? parsed.long  : prev.long
+        }));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const persistSounds = (next: Record<TimerSoundMode, string | null>) => {
+    setSoundsByMode(next);
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("studypuff:sounds-by-mode", JSON.stringify(next));
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+  };
+
+  const handleSelectSoundForMode = (mode: TimerSoundMode, id: string | null) => {
+    persistSounds({ ...soundsByMode, [mode]: id });
+  };
+
+  const handleSelectActiveSound = (id: string | null) => {
+    persistSounds({ ...soundsByMode, [timerMode]: id });
+  };
+
+  const sound = soundsByMode[timerMode];
   const close = () => setOpen(null);
 
   const handleSelectTask = (taskId: string, topicId: string) => {
@@ -154,6 +200,7 @@ export function DashboardActions(props: Props) {
                 equippedAccessory={props.equippedAccessory}
                 onSettingsClick={() => setOpen("settings")}
                 onRoomsClick={() => setOpen("rooms")}
+                onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
               />
             </div>
           </div>
@@ -164,8 +211,11 @@ export function DashboardActions(props: Props) {
       <SoundDock
         sound={sound}
         playing={running && !!sound}
-        onSelect={setSound}
+        onSelect={handleSelectActiveSound}
         onTogglePlay={() => setRunning((r) => !r)}
+        timerMode={timerMode}
+        soundsByMode={soundsByMode}
+        onSelectForMode={handleSelectSoundForMode}
       />
 
       {/* Tasks + Topics dialog (tasks live inside topics) */}
