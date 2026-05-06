@@ -42,6 +42,7 @@ export function TaskPanel({
   const [collapsedTopics, setCollapsedTopics] = useState<Set<string>>(new Set());
   const [pendingTopicName, setPendingTopicName] = useState<string | null>(null);
   const [pendingTaskText, setPendingTaskText] = useState<string | null>(null);
+  const [confirmingDeleteTopic, setConfirmingDeleteTopic] = useState<string | null>(null);
 
   // Auto-collapse "Untopiced" when there are no untopiced tasks
   const untopicedTasks = tasks.filter((t) => !t.topic_id);
@@ -135,7 +136,7 @@ export function TaskPanel({
 
   const handleDeleteTopic = (topicId: string) => {
     if (!onDeleteTopic) return;
-    if (!confirm("Delete this topic? Its tasks will move to No topic.")) return;
+    setConfirmingDeleteTopic(null);
     startPending(async () => {
       const fd = new FormData();
       fd.set("id", topicId);
@@ -279,7 +280,7 @@ export function TaskPanel({
           {topic && onDeleteTopic && (
             <button
               type="button"
-              onClick={() => handleDeleteTopic(topic.id)}
+              onClick={() => setConfirmingDeleteTopic(topic.id)}
               disabled={pending}
               className="flex h-7 w-7 items-center justify-center rounded-full text-ink-900/40 opacity-0 transition group-hover/topic:opacity-100 hover:bg-rose-100/60 hover:text-rose-700"
               aria-label="Delete topic"
@@ -289,6 +290,37 @@ export function TaskPanel({
             </button>
           )}
         </div>
+
+        {/* Inline delete confirmation */}
+        {topic && confirmingDeleteTopic === topic.id && (
+          <div className="animate-task-in mt-2 flex items-center justify-between gap-2 rounded-2xl bg-rose-50 px-3 py-2 ring-1 ring-rose-200">
+            <p className="text-xs text-rose-900">
+              Delete <span className="font-semibold">{topic.name}</span>? Tasks move to No topic.
+            </p>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setConfirmingDeleteTopic(null)}
+                className="rounded-full bg-cream-50 px-3 py-1 text-[11px] font-semibold text-ink-900/70 transition hover:text-ink-900"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteTopic(topic.id)}
+                disabled={pending}
+                className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-3 py-1 text-[11px] font-semibold text-cream-50 transition hover:bg-rose-700 disabled:opacity-50"
+              >
+                {pending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" strokeWidth={2.5} />
+                ) : (
+                  <Trash2 className="h-3 w-3" strokeWidth={2.5} />
+                )}
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
 
         {!collapsed && (
           <>
