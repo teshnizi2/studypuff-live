@@ -150,8 +150,10 @@ export function TimerCircle({
   const dotX = 150 + radius * Math.cos((angleDeg * Math.PI) / 180);
   const dotY = 150 + radius * Math.sin((angleDeg * Math.PI) / 180);
 
-  // While running, show countdown values; otherwise show the configured duration
-  const visibleSeconds = running ? remaining : totalSeconds;
+  // Always show the actual remaining time (paused or running). Only fall back
+  // to totalSeconds after completion, when remaining hits 0 — so the picker
+  // shows the configured duration ready to restart.
+  const visibleSeconds = remaining > 0 ? remaining : totalSeconds;
   const mm = Math.floor(visibleSeconds / 60);
   const ss = visibleSeconds % 60;
 
