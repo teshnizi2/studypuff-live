@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import { HeaderAvatarButton } from "@/components/dashboard/HeaderAvatarButton";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -91,24 +92,12 @@ export async function DashboardShell({
                 Admin
               </Link>
             )}
-            <Link
-              href="/dashboard/profile"
-              className="flex items-center gap-2 rounded-full border border-ink-900/10 bg-cream-50 py-1 pl-1 pr-3 hover:bg-cream-100"
-            >
-              <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-brand-butter text-xs font-semibold text-ink-900">
-                {profile?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.avatar_url}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initial
-                )}
-              </span>
-              <span className="text-ink-900">{profile?.display_name || profile?.email}</span>
-            </Link>
+            <HeaderAvatarButton
+              displayName={profile?.display_name ?? null}
+              email={profile?.email ?? ""}
+              avatarUrl={profile?.avatar_url ?? null}
+              initial={initial}
+            />
             <LogoutButton />
           </nav>
         </div>

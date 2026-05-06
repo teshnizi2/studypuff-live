@@ -9,6 +9,7 @@ import { LeavesAccent } from "./LeavesAccent";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
+import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -84,7 +85,7 @@ type Props = {
   rewards?: RewardsContentProps;
 };
 
-type ModalKey = "tasks" | "rooms" | "settings" | "stats" | "rewards" | null;
+type ModalKey = "tasks" | "rooms" | "settings" | "stats" | "rewards" | "profile" | null;
 
 export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
@@ -101,6 +102,14 @@ export function DashboardActions(props: Props) {
       const raw = window.localStorage.getItem("studypuff:tasks-open");
       if (raw === "false") setTasksOpen(false);
     } catch { /* ignore */ }
+  }, []);
+
+  // Open the profile popup when the header avatar fires the event.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setOpen("profile");
+    window.addEventListener(PROFILE_OPEN_EVENT, handler);
+    return () => window.removeEventListener(PROFILE_OPEN_EVENT, handler);
   }, []);
 
   const setTasksOpenPersist = (next: boolean) => {
@@ -398,119 +407,118 @@ export function DashboardActions(props: Props) {
         </a>
       </Dialog>
 
-      {/* Settings + Profile dialog */}
+      {/* Settings dialog — timer prefs only */}
       <Dialog
         open={open === "settings"}
         onClose={close}
-        title="Settings & profile"
-        description="Tune the timer and update what other StudyPuffs see when you join their room."
+        title="Settings"
+        description="Tune your timer defaults."
+        size="md"
+      >
+        <form action={updateSettingsAction} className="grid gap-4">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-ink-700">
+              Default durations
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <NumField name="focus_minutes" label="Focus" defaultValue={props.settings?.focus_minutes ?? 25} />
+              <NumField name="short_break_minutes" label="Short" defaultValue={props.settings?.short_break_minutes ?? 5} />
+              <NumField name="long_break_minutes" label="Long" defaultValue={props.settings?.long_break_minutes ?? 20} />
+            </div>
+          </div>
+          <NumField name="daily_goal_minutes" label="Daily goal (min)" defaultValue={props.settings?.daily_goal_minutes ?? 90} />
+          <label className="flex items-center gap-3 text-sm text-ink-900">
+            <input name="auto_cycle" type="checkbox" defaultChecked={props.settings?.auto_cycle ?? false} />
+            Auto-cycle focus and breaks
+          </label>
+          <label className="flex items-center gap-3 text-sm text-ink-900">
+            <input name="chime" type="checkbox" defaultChecked={props.settings?.chime ?? true} />
+            Play session chime
+          </label>
+          <button type="submit" className="btn-primary w-fit text-sm">
+            Save settings
+          </button>
+        </form>
+      </Dialog>
+
+      {/* Profile dialog — opens from the header avatar */}
+      <Dialog
+        open={open === "profile"}
+        onClose={close}
+        title="Profile"
+        description="What other StudyPuffs see when you join their room."
         size="lg"
       >
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* TIMER SETTINGS */}
-          <section>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-700">
-              Timer settings
-            </p>
-            <form action={updateSettingsAction} className="grid gap-3">
-              <div className="grid grid-cols-3 gap-2">
-                <NumField name="focus_minutes" label="Focus" defaultValue={props.settings?.focus_minutes ?? 25} />
-                <NumField name="short_break_minutes" label="Short" defaultValue={props.settings?.short_break_minutes ?? 5} />
-                <NumField name="long_break_minutes" label="Long" defaultValue={props.settings?.long_break_minutes ?? 20} />
+        <div className="flex items-start gap-4">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-ink-900/10 bg-brand-butter/40">
+            {props.profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={props.profile.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center font-display text-2xl text-ink-900">
+                {(props.profile.display_name || props.profile.email).charAt(0).toUpperCase()}
               </div>
-              <NumField name="daily_goal_minutes" label="Daily goal (min)" defaultValue={props.settings?.daily_goal_minutes ?? 90} />
-              <label className="flex items-center gap-3 text-sm text-ink-900">
-                <input name="auto_cycle" type="checkbox" defaultChecked={props.settings?.auto_cycle ?? false} />
-                Auto-cycle focus and breaks
-              </label>
-              <label className="flex items-center gap-3 text-sm text-ink-900">
-                <input name="chime" type="checkbox" defaultChecked={props.settings?.chime ?? true} />
-                Play session chime
-              </label>
-              <button type="submit" className="btn-primary w-fit text-sm">
-                Save settings
+            )}
+          </div>
+          <div className="flex-1 space-y-2">
+            <form action={uploadAvatarAction} encType="multipart/form-data" className="flex flex-col gap-2">
+              <input
+                type="file"
+                name="avatar"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                required
+                className="block w-full text-xs text-ink-700 file:mr-3 file:rounded-full file:border-0 file:bg-brand-butter file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-ink-900"
+              />
+              <button type="submit" className="btn-primary text-sm">
+                Upload avatar
               </button>
             </form>
-          </section>
-
-          {/* PROFILE */}
-          <section>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-700">
-              Profile
-            </p>
-
-            <div className="flex items-start gap-4">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-ink-900/10 bg-brand-butter/40">
-                {props.profile.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={props.profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center font-display text-2xl text-ink-900">
-                    {(props.profile.display_name || props.profile.email).charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 space-y-2">
-                <form action={uploadAvatarAction} encType="multipart/form-data" className="flex flex-col gap-2">
-                  <input
-                    type="file"
-                    name="avatar"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
-                    required
-                    className="block w-full text-xs text-ink-700 file:mr-3 file:rounded-full file:border-0 file:bg-brand-butter file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-ink-900"
-                  />
-                  <button type="submit" className="btn-primary text-sm">
-                    Upload avatar
-                  </button>
-                </form>
-                {props.profile.avatar_url && (
-                  <form action={removeAvatarAction}>
-                    <button type="submit" className="text-xs font-semibold text-ink-700 underline underline-offset-4 hover:text-red-700">
-                      Remove avatar
-                    </button>
-                  </form>
-                )}
-              </div>
-            </div>
-
-            <p className="mt-3 text-xs text-ink-700">Email: {props.profile.email}</p>
-
-            <form action={updateProfileAction} className="mt-3 grid gap-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Field name="display_name" label="Display name" defaultValue={props.profile.display_name || ""} placeholder="How you appear to others" />
-                <Field name="username" label="Username" defaultValue={props.profile.username || ""} placeholder="lowercase, 3-24" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field name="pronouns" label="Pronouns" defaultValue={props.profile.pronouns || ""} placeholder="she/her" maxLength={40} />
-                <Field name="birthday" label="Birthday" type="date" defaultValue={props.profile.birthday || ""} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field name="school" label="School" defaultValue={props.profile.school || ""} placeholder="TU Delft" maxLength={120} />
-                <Field name="year_level" label="Year / level" defaultValue={props.profile.year_level || ""} placeholder="1st year MSc" maxLength={60} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field name="study_field" label="Studying" defaultValue={props.profile.study_field || ""} placeholder="Computer Science" maxLength={80} />
-                <Field name="city" label="City" defaultValue={props.profile.city || ""} placeholder="Amsterdam" maxLength={80} />
-              </div>
-              <Field name="favorite_subjects" label="Favourite subjects" defaultValue={props.profile.favorite_subjects || ""} placeholder="Algorithms, statistics, Dutch literature" maxLength={200} />
-              <Field name="time_zone" label="Time zone" defaultValue={props.profile.time_zone || ""} placeholder="Europe/Amsterdam" maxLength={60} />
-              <label className="block text-xs font-semibold uppercase tracking-widest text-ink-700">
-                Bio
-                <textarea
-                  name="bio"
-                  defaultValue={props.profile.bio || ""}
-                  maxLength={500}
-                  rows={3}
-                  placeholder="A short blurb about you (max 500 chars)"
-                  className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
-                />
-              </label>
-              <button type="submit" className="btn-primary w-fit text-sm">
-                Save profile
-              </button>
-            </form>
-          </section>
+            {props.profile.avatar_url && (
+              <form action={removeAvatarAction}>
+                <button type="submit" className="text-xs font-semibold text-ink-700 underline underline-offset-4 hover:text-red-700">
+                  Remove avatar
+                </button>
+              </form>
+            )}
+          </div>
         </div>
+
+        <p className="mt-3 text-xs text-ink-700">Email: {props.profile.email}</p>
+
+        <form action={updateProfileAction} className="mt-4 grid gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Field name="display_name" label="Display name" defaultValue={props.profile.display_name || ""} placeholder="How you appear to others" />
+            <Field name="username" label="Username" defaultValue={props.profile.username || ""} placeholder="lowercase, 3-24" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field name="pronouns" label="Pronouns" defaultValue={props.profile.pronouns || ""} placeholder="she/her" maxLength={40} />
+            <Field name="birthday" label="Birthday" type="date" defaultValue={props.profile.birthday || ""} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field name="school" label="School" defaultValue={props.profile.school || ""} placeholder="TU Delft" maxLength={120} />
+            <Field name="year_level" label="Year / level" defaultValue={props.profile.year_level || ""} placeholder="1st year MSc" maxLength={60} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field name="study_field" label="Studying" defaultValue={props.profile.study_field || ""} placeholder="Computer Science" maxLength={80} />
+            <Field name="city" label="City" defaultValue={props.profile.city || ""} placeholder="Amsterdam" maxLength={80} />
+          </div>
+          <Field name="favorite_subjects" label="Favourite subjects" defaultValue={props.profile.favorite_subjects || ""} placeholder="Algorithms, statistics, Dutch literature" maxLength={200} />
+          <Field name="time_zone" label="Time zone" defaultValue={props.profile.time_zone || ""} placeholder="Europe/Amsterdam" maxLength={60} />
+          <label className="block text-xs font-semibold uppercase tracking-widest text-ink-700">
+            Bio
+            <textarea
+              name="bio"
+              defaultValue={props.profile.bio || ""}
+              maxLength={500}
+              rows={3}
+              placeholder="A short blurb about you (max 500 chars)"
+              className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+            />
+          </label>
+          <button type="submit" className="btn-primary w-fit text-sm">
+            Save profile
+          </button>
+        </form>
       </Dialog>
 
       {/* Stats dialog */}

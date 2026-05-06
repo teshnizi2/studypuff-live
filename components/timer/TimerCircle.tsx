@@ -58,12 +58,14 @@ export function TimerCircle({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
-  // Reset when total changes
-  useEffect(() => {
-    setRemaining(totalSeconds);
+  // Single setter that keeps total + remaining in sync. Avoids the visual
+  // flicker that happens when you change the preset and the SVG renders one
+  // frame with the new total but the old remaining (gives a wrong dashOffset).
+  const setDuration = useCallback((total: number) => {
+    setTotalSeconds(total);
+    setRemaining(total);
     onRunningChange(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalSeconds]);
+  }, [onRunningChange]);
 
   // Countdown
   useEffect(() => {
@@ -111,7 +113,7 @@ export function TimerCircle({
 
   const setPreset = (m: StudyMode, mins: number) => {
     setMode(m);
-    setTotalSeconds(mins * 60);
+    setDuration(mins * 60);
   };
 
   const radius = 142;
@@ -210,7 +212,7 @@ export function TimerCircle({
 
       {/* Time picker */}
       <div className="mt-6">
-        <TimePicker minutes={mm} seconds={ss} disabled={running} onChange={setTotalSeconds} />
+        <TimePicker minutes={mm} seconds={ss} disabled={running} onChange={setDuration} />
       </div>
 
       {/* Preset chips — minimal italic, dot-separated */}
