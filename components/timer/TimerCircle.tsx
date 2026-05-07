@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Settings as SettingsIcon, Users, BarChart3, Sparkles,
+  Settings as SettingsIcon, Users, BarChart3,
   RotateCcw, Play, Pause, ListTree, type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
@@ -160,11 +160,6 @@ export function TimerCircle({
             <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
           ) : (
             <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
-          )}
-          {onRewardsClick ? (
-            <IconButton Icon={Sparkles} label="Rewards" onClick={onRewardsClick} />
-          ) : (
-            <IconButton Icon={Sparkles} label="Rewards" href="/dashboard/rewards" />
           )}
         </div>
         {onSettingsClick && (
