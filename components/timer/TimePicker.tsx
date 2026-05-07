@@ -47,11 +47,6 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
     handler(e.deltaY > 0 ? -1 : 1);
   };
 
-  const prevM = (minutes - 1 + (MAX_MINUTES + 1)) % (MAX_MINUTES + 1);
-  const nextM = (minutes + 1) % (MAX_MINUTES + 1);
-  const prevS = (seconds - 1 + 60) % 60;
-  const nextS = (seconds + 1) % 60;
-
   const commitMinutes = (raw: string) => {
     const n = parseInt(raw, 10);
     if (Number.isNaN(n)) return;
@@ -70,18 +65,18 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
       aria-label="Set timer duration"
     >
       <Column
-        prev={prevM} current={minutes} next={nextM}
-        onPrev={() => stepMinute(-1)} onNext={() => stepMinute(1)}
-        onWheel={onWheel(stepMinute)} disabled={disabled}
+        current={minutes}
+        onWheel={onWheel(stepMinute)}
+        disabled={disabled}
         ariaLabel="minutes"
         max={MAX_MINUTES}
         onCommit={commitMinutes}
       />
-      <span className="-mt-2 font-display text-[clamp(4rem,9vw,7rem)] font-light italic leading-none text-ink-900/30">:</span>
+      <span className="font-display text-[clamp(2.5rem,5vw,4rem)] font-light italic leading-none text-ink-900/30">:</span>
       <Column
-        prev={prevS} current={seconds} next={nextS}
-        onPrev={() => stepSecond(-1)} onNext={() => stepSecond(1)}
-        onWheel={onWheel(stepSecond)} disabled={disabled}
+        current={seconds}
+        onWheel={onWheel(stepSecond)}
+        disabled={disabled}
         ariaLabel="seconds"
         max={59}
         onCommit={commitSeconds}
@@ -91,12 +86,10 @@ export function TimePicker({ minutes, seconds, disabled, onChange }: Props) {
 }
 
 function Column({
-  prev, current, next,
-  onPrev, onNext, onWheel, disabled, ariaLabel,
+  current, onWheel, disabled, ariaLabel,
   max, onCommit
 }: {
-  prev: number; current: number; next: number;
-  onPrev: () => void; onNext: () => void;
+  current: number;
   onWheel: (e: React.WheelEvent) => void;
   disabled?: boolean; ariaLabel: string;
   max: number;
@@ -126,22 +119,17 @@ function Column({
     setEditing(false);
   };
 
+  const numCls =
+    "font-display text-[clamp(3rem,6.5vw,5rem)] italic leading-[1] tabular-nums text-ink-900";
+
   return (
     <div
-      className="relative flex flex-col items-center"
+      className="relative flex items-center justify-center"
       onWheel={onWheel}
       role="spinbutton"
       aria-label={ariaLabel}
       aria-valuenow={current}
     >
-      <button
-        type="button" onClick={onPrev} disabled={disabled || editing}
-        aria-label={`previous ${ariaLabel}`}
-        className="font-display text-3xl italic tabular-nums text-ink-900/25 transition hover:text-ink-900/55 disabled:opacity-30 disabled:hover:text-ink-900/25 sm:text-4xl"
-      >
-        {String(prev).padStart(2, "0")}
-      </button>
-
       {editing ? (
         <input
           ref={inputRef}
@@ -164,7 +152,7 @@ function Column({
             }
           }}
           aria-label={`edit ${ariaLabel}`}
-          className="w-[1.6em] bg-transparent text-center font-display text-[clamp(4rem,9vw,7rem)] italic leading-[1] tabular-nums text-ink-900 outline-none"
+          className={`${numCls} w-[1.6em] rounded-lg bg-ink-900/[0.06] px-1 text-center outline-none ring-2 ring-emerald-700/40`}
         />
       ) : (
         <button
@@ -172,20 +160,12 @@ function Column({
           onClick={startEdit}
           disabled={disabled}
           aria-label={`edit ${ariaLabel}, currently ${current}`}
-          title="Click to type"
-          className="font-display text-[clamp(4rem,9vw,7rem)] italic leading-[1] tabular-nums text-ink-900 transition hover:text-ink-900/80 disabled:cursor-not-allowed disabled:opacity-100 disabled:hover:text-ink-900"
+          title="Click to type, scroll to adjust"
+          className={`${numCls} rounded-lg px-1 transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
         >
           {String(current).padStart(2, "0")}
         </button>
       )}
-
-      <button
-        type="button" onClick={onNext} disabled={disabled || editing}
-        aria-label={`next ${ariaLabel}`}
-        className="font-display text-3xl italic tabular-nums text-ink-900/25 transition hover:text-ink-900/55 disabled:opacity-30 disabled:hover:text-ink-900/25 sm:text-4xl"
-      >
-        {String(next).padStart(2, "0")}
-      </button>
     </div>
   );
 }

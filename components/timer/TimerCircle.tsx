@@ -151,17 +151,15 @@ export function TimerCircle({
 
   return (
     <div className="relative flex flex-col items-center text-ink-900">
-      {/* Top utility row */}
-      <div className="mb-6 flex w-full items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          {onTasksClick && <IconButton Icon={ListTree} label="Tasks" onClick={onTasksClick} />}
-          {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
-          {onStatsClick ? (
-            <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
-          ) : (
-            <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
-          )}
-        </div>
+      {/* Top utility row — clustered pill, no full-width spread */}
+      <div className="mb-5 flex items-center gap-1 rounded-full bg-cream-50/45 p-1 ring-1 ring-ink-900/10 backdrop-blur-sm">
+        {onTasksClick && <IconButton Icon={ListTree} label="Tasks" onClick={onTasksClick} />}
+        {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
+        {onStatsClick ? (
+          <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
+        ) : (
+          <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
+        )}
         {onSettingsClick && (
           <IconButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
         )}
@@ -173,7 +171,7 @@ export function TimerCircle({
           aria-hidden
           className={`absolute inset-0 -z-10 rounded-full halo-sage blur-2xl ${running ? "animate-halo" : ""}`}
         />
-        <div className="relative h-[320px] w-[320px] sm:h-[340px] sm:w-[340px]">
+        <div className="relative h-[240px] w-[240px] sm:h-[260px] sm:w-[260px]">
           <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
@@ -211,12 +209,12 @@ export function TimerCircle({
       </div>
 
       {/* Time picker */}
-      <div className="mt-6">
+      <div className="mt-5">
         <TimePicker minutes={mm} seconds={ss} disabled={running} onChange={setDuration} />
       </div>
 
       {/* Preset chips — minimal italic, dot-separated */}
-      <div className="mt-3 flex items-center gap-3 text-sm">
+      <div className="mt-2 flex items-center gap-3 text-sm">
         {presets.map((p, i) => (
           <span key={p.id} className="flex items-center gap-3">
             {i > 0 && <span aria-hidden className="h-1 w-1 rounded-full bg-ink-900/25" />}
@@ -236,7 +234,7 @@ export function TimerCircle({
       </div>
 
       {/* Play / pause — the only solid focal element */}
-      <div className="mt-7 flex items-center gap-5">
+      <div className="mt-6 flex items-center gap-5">
         <button
           type="button"
           onClick={reset}
@@ -250,13 +248,13 @@ export function TimerCircle({
           type="button"
           onClick={() => onRunningChange(!running)}
           aria-label={running ? "Pause" : "Start"}
-          className="group relative flex h-[88px] w-[88px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
+          className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
         >
           <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
           {running ? (
-            <Pause className="h-9 w-9 fill-current" strokeWidth={0} />
+            <Pause className="h-7 w-7 fill-current" strokeWidth={0} />
           ) : (
-            <Play className="ml-1 h-9 w-9 fill-current" strokeWidth={0} />
+            <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
           )}
         </button>
 
@@ -271,7 +269,7 @@ export function TimerCircle({
       </div>
 
       {/* Today's gauge */}
-      <div className="mt-7 w-full max-w-[300px]">
+      <div className="mt-6 w-full max-w-[300px]">
         <div className="flex items-baseline justify-between text-[11px] uppercase tracking-[0.28em] text-ink-700">
           <span>today</span>
           <span>
@@ -289,7 +287,7 @@ export function TimerCircle({
 
       {/* Weekly sparkline — small bars under the today gauge */}
       {weekly && weekly.length > 0 && (
-        <div className="mt-5 w-full max-w-[300px]">
+        <div className="mt-4 w-full max-w-[300px]">
           <div className="mb-1 flex items-baseline justify-between text-[10px] uppercase tracking-[0.28em] text-ink-700">
             <span>this week</span>
             <span className="tabular-nums text-ink-700/70">

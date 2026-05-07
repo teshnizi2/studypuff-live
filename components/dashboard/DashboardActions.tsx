@@ -184,7 +184,7 @@ export function DashboardActions(props: Props) {
 
   return (
     <>
-      <div className="bg-paper-grain relative">
+      <div className="bg-paper-grain relative pb-28">
         <LeavesAccent />
 
         {/* Tasks LEFT (when pinned), timer CENTER */}

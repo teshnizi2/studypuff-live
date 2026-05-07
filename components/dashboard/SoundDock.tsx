@@ -83,7 +83,7 @@ export function SoundDock({
 
       <div
         ref={dockRef}
-        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 select-none"
+        className="fixed bottom-6 right-6 z-40 select-none"
       >
         <div className="relative flex items-center gap-3 rounded-full bg-cream-50/85 px-3 py-2 pr-4 shadow-[0_18px_50px_-15px_rgba(31,77,44,0.35)] backdrop-blur-md ring-1 ring-ink-900/10">
           <button
@@ -135,7 +135,7 @@ export function SoundDock({
         {open && (
           <div
             role="listbox"
-            className="animate-task-in absolute bottom-full left-1/2 mb-3 max-h-[26rem] w-72 -translate-x-1/2 overflow-hidden rounded-3xl bg-cream-50 shadow-[0_30px_80px_-20px_rgba(31,77,44,0.45)] ring-1 ring-ink-900/10"
+            className="animate-task-in absolute bottom-full right-0 mb-3 max-h-[26rem] w-72 overflow-hidden rounded-3xl bg-cream-50 shadow-[0_30px_80px_-20px_rgba(31,77,44,0.45)] ring-1 ring-ink-900/10"
           >
             {perModeEnabled && (
               <div className="border-b border-ink-900/10 px-3 pb-2 pt-3">
