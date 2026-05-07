@@ -12,8 +12,7 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 const dashboardLinks = [
   { label: "Home", href: "/dashboard" },
   { label: "Stats", href: "/dashboard/stats" },
-  { label: "Shop", href: "/dashboard/rewards" },
-  { label: "Settings", href: "/dashboard/settings" }
+  { label: "Shop", href: "/dashboard/rewards" }
 ];
 
 export async function DashboardShell({
