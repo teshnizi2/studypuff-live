@@ -16,13 +16,17 @@ export async function DashboardShell({
   title,
   subtitle,
   profile: profileProp,
-  bg = "cream"
+  bg = "cream",
+  fullBleed = false
 }: {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
   profile?: Profile | null;
   bg?: "cream" | "green";
+  /** When true, content area takes the full viewport width with no max-w cap.
+      The dashboard home uses this so the side rails can stick to the edges. */
+  fullBleed?: boolean;
 }) {
   // Resolve profile + coins server-side so every dashboard page shows the live balance
   const session = await requireUser();
@@ -89,7 +93,13 @@ export async function DashboardShell({
         </div>
       </header>
 
-      <section className="mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14">
+      <section
+        className={
+          fullBleed
+            ? "w-full"
+            : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14"
+        }
+      >
         {title || subtitle ? (
           <div className="mb-8">
             {title && (

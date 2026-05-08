@@ -190,86 +190,113 @@ export function DashboardActions(props: Props) {
 
   return (
     <>
-      <div className="bg-paper-grain relative pb-28">
+      {/* Layout — desktop:
+            Two fixed-position rails (sidebar left, garden right) live OUTSIDE
+            the document flow, so toggling the sidebar can never shift the
+            timer. The timer is centered in the viewport, always.
+          Mobile:
+            Stacks naturally — sidebar above, then timer, then garden — since
+            the rails fall back to inline rendering below the lg breakpoint. */}
+      <div className="bg-paper-grain relative min-h-[calc(100vh-100px)] pb-28">
         <LeavesAccent />
 
-        {/* 3-column dashboard:
-              [ Tasks sidebar | Timer (center) | Growth garden ]
-            When the tasks sidebar is hidden the grid collapses to 2 columns
-            (timer + garden) and a small "show tasks" tab floats on the left. */}
-        <div
-          className={`grid grid-cols-1 gap-y-10 ${
-            sidebarHidden
-              ? "lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-x-10"
-              : "lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(260px,300px)] lg:gap-x-10"
+        {/* Sidebar — desktop only, fixed flush to the left edge of the viewport.
+            Slides off when hidden; the column the timer occupies never changes. */}
+        <aside
+          aria-label="Topics & tasks"
+          className={`fixed left-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-5 pb-10 pt-2 transition-transform duration-300 ease-out lg:block ${
+            sidebarHidden ? "-translate-x-full" : "translate-x-0"
           }`}
         >
-          {!sidebarHidden && (
-            <aside className="order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
-              <div className="rounded-3xl bg-cream-50/55 p-4 ring-1 ring-ink-900/10 backdrop-blur-sm">
-                <TaskPanel
-                  tasks={props.tasks.map((t) => ({
-                    id: t.id,
-                    text: t.text,
-                    done: t.done,
-                    topic_id: t.topic_id,
-                    priority: t.priority,
-                    due_date: t.due_date,
-                    notes: t.notes
-                  }))}
-                  topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-                  currentTaskId={currentTaskId}
-                  currentTopicId={currentTopicId}
-                  onSelectTask={handleSelectTask}
-                  onSelectTopic={handleSelectTopic}
-                  onCreateTask={createTaskAction}
-                  onCreateTopic={createTopicAction}
-                  onToggleTask={toggleTaskAction}
-                  onDeleteTask={deleteTaskAction}
-                  onDeleteTopic={deleteTopicAction}
-                  onUpdateTask={updateTaskAction}
-                  onHide={() => setSidebarHiddenPersist(true)}
-                />
-              </div>
-            </aside>
-          )}
+          <TaskPanel
+            tasks={props.tasks.map((t) => ({
+              id: t.id, text: t.text, done: t.done, topic_id: t.topic_id,
+              priority: t.priority, due_date: t.due_date, notes: t.notes
+            }))}
+            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+            currentTaskId={currentTaskId}
+            currentTopicId={currentTopicId}
+            onSelectTask={handleSelectTask}
+            onSelectTopic={handleSelectTopic}
+            onCreateTask={createTaskAction}
+            onCreateTopic={createTopicAction}
+            onToggleTask={toggleTaskAction}
+            onDeleteTask={deleteTaskAction}
+            onDeleteTopic={deleteTopicAction}
+            onUpdateTask={updateTaskAction}
+            onHide={() => setSidebarHiddenPersist(true)}
+          />
+        </aside>
 
-          <div className={`order-1 ${sidebarHidden ? "" : "lg:order-2"} lg:place-self-center`}>
-            <div className="journal-rise jrise-2">
-              <TimerCircle
-                focusMinutes={props.settings?.focus_minutes ?? 25}
-                shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
-                longBreakMinutes={props.settings?.long_break_minutes ?? 20}
-                todayMinutes={props.todayMinutes}
-                dailyGoalMinutes={props.settings?.daily_goal_minutes ?? 0}
-                tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
-                topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-                taskId={currentTaskId}
-                topicId={currentTopicId}
-                running={running}
-                onRunningChange={setRunning}
-                onComplete={addStudySessionAction}
-                equippedAccessory={props.equippedAccessory}
-                onSettingsClick={() => setOpen("settings")}
-                onRoomsClick={() => setOpen("rooms")}
-                onStatsClick={props.stats ? () => setOpen("stats") : undefined}
-                onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
-                weekly={props.stats?.last7}
-              />
-            </div>
+        {/* Garden — desktop only, fixed flush to the right edge. */}
+        <aside
+          aria-label="Garden"
+          className="fixed right-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-4 pb-10 pt-4 lg:block"
+        >
+          <GrowthTree
+            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+            tasksDone={props.tasks.filter((t) => t.done).length}
+            streak={props.stats?.streak ?? 0}
+          />
+        </aside>
+
+        {/* Mobile sidebar + garden — stacked above the timer below lg. */}
+        <div className="flex flex-col gap-10 px-4 pt-6 lg:hidden">
+          <TaskPanel
+            tasks={props.tasks.map((t) => ({
+              id: t.id, text: t.text, done: t.done, topic_id: t.topic_id,
+              priority: t.priority, due_date: t.due_date, notes: t.notes
+            }))}
+            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+            currentTaskId={currentTaskId}
+            currentTopicId={currentTopicId}
+            onSelectTask={handleSelectTask}
+            onSelectTopic={handleSelectTopic}
+            onCreateTask={createTaskAction}
+            onCreateTopic={createTopicAction}
+            onToggleTask={toggleTaskAction}
+            onDeleteTask={deleteTaskAction}
+            onDeleteTopic={deleteTopicAction}
+            onUpdateTask={updateTaskAction}
+          />
+        </div>
+
+        {/* Timer — centered in the viewport on every screen size.
+            Position is independent of sidebar visibility. */}
+        <div className="flex justify-center pt-6 lg:pt-10">
+          <div className="journal-rise jrise-2">
+            <TimerCircle
+              focusMinutes={props.settings?.focus_minutes ?? 25}
+              shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
+              longBreakMinutes={props.settings?.long_break_minutes ?? 20}
+              todayMinutes={props.todayMinutes}
+              dailyGoalMinutes={props.settings?.daily_goal_minutes ?? 0}
+              tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
+              topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+              taskId={currentTaskId}
+              topicId={currentTopicId}
+              running={running}
+              onRunningChange={setRunning}
+              onComplete={addStudySessionAction}
+              equippedAccessory={props.equippedAccessory}
+              onSettingsClick={() => setOpen("settings")}
+              onRoomsClick={() => setOpen("rooms")}
+              onStatsClick={props.stats ? () => setOpen("stats") : undefined}
+              onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
+              weekly={props.stats?.last7}
+            />
           </div>
+        </div>
 
-          {/* Garden — right column. Lifetime focus minutes grow the tree. */}
-          <aside className="order-3 lg:sticky lg:top-8 lg:self-start">
-            <div className="rounded-3xl bg-cream-50/55 p-5 ring-1 ring-ink-900/10 backdrop-blur-sm">
-              <GrowthTree
-                lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-                todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-                tasksDone={props.tasks.filter((t) => t.done).length}
-                streak={props.stats?.streak ?? 0}
-              />
-            </div>
-          </aside>
+        {/* Mobile garden — under timer at small sizes. */}
+        <div className="flex justify-center px-4 pt-10 lg:hidden">
+          <GrowthTree
+            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+            tasksDone={props.tasks.filter((t) => t.done).length}
+            streak={props.stats?.streak ?? 0}
+          />
         </div>
       </div>
 
