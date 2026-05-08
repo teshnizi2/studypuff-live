@@ -7,13 +7,9 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
-// Trimmed to 4 top-level tabs. Sub-pages (Timer, Tasks, Rooms, Profile)
-// are still reachable by deep link or from inside the tabs they belong to.
-const dashboardLinks = [
-  { label: "Home", href: "/dashboard" },
-  { label: "Stats", href: "/dashboard/stats" },
-  { label: "Shop", href: "/dashboard/rewards" }
-];
+// Top nav tabs are intentionally minimal: the StudyPuff wordmark links
+// home, the coin pill opens the Shop, and the in-timer chart icon opens
+// the Stats overlay — so we don't double-up with redundant tabs.
 
 export async function DashboardShell({
   children,
@@ -77,15 +73,6 @@ export async function DashboardShell({
             </Link>
           </div>
           <nav className="flex flex-wrap items-center gap-3 text-sm">
-            {dashboardLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="nav-link text-ink-700 hover:text-ink-900"
-              >
-                {link.label}
-              </Link>
-            ))}
             {isAdmin && (
               <Link href="/admin" className="nav-link text-ink-700">
                 Admin

@@ -84,26 +84,14 @@ type Props = {
   rewards?: RewardsContentProps;
 };
 
-type ModalKey = "tasks" | "rooms" | "settings" | "stats" | "rewards" | "profile" | null;
+type ModalKey = "rooms" | "settings" | "stats" | "rewards" | "profile" | null;
 
 export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
   const [currentTaskId, setCurrentTaskId] = useState<string>("");
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
-  // Tasks live in a popup by default — the dashboard stays calm and
-  // timer-focused. Power users can pin them to the side via the panel close
-  // button (state restored from localStorage).
-  const [tasksPinned, setTasksPinned] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem("studypuff:tasks-pinned");
-      if (raw === "true") setTasksPinned(true);
-    } catch { /* ignore */ }
-  }, []);
 
   // Open the profile popup when the header avatar fires the event.
   useEffect(() => {
@@ -112,14 +100,6 @@ export function DashboardActions(props: Props) {
     window.addEventListener(PROFILE_OPEN_EVENT, handler);
     return () => window.removeEventListener(PROFILE_OPEN_EVENT, handler);
   }, []);
-
-  const setTasksPinnedPersist = (next: boolean) => {
-    setTasksPinned(next);
-    if (typeof window !== "undefined") {
-      try { window.localStorage.setItem("studypuff:tasks-pinned", String(next)); }
-      catch { /* ignore */ }
-    }
-  };
   const defaultSound = props.equippedSound ?? "sound-lofi";
   const [soundsByMode, setSoundsByMode] = useState<Record<TimerSoundMode, string | null>>({
     focus: defaultSound,
@@ -187,17 +167,13 @@ export function DashboardActions(props: Props) {
       <div className="bg-paper-grain relative pb-28">
         <LeavesAccent />
 
-        {/* Tasks LEFT (when pinned), timer CENTER */}
-        <div
-          className={`grid grid-cols-1 gap-y-12 ${
-            tasksPinned
-              ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]"
-              : "lg:grid-cols-1 lg:place-items-center"
-          }`}
-        >
-          {/* Pinned tasks panel — LEFT (mobile: 2nd, lg: 1st) */}
-          {tasksPinned && (
-            <div className="order-2 lg:order-1 lg:max-w-[640px]">
+        {/* Permanent left sidebar (Topics & Tasks) + centered timer */}
+        <div className="grid grid-cols-1 gap-y-10 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-x-12">
+          <aside className="order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
+            <div className="rounded-3xl bg-cream-50/55 p-5 ring-1 ring-ink-900/10 backdrop-blur-sm">
+              <p className="mb-4 px-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-ink-700">
+                Topics &amp; Tasks
+              </p>
               <TaskPanel
                 tasks={props.tasks.map((t) => ({
                   id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
@@ -213,16 +189,12 @@ export function DashboardActions(props: Props) {
                 onToggleTask={toggleTaskAction}
                 onDeleteTask={deleteTaskAction}
                 onDeleteTopic={deleteTopicAction}
-                onClose={() => setTasksPinnedPersist(false)}
+                compact
               />
             </div>
-          )}
+          </aside>
 
-          {/* Timer — RIGHT (when pinned) or CENTER (default) */}
-          <div className={tasksPinned
-            ? "order-1 lg:order-2 lg:sticky lg:top-8 lg:self-start"
-            : "order-1 lg:max-w-[680px]"
-          }>
+          <div className="order-1 lg:order-2 lg:place-self-center">
             <div className="journal-rise jrise-2">
               <TimerCircle
                 focusMinutes={props.settings?.focus_minutes ?? 25}
@@ -240,9 +212,7 @@ export function DashboardActions(props: Props) {
                 equippedAccessory={props.equippedAccessory}
                 onSettingsClick={() => setOpen("settings")}
                 onRoomsClick={() => setOpen("rooms")}
-                onTasksClick={tasksPinned ? undefined : () => setOpen("tasks")}
                 onStatsClick={props.stats ? () => setOpen("stats") : undefined}
-                onRewardsClick={props.rewards ? () => setOpen("rewards") : undefined}
                 onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
                 weekly={props.stats?.last7}
               />
@@ -261,45 +231,6 @@ export function DashboardActions(props: Props) {
         soundsByMode={soundsByMode}
         onSelectForMode={handleSelectSoundForMode}
       />
-
-      {/* Tasks dialog — the rich diagram view */}
-      <Dialog
-        open={open === "tasks"}
-        onClose={close}
-        title="Topics & tasks"
-        description="A small map of what you're working on. Click a topic or task to focus on it."
-        size="lg"
-      >
-        <div className="-mt-2">
-          <TaskPanel
-            compact
-            tasks={props.tasks.map((t) => ({
-              id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
-            }))}
-            topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-            todayMinutes={props.todayMinutes}
-            currentTaskId={currentTaskId}
-            currentTopicId={currentTopicId}
-            onSelectTask={handleSelectTask}
-            onSelectTopic={handleSelectTopic}
-            onCreateTask={createTaskAction}
-            onCreateTopic={createTopicAction}
-            onToggleTask={toggleTaskAction}
-            onDeleteTask={deleteTaskAction}
-            onDeleteTopic={deleteTopicAction}
-          />
-
-          <div className="mt-6 flex items-center justify-end border-t border-ink-900/10 pt-4">
-            <button
-              type="button"
-              onClick={() => { setTasksPinnedPersist(true); close(); }}
-              className="font-display text-xs italic uppercase tracking-[0.22em] text-ink-700 underline-offset-4 hover:text-ink-900 hover:underline"
-            >
-              Pin to side panel →
-            </button>
-          </div>
-        </div>
-      </Dialog>
 
       {/* Rooms dialog */}
       <Dialog

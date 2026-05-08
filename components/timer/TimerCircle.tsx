@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Settings as SettingsIcon, Users, BarChart3,
-  RotateCcw, Play, Pause, ListTree, type LucideIcon
+  Settings as SettingsIcon, DoorOpen, BarChart3,
+  RotateCcw, Play, Pause, type LucideIcon
 } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
@@ -28,8 +28,6 @@ type Props = {
   onSettingsClick?: () => void;
   onRoomsClick?: () => void;
   onStatsClick?: () => void;
-  onRewardsClick?: () => void;
-  onTasksClick?: () => void;
   onModeChange?: (mode: StudyMode) => void;
   /** Last 7 days in chronological order, ending today. Used for the dashboard sparkline. */
   weekly?: { date: string; minutes: number }[];
@@ -48,7 +46,7 @@ export function TimerCircle({
   tasks, topics, taskId, topicId,
   running, onRunningChange,
   onComplete, equippedAccessory,
-  onSettingsClick, onRoomsClick, onStatsClick, onRewardsClick, onTasksClick, onModeChange,
+  onSettingsClick, onRoomsClick, onStatsClick, onModeChange,
   weekly
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
@@ -151,17 +149,16 @@ export function TimerCircle({
 
   return (
     <div className="relative flex flex-col items-center text-ink-900">
-      {/* Top utility row — clustered pill, no full-width spread */}
-      <div className="mb-5 flex items-center gap-1 rounded-full bg-cream-50/45 p-1 ring-1 ring-ink-900/10 backdrop-blur-sm">
-        {onTasksClick && <IconButton Icon={ListTree} label="Tasks" onClick={onTasksClick} />}
-        {onRoomsClick && <IconButton Icon={Users} label="Study rooms" onClick={onRoomsClick} />}
+      {/* Top utility row — labeled pills so each affordance is unambiguous */}
+      <div className="mb-5 flex items-center gap-1 rounded-full bg-cream-50/55 p-1 ring-1 ring-ink-900/10 backdrop-blur-sm">
+        {onRoomsClick && <PillButton Icon={DoorOpen} label="Rooms" onClick={onRoomsClick} />}
         {onStatsClick ? (
-          <IconButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
+          <PillButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
         ) : (
-          <IconButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
+          <PillButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
         )}
         {onSettingsClick && (
-          <IconButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
+          <PillButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
         )}
       </div>
 
@@ -331,21 +328,27 @@ function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }
   );
 }
 
-function IconButton({ Icon, label, onClick, href }: {
+function PillButton({ Icon, label, onClick, href }: {
   Icon: LucideIcon; label: string; onClick?: () => void; href?: string;
 }) {
   const cls =
-    "flex h-9 w-9 items-center justify-center rounded-full text-ink-900/70 transition hover:-translate-y-0.5 hover:bg-cream-50/60 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
+    "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-display italic text-ink-900/75 transition hover:bg-cream-50/70 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
+  const inner = (
+    <>
+      <Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+      <span>{label}</span>
+    </>
+  );
   if (href) {
     return (
       <a href={href} className={cls} aria-label={label} title={label}>
-        <Icon className="h-4 w-4" strokeWidth={1.75} />
+        {inner}
       </a>
     );
   }
   return (
     <button type="button" onClick={onClick} className={cls} aria-label={label} title={label}>
-      <Icon className="h-4 w-4" strokeWidth={1.75} />
+      {inner}
     </button>
   );
 }
