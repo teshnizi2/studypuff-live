@@ -119,67 +119,53 @@ function Column({
     setEditing(false);
   };
 
-  // Toggling between a <button> and an <input> caused a small height shift
-  // because of UA-stylesheet differences (different default padding/border).
-  // We solve that by giving the wrapper a fixed size via an invisible
-  // spacer "00" and absolute-positioning the actual control inside, so the
-  // wrapper's outer box never changes regardless of edit state.
-  const sharedCls =
-    "absolute inset-0 m-0 box-border flex items-center justify-center rounded-lg border-2 border-transparent bg-transparent p-0 text-center font-display text-[inherit] italic leading-[1] tabular-nums text-ink-900 outline-none appearance-none";
+  // Render a single <input> for both display and edit. We toggle readOnly
+  // instead of swapping element types — that way the box dimensions are
+  // identical between states and clicking the digit can't reflow the page.
+  const value = editing ? draft : String(current).padStart(2, "0");
 
   return (
     <div
-      className="relative inline-flex items-center justify-center text-[clamp(3rem,6.5vw,5rem)]"
+      className="relative inline-block"
       onWheel={onWheel}
       role="spinbutton"
       aria-label={ariaLabel}
       aria-valuenow={current}
     >
-      {/* Invisible spacer establishes the box height + width. The
-          button/input below absolute-fill it, so swapping never reflows. */}
-      <span
-        aria-hidden
-        className="invisible block w-[1.7em] px-1 text-center font-display italic leading-[1] tabular-nums"
-      >
-        00
-      </span>
-
-      {editing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          value={draft}
-          onChange={(e) => {
-            const v = e.target.value.replace(/[^0-9]/g, "").slice(0, String(max).length);
-            setDraft(v);
-          }}
-          onBlur={() => finish(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              finish(true);
-            } else if (e.key === "Escape") {
-              e.preventDefault();
-              finish(false);
-            }
-          }}
-          aria-label={`edit ${ariaLabel}`}
-          className={`${sharedCls} border-b-emerald-700/55 focus:border-b-emerald-700/85`}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={startEdit}
-          disabled={disabled}
-          aria-label={`edit ${ariaLabel}, currently ${current}`}
-          title="Click to type, scroll to adjust"
-          className={`${sharedCls} transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
-        >
-          {String(current).padStart(2, "0")}
-        </button>
-      )}
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value}
+        readOnly={!editing || disabled}
+        disabled={disabled}
+        onClick={() => { if (!editing) startEdit(); }}
+        onChange={(e) => {
+          const v = e.target.value.replace(/[^0-9]/g, "").slice(0, String(max).length);
+          setDraft(v);
+        }}
+        onBlur={() => { if (editing) finish(true); }}
+        onKeyDown={(e) => {
+          if (!editing) return;
+          if (e.key === "Enter") {
+            e.preventDefault();
+            finish(true);
+            (e.target as HTMLInputElement).blur();
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            finish(false);
+            (e.target as HTMLInputElement).blur();
+          }
+        }}
+        aria-label={editing ? `edit ${ariaLabel}` : `edit ${ariaLabel}, currently ${current}`}
+        title="Click to type, scroll to adjust"
+        className={`m-0 box-border w-[1.7em] cursor-pointer rounded-lg border-2 border-transparent bg-transparent p-0 text-center font-display text-[clamp(3rem,6.5vw,5rem)] italic leading-[1] tabular-nums text-ink-900 outline-none appearance-none transition ${
+          editing
+            ? "cursor-text border-b-emerald-700/55"
+            : "hover:bg-ink-900/[0.04]"
+        } disabled:cursor-not-allowed disabled:hover:bg-transparent`}
+      />
     </div>
   );
 }
