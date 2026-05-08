@@ -119,7 +119,8 @@ export default async function DashboardPage() {
             text: t.text,
             done: t.done,
             priority: t.priority,
-            topic_id: t.topic_id
+            topic_id: t.topic_id,
+            due_date: t.due_date
           }))}
           topics={workspace.topics.map((t) => ({ id: t.id, name: t.name }))}
           rooms={myRooms.map((r) => ({

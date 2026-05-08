@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PanelLeftOpen } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
@@ -16,6 +17,7 @@ import {
   deleteTaskAction,
   deleteTopicAction,
   toggleTaskAction,
+  updateTaskAction,
   updateProfileAction,
   updateSettingsAction,
   uploadAvatarAction,
@@ -23,12 +25,15 @@ import {
 } from "@/lib/app-data/actions";
 import { joinRoomAction, leaveRoomAction } from "@/lib/app-data/rooms";
 
+type TaskPriority = "low" | "normal" | "high";
+
 type TaskRow = {
   id: string;
   text: string;
   done: boolean;
-  priority: string;
+  priority: TaskPriority;
   topic_id: string | null;
+  due_date: string | null;
 };
 
 type TopicRow = { id: string; name: string };
@@ -92,6 +97,25 @@ export function DashboardActions(props: Props) {
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
+  const [sidebarHidden, setSidebarHidden] = useState(false);
+
+  // Restore sidebar hidden state from localStorage so focus mode persists.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (window.localStorage.getItem("studypuff:sidebar-hidden") === "true") {
+        setSidebarHidden(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const setSidebarHiddenPersist = (next: boolean) => {
+    setSidebarHidden(next);
+    if (typeof window !== "undefined") {
+      try { window.localStorage.setItem("studypuff:sidebar-hidden", String(next)); }
+      catch { /* ignore */ }
+    }
+  };
 
   // Open the profile popup when the header avatar fires the event.
   useEffect(() => {
@@ -167,34 +191,46 @@ export function DashboardActions(props: Props) {
       <div className="bg-paper-grain relative pb-28">
         <LeavesAccent />
 
-        {/* Permanent left sidebar (Topics & Tasks) + centered timer */}
-        <div className="grid grid-cols-1 gap-y-10 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-x-12">
-          <aside className="order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
-            <div className="rounded-3xl bg-cream-50/55 p-5 ring-1 ring-ink-900/10 backdrop-blur-sm">
-              <p className="mb-4 px-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-ink-700">
-                Topics &amp; Tasks
-              </p>
-              <TaskPanel
-                tasks={props.tasks.map((t) => ({
-                  id: t.id, text: t.text, done: t.done, topic_id: t.topic_id
-                }))}
-                topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
-                todayMinutes={props.todayMinutes}
-                currentTaskId={currentTaskId}
-                currentTopicId={currentTopicId}
-                onSelectTask={handleSelectTask}
-                onSelectTopic={handleSelectTopic}
-                onCreateTask={createTaskAction}
-                onCreateTopic={createTopicAction}
-                onToggleTask={toggleTaskAction}
-                onDeleteTask={deleteTaskAction}
-                onDeleteTopic={deleteTopicAction}
-                compact
-              />
-            </div>
-          </aside>
+        {/* Permanent left sidebar (Topics & Tasks) + centered timer.
+            When the sidebar is hidden the grid collapses to a single column
+            and a small "show tasks" tab floats on the left edge. */}
+        <div
+          className={`grid grid-cols-1 gap-y-10 ${
+            sidebarHidden
+              ? "lg:grid-cols-1 lg:place-items-center"
+              : "lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-x-12"
+          }`}
+        >
+          {!sidebarHidden && (
+            <aside className="order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2">
+              <div className="rounded-3xl bg-cream-50/55 p-4 ring-1 ring-ink-900/10 backdrop-blur-sm">
+                <TaskPanel
+                  tasks={props.tasks.map((t) => ({
+                    id: t.id,
+                    text: t.text,
+                    done: t.done,
+                    topic_id: t.topic_id,
+                    priority: t.priority,
+                    due_date: t.due_date
+                  }))}
+                  topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+                  currentTaskId={currentTaskId}
+                  currentTopicId={currentTopicId}
+                  onSelectTask={handleSelectTask}
+                  onSelectTopic={handleSelectTopic}
+                  onCreateTask={createTaskAction}
+                  onCreateTopic={createTopicAction}
+                  onToggleTask={toggleTaskAction}
+                  onDeleteTask={deleteTaskAction}
+                  onDeleteTopic={deleteTopicAction}
+                  onUpdateTask={updateTaskAction}
+                  onHide={() => setSidebarHiddenPersist(true)}
+                />
+              </div>
+            </aside>
+          )}
 
-          <div className="order-1 lg:order-2 lg:place-self-center">
+          <div className={`order-1 ${sidebarHidden ? "" : "lg:order-2"} lg:place-self-center`}>
             <div className="journal-rise jrise-2">
               <TimerCircle
                 focusMinutes={props.settings?.focus_minutes ?? 25}
@@ -221,7 +257,22 @@ export function DashboardActions(props: Props) {
         </div>
       </div>
 
-      {/* Floating sound dock — bottom center, persistent */}
+      {/* "Show tasks" tab — only visible when sidebar is hidden, anchored
+          to the left edge so the timer keeps the spotlight during focus. */}
+      {sidebarHidden && (
+        <button
+          type="button"
+          onClick={() => setSidebarHiddenPersist(false)}
+          aria-label="Show tasks"
+          title="Show tasks"
+          className="fixed left-4 top-32 z-30 flex items-center gap-2 rounded-full bg-cream-50/85 px-3 py-2 text-xs font-display italic text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur-md transition hover:-translate-y-0.5"
+        >
+          <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+          Tasks
+        </button>
+      )}
+
+      {/* Floating sound dock — bottom right, persistent */}
       <SoundDock
         sound={sound}
         playing={running && !!sound}

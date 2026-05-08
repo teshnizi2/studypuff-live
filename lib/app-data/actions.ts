@@ -203,6 +203,42 @@ export async function toggleTaskAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+// Updates editable task fields. All fields are optional — the FormData only
+// needs to carry the keys that changed.
+export async function updateTaskAction(formData: FormData) {
+  const { user } = await requireUser();
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const updates: { text?: string; priority?: TaskPriority; due_date?: string | null } = {};
+
+  if (formData.has("text")) {
+    const text = stringValue(formData, "text");
+    if (text) updates.text = text;
+  }
+
+  if (formData.has("priority")) {
+    const priority = stringValue(formData, "priority");
+    if (priority === "low" || priority === "normal" || priority === "high") {
+      updates.priority = priority as TaskPriority;
+    }
+  }
+
+  // due_date: empty string clears it; missing key leaves it untouched
+  if (formData.has("due_date")) {
+    const due = stringValue(formData, "due_date");
+    updates.due_date = due ? due : null;
+  }
+
+  if (Object.keys(updates).length === 0) return;
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("tasks").update(updates).eq("id", id).eq("user_id", user.id);
+
+  revalidatePath("/dashboard/tasks");
+  revalidatePath("/dashboard");
+}
+
 export async function addStudySessionAction(formData: FormData) {
   const { user } = await requireUser();
   const minutes = numberValue(formData, "minutes", 25);

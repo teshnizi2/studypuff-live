@@ -2,16 +2,26 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, Trash2, X, Minus, PanelLeftClose } from "lucide-react";
-import { Squiggle } from "./Squiggle";
+import {
+  Plus, Trash2, X, ChevronRight, Loader2,
+  PanelLeftClose, Calendar, Flag
+} from "lucide-react";
 
-type Task = { id: string; text: string; done: boolean; topic_id: string | null };
+type TaskPriority = "low" | "normal" | "high";
+
+type Task = {
+  id: string;
+  text: string;
+  done: boolean;
+  topic_id: string | null;
+  priority: TaskPriority;
+  due_date: string | null;
+};
 type Topic = { id: string; name: string };
 
 type Props = {
   tasks: Task[];
   topics: Topic[];
-  todayMinutes: number;
   currentTaskId: string;
   currentTopicId: string;
   onSelectTask: (taskId: string, topicId: string) => void;
@@ -21,190 +31,231 @@ type Props = {
   onToggleTask: (form: FormData) => Promise<void>;
   onDeleteTask: (form: FormData) => Promise<void>;
   onDeleteTopic?: (form: FormData) => Promise<void>;
-  onClose?: () => void;
-  // Compact mode = inside a popup. Drops the giant "today" header,
-  // tighter spacing, and a smaller "currently studying" callout.
-  compact?: boolean;
+  onUpdateTask?: (form: FormData) => Promise<void>;
+  onHide?: () => void;
 };
+
+const PRIORITY_NEXT: Record<TaskPriority, TaskPriority> = {
+  low: "normal",
+  normal: "high",
+  high: "low"
+};
+
+const PRIORITY_LABEL: Record<TaskPriority, string> = {
+  low: "Low priority",
+  normal: "Normal priority",
+  high: "High priority"
+};
+
+function tempId() {
+  return `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
 
 export function TaskPanel(p: Props) {
   const router = useRouter();
-  const [pending, startPending] = useTransition();
+  const [, startTransition] = useTransition();
+
+  // Local mirror — re-syncs when server data refreshes (after revalidatePath).
+  const [tasks, setTasks] = useState<Task[]>(p.tasks);
+  const [topics, setTopics] = useState<Topic[]>(p.topics);
+  useEffect(() => { setTasks(p.tasks); }, [p.tasks]);
+  useEffect(() => { setTopics(p.topics); }, [p.topics]);
 
   const [newTopicName, setNewTopicName] = useState("");
-  const [addingToTopic, setAddingToTopic] = useState<string | null>(null);
-  const [newTaskText, setNewTaskText] = useState("");
+  const [addingTopicTaskTexts, setAddingTopicTaskTexts] = useState<Record<string, string>>({});
   const [collapsedTopics, setCollapsedTopics] = useState<Set<string>>(new Set());
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [confirmingDeleteTopic, setConfirmingDeleteTopic] = useState<string | null>(null);
+  const [savingTopic, setSavingTopic] = useState(false);
 
-  const [pendingTopicName, setPendingTopicName] = useState<string | null>(null);
-  const [pendingTaskText, setPendingTaskText] = useState<string | null>(null);
+  const currentTask = tasks.find((t) => t.id === p.currentTaskId);
+  const currentTopic = topics.find((t) => t.id === p.currentTopicId);
+  const untopiced = tasks.filter((t) => !t.topic_id);
 
-  useEffect(() => {
-    if (!pendingTopicName) return;
-    const found = p.topics.find((t) => t.name === pendingTopicName);
-    if (found) {
-      p.onSelectTopic(found.id);
-      setPendingTopicName(null);
-    }
-  }, [p, pendingTopicName]);
+  // ---------------- handlers (all optimistic) ----------------
 
-  useEffect(() => {
-    if (!pendingTaskText) return;
-    const found = p.tasks.find((t) => t.text === pendingTaskText);
-    if (found) {
-      p.onSelectTask(found.id, found.topic_id || "");
-      setPendingTaskText(null);
-    }
-  }, [p, pendingTaskText]);
-
-  const openCount = p.tasks.filter((t) => !t.done).length;
-  const doneCount = p.tasks.filter((t) => t.done).length;
-  const untopiced = p.tasks.filter((t) => !t.topic_id);
-  const currentTask  = p.tasks.find((t) => t.id === p.currentTaskId);
-  const currentTopic = p.topics.find((t) => t.id === p.currentTopicId);
+  const optimisticAdd = (newTask: Task) => setTasks((cur) => [...cur, newTask]);
+  const optimisticReplace = (id: string, patch: Partial<Task>) =>
+    setTasks((cur) => cur.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const optimisticRemove = (id: string) => setTasks((cur) => cur.filter((t) => t.id !== id));
 
   const handleCreateTopic = () => {
-    if (!newTopicName.trim()) return;
     const name = newTopicName.trim();
-    setPendingTopicName(name);
-    startPending(async () => {
+    if (!name || savingTopic) return;
+    setSavingTopic(true);
+    const tmp: Topic = { id: tempId(), name };
+    setTopics((cur) => [...cur, tmp]);
+    setNewTopicName("");
+    startTransition(async () => {
       const fd = new FormData();
       fd.set("name", name);
-      try { await p.onCreateTopic(fd); setNewTopicName(""); router.refresh(); }
-      catch (err) { console.error(err); setPendingTopicName(null); }
+      try {
+        await p.onCreateTopic(fd);
+        router.refresh();
+      } catch (e) {
+        console.error(e);
+        setTopics((cur) => cur.filter((t) => t.id !== tmp.id));
+      } finally {
+        setSavingTopic(false);
+      }
     });
   };
 
   const handleCreateTask = (topicId: string | null) => {
-    if (!newTaskText.trim()) return;
-    const text = newTaskText.trim();
-    setPendingTaskText(text);
-    startPending(async () => {
+    const key = topicId ?? "__none__";
+    const text = (addingTopicTaskTexts[key] || "").trim();
+    if (!text) return;
+    const tmp: Task = {
+      id: tempId(), text, done: false, topic_id: topicId,
+      priority: "normal", due_date: null
+    };
+    optimisticAdd(tmp);
+    setAddingTopicTaskTexts((prev) => ({ ...prev, [key]: "" }));
+    startTransition(async () => {
       const fd = new FormData();
       fd.set("text", text);
       fd.set("priority", "normal");
       if (topicId) fd.set("topic_id", topicId);
-      try { await p.onCreateTask(fd); setNewTaskText(""); setAddingToTopic(null); router.refresh(); }
-      catch (err) { console.error(err); setPendingTaskText(null); }
+      try {
+        await p.onCreateTask(fd);
+        router.refresh();
+      } catch (e) {
+        console.error(e);
+        optimisticRemove(tmp.id);
+      }
     });
   };
 
-  const handleToggle = (taskId: string) => {
-    startPending(async () => {
+  const handleToggle = (task: Task) => {
+    optimisticReplace(task.id, { done: !task.done });
+    startTransition(async () => {
       const fd = new FormData();
-      fd.set("id", taskId);
-      try { await p.onToggleTask(fd); router.refresh(); } catch (err) { console.error(err); }
+      fd.set("id", task.id);
+      fd.set("done", String(task.done));
+      try {
+        await p.onToggleTask(fd);
+        router.refresh();
+      } catch (e) {
+        console.error(e);
+        optimisticReplace(task.id, { done: task.done });
+      }
     });
   };
 
   const handleDelete = (taskId: string) => {
-    startPending(async () => {
+    const before = tasks.find((t) => t.id === taskId);
+    optimisticRemove(taskId);
+    if (taskId === p.currentTaskId) p.onSelectTask("", "");
+    startTransition(async () => {
       const fd = new FormData();
       fd.set("id", taskId);
       try {
         await p.onDeleteTask(fd);
-        if (taskId === p.currentTaskId) p.onSelectTask("", "");
         router.refresh();
-      } catch (err) { console.error(err); }
+      } catch (e) {
+        console.error(e);
+        if (before) optimisticAdd(before);
+      }
     });
   };
 
   const handleDeleteTopic = (topicId: string) => {
     const onDeleteTopic = p.onDeleteTopic;
     if (!onDeleteTopic) return;
+    const before = topics.find((t) => t.id === topicId);
+    setTopics((cur) => cur.filter((t) => t.id !== topicId));
     setConfirmingDeleteTopic(null);
-    startPending(async () => {
+    if (topicId === p.currentTopicId) p.onSelectTopic("");
+    startTransition(async () => {
       const fd = new FormData();
       fd.set("id", topicId);
       try {
         await onDeleteTopic(fd);
-        if (topicId === p.currentTopicId) p.onSelectTopic("");
         router.refresh();
-      } catch (err) { console.error(err); }
+      } catch (e) {
+        console.error(e);
+        if (before) setTopics((cur) => [...cur, before]);
+      }
     });
   };
 
-  const toggleCollapse = (id: string) => {
+  const cyclePriority = (task: Task) => {
+    if (!p.onUpdateTask) return;
+    const next = PRIORITY_NEXT[task.priority];
+    optimisticReplace(task.id, { priority: next });
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", task.id);
+      fd.set("priority", next);
+      try { await p.onUpdateTask!(fd); router.refresh(); }
+      catch (e) { console.error(e); optimisticReplace(task.id, { priority: task.priority }); }
+    });
+  };
+
+  const updateDueDate = (task: Task, due: string) => {
+    if (!p.onUpdateTask) return;
+    optimisticReplace(task.id, { due_date: due || null });
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", task.id);
+      fd.set("due_date", due);
+      try { await p.onUpdateTask!(fd); router.refresh(); }
+      catch (e) { console.error(e); optimisticReplace(task.id, { due_date: task.due_date }); }
+    });
+  };
+
+  const updateText = (task: Task, text: string) => {
+    if (!p.onUpdateTask) return;
+    if (!text.trim() || text === task.text) return;
+    optimisticReplace(task.id, { text });
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", task.id);
+      fd.set("text", text);
+      try { await p.onUpdateTask!(fd); router.refresh(); }
+      catch (e) { console.error(e); optimisticReplace(task.id, { text: task.text }); }
+    });
+  };
+
+  const toggleTopicCollapse = (id: string) => {
     setCollapsedTopics((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
 
-  const hours = Math.floor(p.todayMinutes / 60);
-  const mins = p.todayMinutes % 60;
+  // ---------------- render ----------------
 
   return (
-    <div className={`relative flex flex-col ${p.compact ? "gap-5" : "gap-7"}`}>
-      {/* Close button — top right (pinned mode only) */}
-      {p.onClose && (
-        <button
-          type="button"
-          onClick={p.onClose}
-          aria-label="Hide tasks"
-          title="Hide tasks"
-          className="absolute right-0 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full text-ink-900/55 transition hover:bg-cream-50/60 hover:text-ink-900"
-        >
-          <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-      )}
-
-      {/* Today header — only in pinned mode */}
-      {!p.compact && (
-        <>
-          <header className="journal-rise jrise-1 pr-12">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-ink-700">today</p>
-            <h2 className="mt-3 font-display text-[clamp(2.25rem,3.6vw,3.5rem)] leading-[1.05] text-ink-900">
-              {p.todayMinutes > 0 ? (
-                <>
-                  <em className="italic">
-                    {hours > 0 && <>{hours}h </>}
-                    {mins}m
-                  </em>
-                  <span className="text-ink-700"> of focus,</span>
-                  <br />
-                  <em className="italic">{doneCount}</em>
-                  <span className="text-ink-700"> task{doneCount === 1 ? "" : "s"} done.</span>
-                </>
-              ) : (
-                <>
-                  <em className="italic">A fresh page.</em>
-                  <br />
-                  <span className="text-ink-700">
-                    {openCount} task{openCount === 1 ? "" : "s"} ahead.
-                  </span>
-                </>
-              )}
-            </h2>
-          </header>
-
-          <Squiggle className="journal-rise jrise-2" />
-        </>
-      )}
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-ink-700">
+          Topics &amp; Tasks
+        </p>
+        {p.onHide && (
+          <button
+            type="button"
+            onClick={p.onHide}
+            aria-label="Hide tasks"
+            title="Hide tasks (focus mode)"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-900/55 transition hover:bg-cream-50/70 hover:text-ink-900"
+          >
+            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.75} />
+          </button>
+        )}
+      </div>
 
       {/* Currently studying */}
       {(currentTask || currentTopic) && (
-        <section className="relative rounded-2xl bg-cream-50/60 px-4 py-3 ring-1 ring-emerald-700/20">
+        <section className="rounded-2xl bg-emerald-700/[0.07] px-3 py-2.5 ring-1 ring-emerald-700/25">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.32em] text-emerald-800">
-                Currently studying
+              <p className="text-[9px] uppercase tracking-[0.28em] text-emerald-800">Studying</p>
+              <p className="mt-1 truncate font-display text-sm italic text-ink-900">
+                {currentTask?.text || currentTopic?.name}
               </p>
-              {currentTask ? (
-                <p className="mt-1.5 truncate font-display text-lg italic text-ink-900">
-                  {currentTask.text}
-                </p>
-              ) : (
-                <p className="mt-1.5 truncate font-display text-lg italic text-ink-900">
-                  {currentTopic?.name}
-                </p>
-              )}
-              {currentTask && currentTopic && (
-                <p className="mt-0.5 text-xs italic text-ink-700">in {currentTopic.name}</p>
-              )}
             </div>
             <button
               type="button"
@@ -217,162 +268,153 @@ export function TaskPanel(p: Props) {
         </section>
       )}
 
-      {!p.compact && <Squiggle className="journal-rise jrise-3" />}
-
       {/* Topics */}
-      <section className={p.compact ? "" : "journal-rise jrise-3"}>
-        {!p.compact && (
-          <p className="mb-5 text-[10px] uppercase tracking-[0.4em] text-ink-700">topics & tasks</p>
-        )}
-
-        {p.topics.length === 0 && untopiced.length === 0 ? (
-          <p className="text-base italic text-ink-700">
-            No topics yet — start with one below, like <em>&ldquo;English Literature&rdquo;</em> or <em>&ldquo;Calculus.&rdquo;</em>
+      <div className="flex flex-col gap-5">
+        {topics.length === 0 && untopiced.length === 0 ? (
+          <p className="px-1 text-sm italic text-ink-700">
+            No topics yet — start with one below, like <em>&ldquo;English Lit.&rdquo;</em>
           </p>
         ) : (
-          <div className="flex flex-col gap-7">
-            {p.topics.map((topic) => (
+          <>
+            {topics.map((topic) => (
               <TopicSection
                 key={topic.id}
                 topic={topic}
-                tasks={p.tasks.filter((t) => t.topic_id === topic.id)}
+                tasks={tasks.filter((t) => t.topic_id === topic.id)}
                 isCurrent={topic.id === p.currentTopicId}
                 currentTaskId={p.currentTaskId}
+                expandedTaskId={expandedTaskId}
                 collapsed={collapsedTopics.has(topic.id)}
-                isAddingHere={addingToTopic === topic.id}
-                newTaskText={newTaskText}
-                pending={pending}
                 confirmingDelete={confirmingDeleteTopic === topic.id}
+                addingText={addingTopicTaskTexts[topic.id] || ""}
+                onAddingTextChange={(v) => setAddingTopicTaskTexts((prev) => ({ ...prev, [topic.id]: v }))}
                 onSelectTopic={() => p.onSelectTopic(topic.id)}
                 onSelectTask={(tid) => p.onSelectTask(tid, topic.id)}
                 onToggle={handleToggle}
                 onDelete={handleDelete}
-                onDeleteTopicConfirm={() => handleDeleteTopic(topic.id)}
-                onAskDeleteTopic={() => setConfirmingDeleteTopic(topic.id)}
-                onCancelDeleteTopic={() => setConfirmingDeleteTopic(null)}
-                onCollapse={() => toggleCollapse(topic.id)}
-                onStartAdd={() => { setAddingToTopic(addingToTopic === topic.id ? null : topic.id); setNewTaskText(""); }}
-                setNewTaskText={setNewTaskText}
-                handleCreateTask={() => handleCreateTask(topic.id)}
-                cancelAdd={() => setAddingToTopic(null)}
+                onCyclePriority={cyclePriority}
+                onUpdateDue={updateDueDate}
+                onUpdateText={updateText}
+                onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
+                onCreateTask={() => handleCreateTask(topic.id)}
+                onCollapse={() => toggleTopicCollapse(topic.id)}
+                onAskDelete={() => setConfirmingDeleteTopic(topic.id)}
+                onCancelDelete={() => setConfirmingDeleteTopic(null)}
+                onConfirmDelete={() => handleDeleteTopic(topic.id)}
               />
             ))}
 
             {untopiced.length > 0 && (
               <TopicSection
-                key="untopiced"
+                key="__none__"
                 topic={null}
                 tasks={untopiced}
                 isCurrent={!p.currentTopicId && !!p.currentTaskId}
                 currentTaskId={p.currentTaskId}
-                collapsed={collapsedTopics.has("untopiced")}
-                isAddingHere={addingToTopic === "untopiced"}
-                newTaskText={newTaskText}
-                pending={pending}
+                expandedTaskId={expandedTaskId}
+                collapsed={collapsedTopics.has("__none__")}
                 confirmingDelete={false}
+                addingText={addingTopicTaskTexts["__none__"] || ""}
+                onAddingTextChange={(v) => setAddingTopicTaskTexts((prev) => ({ ...prev, __none__: v }))}
                 onSelectTopic={() => p.onSelectTopic("")}
                 onSelectTask={(tid) => p.onSelectTask(tid, "")}
                 onToggle={handleToggle}
                 onDelete={handleDelete}
-                onDeleteTopicConfirm={() => {}}
-                onAskDeleteTopic={() => {}}
-                onCancelDeleteTopic={() => {}}
-                onCollapse={() => toggleCollapse("untopiced")}
-                onStartAdd={() => { setAddingToTopic(addingToTopic === "untopiced" ? null : "untopiced"); setNewTaskText(""); }}
-                setNewTaskText={setNewTaskText}
-                handleCreateTask={() => handleCreateTask(null)}
-                cancelAdd={() => setAddingToTopic(null)}
+                onCyclePriority={cyclePriority}
+                onUpdateDue={updateDueDate}
+                onUpdateText={updateText}
+                onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
+                onCreateTask={() => handleCreateTask(null)}
+                onCollapse={() => toggleTopicCollapse("__none__")}
+                onAskDelete={() => {}}
+                onCancelDelete={() => {}}
+                onConfirmDelete={() => {}}
               />
             )}
-          </div>
+          </>
         )}
-      </section>
+      </div>
 
       {/* Add new topic */}
-      <section className="journal-rise jrise-4 mt-2">
-        <div className="flex items-baseline gap-3">
-          <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} />
-          <input
-            type="text"
-            value={newTopicName}
-            onChange={(e) => setNewTopicName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); handleCreateTopic(); }
-            }}
-            placeholder="new topic, like Cognitive Psychology"
-            disabled={pending}
-            className="flex-1 border-0 border-b border-dashed border-ink-900/20 bg-transparent pb-1 font-display text-base italic text-ink-900 outline-none placeholder:text-ink-700/55 focus:border-ink-900/45 disabled:opacity-50"
-          />
-          {newTopicName.trim() && (
-            <button
-              type="button"
-              onClick={handleCreateTopic}
-              disabled={pending}
-              className="font-display text-xs italic uppercase tracking-[0.2em] text-ink-900 underline-offset-4 hover:underline disabled:opacity-50"
-            >
-              {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "save"}
-            </button>
-          )}
-        </div>
-      </section>
+      <div className="mt-1 flex items-center gap-2 rounded-2xl bg-cream-50/60 px-3 py-2 ring-1 ring-ink-900/10">
+        <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} aria-hidden />
+        <input
+          type="text"
+          value={newTopicName}
+          onChange={(e) => setNewTopicName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); handleCreateTopic(); }
+          }}
+          placeholder="add topic"
+          className="flex-1 bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-700/60"
+        />
+        {newTopicName.trim() && (
+          <button
+            type="button"
+            onClick={handleCreateTopic}
+            disabled={savingTopic}
+            className="font-display text-[11px] italic uppercase tracking-[0.18em] text-emerald-800 underline-offset-4 hover:underline disabled:opacity-50"
+          >
+            {savingTopic ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "add"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
+// =================================================================
+
 function TopicSection({
-  topic, tasks, isCurrent, currentTaskId, collapsed, isAddingHere,
-  newTaskText, pending, confirmingDelete,
+  topic, tasks, isCurrent, currentTaskId, expandedTaskId,
+  collapsed, confirmingDelete, addingText,
+  onAddingTextChange,
   onSelectTopic, onSelectTask, onToggle, onDelete,
-  onDeleteTopicConfirm, onAskDeleteTopic, onCancelDeleteTopic,
-  onCollapse, onStartAdd, setNewTaskText, handleCreateTask, cancelAdd
+  onCyclePriority, onUpdateDue, onUpdateText,
+  onExpand, onCreateTask, onCollapse,
+  onAskDelete, onCancelDelete, onConfirmDelete
 }: {
   topic: Topic | null;
   tasks: Task[];
   isCurrent: boolean;
   currentTaskId: string;
+  expandedTaskId: string | null;
   collapsed: boolean;
-  isAddingHere: boolean;
-  newTaskText: string;
-  pending: boolean;
   confirmingDelete: boolean;
+  addingText: string;
+  onAddingTextChange: (v: string) => void;
   onSelectTopic: () => void;
   onSelectTask: (id: string) => void;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
-  onDeleteTopicConfirm: () => void;
-  onAskDeleteTopic: () => void;
-  onCancelDeleteTopic: () => void;
+  onToggle: (task: Task) => void;
+  onDelete: (taskId: string) => void;
+  onCyclePriority: (task: Task) => void;
+  onUpdateDue: (task: Task, value: string) => void;
+  onUpdateText: (task: Task, value: string) => void;
+  onExpand: (taskId: string) => void;
+  onCreateTask: () => void;
   onCollapse: () => void;
-  onStartAdd: () => void;
-  setNewTaskText: (s: string) => void;
-  handleCreateTask: () => void;
-  cancelAdd: () => void;
+  onAskDelete: () => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
 }) {
   const openCount = tasks.filter((t) => !t.done).length;
   const name = topic?.name || "No topic";
 
-  const hasChildren = !collapsed && (tasks.length > 0 || isAddingHere);
-
   return (
-    <div className="group/topic relative">
-      {/* Topic header — diagram node */}
-      <div className="relative flex items-center gap-3">
+    <section className="group/topic">
+      {/* Topic header */}
+      <header className="flex items-center gap-2">
         <button
           type="button"
           onClick={onCollapse}
-          className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition ${
-            isCurrent
-              ? "border-emerald-700 bg-emerald-700 text-cream-50"
-              : "border-ink-900/30 bg-cream-50 text-ink-900/55 hover:border-ink-900/60 hover:text-ink-900"
-          }`}
-          aria-label={collapsed ? "Expand" : "Collapse"}
+          aria-label={collapsed ? "Expand topic" : "Collapse topic"}
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-ink-900/45 transition hover:bg-cream-50/60 hover:text-ink-900"
         >
-          {collapsed
-            ? <Plus className="h-3.5 w-3.5" strokeWidth={2} />
-            : <Minus className="h-3.5 w-3.5" strokeWidth={2} />
-          }
+          <ChevronRight
+            className={`h-3.5 w-3.5 transition-transform ${collapsed ? "" : "rotate-90"}`}
+            strokeWidth={2}
+          />
         </button>
-
         <button
           type="button"
           onClick={onSelectTopic}
@@ -381,224 +423,284 @@ function TopicSection({
             isCurrent ? "text-ink-900" : "text-ink-900/85 hover:text-ink-900"
           }`}
         >
-          <span className="font-display text-xl italic">{name}</span>
-          <span className="text-[11px] italic text-ink-700">
-            {openCount > 0 ? `· ${openCount} open` : "· all clear"}
+          <span className="font-display text-base italic">{name}</span>
+          <span className="text-[10px] italic text-ink-700/70">
+            {openCount === 0 ? "all clear" : `${openCount} open`}
           </span>
         </button>
-
-        <button
-          type="button"
-          onClick={onStartAdd}
-          disabled={pending}
-          className="text-ink-900/55 transition hover:rotate-90 hover:text-ink-900"
-          aria-label="Add task"
-          title="Add task"
-        >
-          <Plus className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-
         {topic && (
           <button
             type="button"
-            onClick={onAskDeleteTopic}
-            disabled={pending}
-            className="text-ink-900/35 opacity-0 transition group-hover/topic:opacity-100 hover:text-rose-700"
+            onClick={onAskDelete}
+            className="opacity-0 transition group-hover/topic:opacity-100 text-ink-900/35 hover:text-rose-700"
             aria-label="Delete topic"
             title="Delete topic"
           >
             <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
         )}
-      </div>
+      </header>
 
       {confirmingDelete && (
-        <div className="animate-task-in mt-3 ml-10 flex items-center justify-between gap-3 text-sm text-rose-900/90">
-          <span className="italic">
-            delete <em className="font-semibold not-italic">{name}</em>? tasks fall back to no topic.
-          </span>
-          <span className="flex items-center gap-3 text-xs">
-            <button onClick={onCancelDeleteTopic} className="font-display italic text-ink-700 underline-offset-4 hover:text-ink-900 hover:underline">
-              cancel
-            </button>
-            <button
-              onClick={onDeleteTopicConfirm}
-              disabled={pending}
-              className="font-display italic uppercase tracking-[0.18em] text-rose-700 underline-offset-4 hover:underline disabled:opacity-50"
-            >
-              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "delete"}
-            </button>
+        <div className="mt-2 ml-7 flex items-center justify-between gap-3 rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-900/90">
+          <span className="italic">delete <em className="font-semibold not-italic">{name}</em>?</span>
+          <span className="flex gap-3">
+            <button onClick={onCancelDelete} className="italic text-ink-700 hover:text-ink-900">cancel</button>
+            <button onClick={onConfirmDelete} className="italic uppercase tracking-[0.16em] text-rose-700 underline-offset-4 hover:underline">delete</button>
           </span>
         </div>
       )}
 
-      {hasChildren && (
-        <div className="relative mt-1 pb-1">
-          <ul className="flex flex-col">
-            {tasks.length === 0 && !isAddingHere && (
-              <li className="ml-10 py-1 text-sm italic text-ink-700/70">No tasks yet.</li>
-            )}
-            {tasks.map((task, idx) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                isCurrent={task.id === currentTaskId}
-                pending={pending}
-                showTrunk={idx < tasks.length - 1 || isAddingHere}
-                onToggle={() => onToggle(task.id)}
-                onSelect={() => onSelectTask(task.id)}
-                onDelete={() => onDelete(task.id)}
-              />
-            ))}
+      {/* Tasks */}
+      {!collapsed && (
+        <ul className="mt-1.5 flex flex-col gap-0.5 pl-7">
+          {tasks.map((task) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              isCurrent={task.id === currentTaskId}
+              expanded={expandedTaskId === task.id}
+              onSelect={() => onSelectTask(task.id)}
+              onToggle={() => onToggle(task)}
+              onDelete={() => onDelete(task.id)}
+              onCyclePriority={() => onCyclePriority(task)}
+              onUpdateDue={(v) => onUpdateDue(task, v)}
+              onUpdateText={(v) => onUpdateText(task, v)}
+              onExpand={() => onExpand(task.id)}
+            />
+          ))}
 
-            {isAddingHere && (
-              <li className="animate-task-in relative flex items-center gap-3 pl-12 pt-2">
-                {/* Curved SVG connector */}
-                <svg
-                  aria-hidden
-                  className="absolute left-0 top-0 h-full w-12 overflow-visible"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M 14 0 V 18 Q 14 28 26 28"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    className="text-ink-900/20"
-                  />
-                </svg>
-                <Plus className="h-3.5 w-3.5 text-ink-700" strokeWidth={1.75} />
-                <input
-                  autoFocus
-                  type="text"
-                  value={newTaskText}
-                  onChange={(e) => setNewTaskText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); handleCreateTask(); }
-                    if (e.key === "Escape") cancelAdd();
-                  }}
-                  placeholder={`new task${topic ? ` in ${topic.name}` : ""}`}
-                  disabled={pending}
-                  className="flex-1 border-0 border-b border-dashed border-ink-900/20 bg-transparent pb-1 text-sm italic text-ink-900 outline-none placeholder:text-ink-700/55 focus:border-ink-900/45 disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={handleCreateTask}
-                  disabled={!newTaskText.trim() || pending}
-                  className="font-display text-xs italic uppercase tracking-[0.2em] text-ink-900 underline-offset-4 hover:underline disabled:opacity-50"
-                >
-                  {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "save"}
-                </button>
-                <button
-                  type="button"
-                  onClick={cancelAdd}
-                  className="text-ink-700/60 transition hover:text-ink-900"
-                  aria-label="Cancel"
-                >
-                  <X className="h-3.5 w-3.5" strokeWidth={1.75} />
-                </button>
-              </li>
+          {/* Always-visible add row at the BOTTOM of the topic */}
+          <li className="mt-1 flex items-center gap-2 rounded-lg px-2 py-1.5 ring-1 ring-transparent transition hover:ring-ink-900/10">
+            <Plus className="h-3.5 w-3.5 text-ink-700/70" strokeWidth={1.75} aria-hidden />
+            <input
+              type="text"
+              value={addingText}
+              onChange={(e) => onAddingTextChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); onCreateTask(); }
+                if (e.key === "Escape") onAddingTextChange("");
+              }}
+              placeholder="add task"
+              className="flex-1 bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-700/55"
+            />
+            {addingText.trim() && (
+              <button
+                type="button"
+                onClick={onCreateTask}
+                className="font-display text-[10px] italic uppercase tracking-[0.18em] text-emerald-800 underline-offset-4 hover:underline"
+              >
+                add
+              </button>
             )}
-          </ul>
-        </div>
+          </li>
+        </ul>
       )}
-    </div>
+    </section>
   );
 }
 
+// =================================================================
+
 function TaskRow({
-  task, isCurrent, pending, showTrunk, onToggle, onSelect, onDelete
+  task, isCurrent, expanded,
+  onSelect, onToggle, onDelete,
+  onCyclePriority, onUpdateDue, onUpdateText, onExpand
 }: {
   task: Task;
   isCurrent: boolean;
-  pending: boolean;
-  showTrunk: boolean;
-  onToggle: () => void;
+  expanded: boolean;
   onSelect: () => void;
+  onToggle: () => void;
   onDelete: () => void;
+  onCyclePriority: () => void;
+  onUpdateDue: (value: string) => void;
+  onUpdateText: (value: string) => void;
+  onExpand: () => void;
 }) {
+  const [editingText, setEditingText] = useState(false);
+  const [draft, setDraft] = useState(task.text);
+
+  useEffect(() => { setDraft(task.text); }, [task.text]);
+
+  const commitText = () => {
+    setEditingText(false);
+    if (draft.trim() && draft !== task.text) onUpdateText(draft.trim());
+    else setDraft(task.text);
+  };
+
   return (
-    <li className="group/row relative flex items-center gap-3 py-1.5 pl-12">
-      {/* Curved SVG branch — corner from trunk down-and-right into the row */}
-      <svg
-        aria-hidden
-        className="pointer-events-none absolute left-0 top-0 h-full w-12 overflow-visible"
-        preserveAspectRatio="none"
-      >
-        {/* Continuing trunk down to next sibling */}
-        {showTrunk && (
-          <line
-            x1="14" y1="0" x2="14" y2="100%"
-            stroke="currentColor" strokeWidth="1"
-            className="text-ink-900/15"
-          />
-        )}
-        {/* Branch curve from trunk into this row */}
-        <path
-          d="M 14 0 V 14 Q 14 24 26 24"
-          fill="none" stroke="currentColor" strokeWidth="1"
-          className={isCurrent ? "text-emerald-700/60" : "text-ink-900/20"}
-        />
-      </svg>
-
-      {isCurrent && (
-        <div
-          aria-hidden
-          className="halo-sage animate-halo absolute inset-y-0 left-12 right-2 -z-10 rounded-full blur-xl"
-        />
-      )}
-
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onToggle(); }}
-        disabled={pending}
-        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition hover:scale-110 active:scale-95"
-        aria-label={task.done ? "Mark incomplete" : "Mark done"}
-        title={task.done ? "Mark incomplete" : "Mark done"}
-      >
-        <LeafBullet filled={task.done} />
-      </button>
-
-      <button
-        type="button"
-        onClick={onSelect}
-        className={`draw-underline flex-1 text-left transition ${
-          task.done ? "line-through opacity-50" : ""
-        } ${
-          isCurrent
-            ? "font-display text-base font-semibold italic text-ink-900"
-            : "text-sm text-ink-900/90 hover:text-ink-900"
+    <li>
+      <div
+        className={`group/row flex items-center gap-2 rounded-lg px-2 py-1.5 transition ${
+          isCurrent ? "bg-emerald-700/[0.08] ring-1 ring-emerald-700/25" : "hover:bg-cream-50/50"
         }`}
       >
-        {task.text}
-      </button>
-
-      {!isCurrent && (
+        {/* Done checkbox */}
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          disabled={pending}
-          className="text-ink-900/35 opacity-0 transition group-hover/row:opacity-70 hover:!opacity-100 hover:text-rose-700"
-          aria-label="Delete"
-          title="Delete"
+          onClick={onToggle}
+          aria-label={task.done ? "Mark not done" : "Mark done"}
+          title={task.done ? "Mark not done" : "Mark done"}
+          className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border border-ink-900/30 transition hover:border-ink-900/55"
         >
-          <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+          {task.done && (
+            <svg viewBox="0 0 16 16" className="h-3 w-3 text-emerald-700" aria-hidden>
+              <path d="M3 8.5 L7 12 L13 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
         </button>
+
+        {/* Priority dot — clickable */}
+        <button
+          type="button"
+          onClick={onCyclePriority}
+          aria-label={`Cycle priority — ${PRIORITY_LABEL[task.priority]}`}
+          title={PRIORITY_LABEL[task.priority]}
+          className="shrink-0"
+        >
+          <PriorityDot priority={task.priority} />
+        </button>
+
+        {/* Title — click selects, double-click edits */}
+        {editingText ? (
+          <input
+            autoFocus
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commitText}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); commitText(); }
+              if (e.key === "Escape") { setDraft(task.text); setEditingText(false); }
+            }}
+            className="flex-1 bg-transparent text-sm text-ink-900 outline-none"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={onSelect}
+            onDoubleClick={() => setEditingText(true)}
+            className={`flex-1 truncate text-left text-sm transition ${
+              task.done ? "text-ink-900/45 line-through" : "text-ink-900/90 hover:text-ink-900"
+            }`}
+            title="Click to study, double-click to rename"
+          >
+            {task.text}
+          </button>
+        )}
+
+        {/* Due date pill (compact) */}
+        {task.due_date && (
+          <span
+            className="shrink-0 rounded-md bg-ink-900/[0.05] px-1.5 py-0.5 text-[10px] tabular-nums text-ink-700"
+            title={`Due ${task.due_date}`}
+          >
+            {formatDueShort(task.due_date)}
+          </span>
+        )}
+
+        {/* Expand toggle */}
+        <button
+          type="button"
+          onClick={onExpand}
+          aria-label={expanded ? "Hide details" : "Show details"}
+          title="Details"
+          className={`shrink-0 text-ink-900/35 transition hover:text-ink-900 ${expanded ? "rotate-90 text-ink-900/70" : ""}`}
+        >
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="ml-6 mt-1 rounded-xl bg-cream-50/65 px-3 py-3 ring-1 ring-ink-900/10">
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <PriorityChips current={task.priority} onChange={onCyclePriority} />
+            <label className="flex items-center gap-1.5 text-ink-700">
+              <Calendar className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+              <input
+                type="date"
+                value={task.due_date || ""}
+                onChange={(e) => onUpdateDue(e.target.value)}
+                className="rounded border border-ink-900/15 bg-cream-50 px-1.5 py-0.5 text-xs text-ink-900 outline-none focus:border-emerald-700/40"
+              />
+              {task.due_date && (
+                <button
+                  type="button"
+                  onClick={() => onUpdateDue("")}
+                  aria-label="Clear due date"
+                  className="text-ink-700/50 hover:text-rose-700"
+                >
+                  <X className="h-3 w-3" strokeWidth={2} />
+                </button>
+              )}
+            </label>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="ml-auto flex items-center gap-1 text-rose-700/80 transition hover:text-rose-800"
+            >
+              <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+              <span className="italic">delete</span>
+            </button>
+          </div>
+        </div>
       )}
     </li>
   );
 }
 
-function LeafBullet({ filled }: { filled: boolean }) {
+// =================================================================
+
+function PriorityDot({ priority }: { priority: TaskPriority }) {
+  if (priority === "high")
+    return <span className="block h-2.5 w-2.5 rounded-full bg-rose-600" aria-hidden />;
+  if (priority === "low")
+    return <span className="block h-2.5 w-2.5 rounded-full border border-ink-900/30 bg-transparent" aria-hidden />;
+  return <span className="block h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden />;
+}
+
+function PriorityChips({ current, onChange }: { current: TaskPriority; onChange: () => void }) {
+  // The button cycles via the parent's onCyclePriority for simplicity.
+  const items: { id: TaskPriority; label: string }[] = [
+    { id: "low",    label: "Low" },
+    { id: "normal", label: "Med" },
+    { id: "high",   label: "High" }
+  ];
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" className={filled ? "text-emerald-700" : "text-ink-900/35"}>
-      <path
-        d="M3 21 C 3 12, 12 3, 21 3 C 21 12, 12 21, 3 21 Z"
-        fill={filled ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-      {filled && <path d="M5.5 18.5 L 18.5 5.5" stroke="rgba(255,255,255,0.7)" strokeWidth="1" strokeLinecap="round" />}
-    </svg>
+    <div className="inline-flex items-center gap-1 text-ink-700">
+      <Flag className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+      <span className="flex rounded-full bg-ink-900/[0.05] p-0.5">
+        {items.map((it) => (
+          <button
+            key={it.id}
+            type="button"
+            onClick={onChange}
+            className={`rounded-full px-2 py-0.5 text-[11px] italic transition ${
+              current === it.id ? "bg-cream-50 text-ink-900 shadow-sm" : "text-ink-700/75 hover:text-ink-900"
+            }`}
+          >
+            {it.label}
+          </button>
+        ))}
+      </span>
+    </div>
   );
+}
+
+function formatDueShort(iso: string) {
+  // iso = YYYY-MM-DD
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(y, m - 1, d);
+  const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+  if (diff === 0) return "today";
+  if (diff === 1) return "tmrw";
+  if (diff === -1) return "yest";
+  if (diff < 0) return `${diff}d`;
+  if (diff < 7) return `${diff}d`;
+  return target.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
