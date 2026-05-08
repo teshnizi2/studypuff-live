@@ -150,6 +150,7 @@ export interface Database {
           priority: TaskPriority;
           due_date: string | null;
           notes: string | null;
+          position: number;
           created_at: string;
           updated_at: string;
         };
@@ -162,6 +163,7 @@ export interface Database {
           priority?: TaskPriority;
           due_date?: string | null;
           notes?: string | null;
+          position?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -172,6 +174,7 @@ export interface Database {
           priority?: TaskPriority;
           due_date?: string | null;
           notes?: string | null;
+          position?: number;
           updated_at?: string;
         };
       };

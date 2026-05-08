@@ -107,6 +107,25 @@ export default async function DashboardPage() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  // Pull a wider window of focus sessions so we can attribute minutes back
+  // to the actual task / topic ids in the sidebar. Last 90 days is enough
+  // for a "this is how much you've spent" feel without overshooting.
+  const ninetyDaysAgo = new Date(today);
+  ninetyDaysAgo.setDate(today.getDate() - 89);
+  const { data: attributedSessions } = await supabase
+    .from("study_sessions")
+    .select("minutes, topic_id, task_id, mode")
+    .eq("user_id", user.id)
+    .eq("mode", "focus")
+    .gte("studied_on", isoDate(ninetyDaysAgo));
+
+  const minutesByTopic: Record<string, number> = {};
+  const minutesByTask: Record<string, number> = {};
+  for (const s of attributedSessions || []) {
+    if (s.topic_id) minutesByTopic[s.topic_id] = (minutesByTopic[s.topic_id] || 0) + s.minutes;
+    if (s.task_id)  minutesByTask[s.task_id]  = (minutesByTask[s.task_id]  || 0) + s.minutes;
+  }
+
   const goalPct = Math.min(100, Math.round((todayMinutesStat / dailyGoal) * 100));
 
   return (
@@ -169,6 +188,8 @@ export default async function DashboardPage() {
           todayMinutes={workspace.todayMinutes}
           equippedSound={settings?.equipped_sound ?? null}
           equippedAccessory={settings?.equipped_accessory ?? null}
+          minutesByTopic={minutesByTopic}
+          minutesByTask={minutesByTask}
           stats={{
             todayMinutes: todayMinutesStat,
             weekMinutes,

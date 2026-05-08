@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plus, Trash2, X, ChevronRight, Loader2,
-  PanelLeftClose, Calendar, Flag
+  PanelLeftClose, Calendar, Flag, GripVertical
 } from "lucide-react";
 
 type TaskPriority = "low" | "normal" | "high";
@@ -25,6 +25,9 @@ type Props = {
   topics: Topic[];
   currentTaskId: string;
   currentTopicId: string;
+  /** Focus minutes attributed to each task/topic (last 90 days). */
+  minutesByTopic?: Record<string, number>;
+  minutesByTask?: Record<string, number>;
   onSelectTask: (taskId: string, topicId: string) => void;
   onSelectTopic: (topicId: string) => void;
   onCreateTask: (form: FormData) => Promise<void>;
@@ -33,8 +36,17 @@ type Props = {
   onDeleteTask: (form: FormData) => Promise<void>;
   onDeleteTopic?: (form: FormData) => Promise<void>;
   onUpdateTask?: (form: FormData) => Promise<void>;
+  /** Reorders tasks within a topic. Receives the ordered list of ids. */
+  onReorderTasks?: (form: FormData) => Promise<void>;
   onHide?: () => void;
 };
+
+function formatMinutes(m: number) {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r === 0 ? `${h}h` : `${h}h ${r}m`;
+}
 
 const PRIORITY_NEXT: Record<TaskPriority, TaskPriority> = {
   low: "normal",
@@ -233,6 +245,34 @@ export function TaskPanel(p: Props) {
     });
   };
 
+  // --- drag and drop reorder -----------------------------------
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+
+  const reorderInTopic = (topicKey: string | null, draggedId: string, targetId: string, position: "before" | "after") => {
+    if (!p.onReorderTasks) return;
+    const inTopic = tasks.filter((t) => (t.topic_id ?? null) === topicKey);
+    const others = tasks.filter((t) => (t.topic_id ?? null) !== topicKey);
+    const without = inTopic.filter((t) => t.id !== draggedId);
+    const targetIdx = without.findIndex((t) => t.id === targetId);
+    if (targetIdx < 0) return;
+    const dragged = inTopic.find((t) => t.id === draggedId);
+    if (!dragged) return;
+    const insertAt = position === "before" ? targetIdx : targetIdx + 1;
+    const newInTopic = [
+      ...without.slice(0, insertAt),
+      dragged,
+      ...without.slice(insertAt)
+    ];
+    setTasks([...others, ...newInTopic]);
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("ids", newInTopic.map((t) => t.id).join(","));
+      try { await p.onReorderTasks!(fd); router.refresh(); }
+      catch (e) { console.error(e); }
+    });
+  };
+
   const toggleTopicCollapse = (id: string) => {
     setCollapsedTopics((prev) => {
       const next = new Set(prev);
@@ -297,9 +337,13 @@ export function TaskPanel(p: Props) {
                 key={topic.id}
                 topic={topic}
                 tasks={tasks.filter((t) => t.topic_id === topic.id)}
+                topicMinutes={p.minutesByTopic?.[topic.id] || 0}
+                minutesByTask={p.minutesByTask || {}}
                 isCurrent={topic.id === p.currentTopicId}
                 currentTaskId={p.currentTaskId}
                 expandedTaskId={expandedTaskId}
+                draggingTaskId={draggingTaskId}
+                dragOverTaskId={dragOverTaskId}
                 collapsed={collapsedTopics.has(topic.id)}
                 confirmingDelete={confirmingDeleteTopic === topic.id}
                 addingText={addingTopicTaskTexts[topic.id] || ""}
@@ -319,6 +363,16 @@ export function TaskPanel(p: Props) {
                 onAskDelete={() => setConfirmingDeleteTopic(topic.id)}
                 onCancelDelete={() => setConfirmingDeleteTopic(null)}
                 onConfirmDelete={() => handleDeleteTopic(topic.id)}
+                onDragStartTask={(id) => setDraggingTaskId(id)}
+                onDragOverTask={(id) => setDragOverTaskId(id)}
+                onDropOnTask={(targetId, position) => {
+                  if (draggingTaskId && draggingTaskId !== targetId) {
+                    reorderInTopic(topic.id, draggingTaskId, targetId, position);
+                  }
+                  setDraggingTaskId(null);
+                  setDragOverTaskId(null);
+                }}
+                onDragEnd={() => { setDraggingTaskId(null); setDragOverTaskId(null); }}
               />
             ))}
 
@@ -327,9 +381,13 @@ export function TaskPanel(p: Props) {
                 key="__none__"
                 topic={null}
                 tasks={untopiced}
+                topicMinutes={0}
+                minutesByTask={p.minutesByTask || {}}
                 isCurrent={!p.currentTopicId && !!p.currentTaskId}
                 currentTaskId={p.currentTaskId}
                 expandedTaskId={expandedTaskId}
+                draggingTaskId={draggingTaskId}
+                dragOverTaskId={dragOverTaskId}
                 collapsed={collapsedTopics.has("__none__")}
                 confirmingDelete={false}
                 addingText={addingTopicTaskTexts["__none__"] || ""}
@@ -349,6 +407,16 @@ export function TaskPanel(p: Props) {
                 onAskDelete={() => {}}
                 onCancelDelete={() => {}}
                 onConfirmDelete={() => {}}
+                onDragStartTask={(id) => setDraggingTaskId(id)}
+                onDragOverTask={(id) => setDragOverTaskId(id)}
+                onDropOnTask={(targetId, position) => {
+                  if (draggingTaskId && draggingTaskId !== targetId) {
+                    reorderInTopic(null, draggingTaskId, targetId, position);
+                  }
+                  setDraggingTaskId(null);
+                  setDragOverTaskId(null);
+                }}
+                onDragEnd={() => { setDraggingTaskId(null); setDragOverTaskId(null); }}
               />
             )}
           </>
@@ -386,19 +454,26 @@ export function TaskPanel(p: Props) {
 // =================================================================
 
 function TopicSection({
-  topic, tasks, isCurrent, currentTaskId, expandedTaskId,
+  topic, tasks, topicMinutes, minutesByTask,
+  isCurrent, currentTaskId, expandedTaskId,
+  draggingTaskId, dragOverTaskId,
   collapsed, confirmingDelete, addingText,
   onAddingTextChange,
   onSelectTopic, onSelectTask, onToggle, onDelete,
   onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onUpdateNotes,
   onExpand, onCreateTask, onCollapse,
-  onAskDelete, onCancelDelete, onConfirmDelete
+  onAskDelete, onCancelDelete, onConfirmDelete,
+  onDragStartTask, onDragOverTask, onDropOnTask, onDragEnd
 }: {
   topic: Topic | null;
   tasks: Task[];
+  topicMinutes: number;
+  minutesByTask: Record<string, number>;
   isCurrent: boolean;
   currentTaskId: string;
   expandedTaskId: string | null;
+  draggingTaskId: string | null;
+  dragOverTaskId: string | null;
   collapsed: boolean;
   confirmingDelete: boolean;
   addingText: string;
@@ -418,6 +493,10 @@ function TopicSection({
   onAskDelete: () => void;
   onCancelDelete: () => void;
   onConfirmDelete: () => void;
+  onDragStartTask: (id: string) => void;
+  onDragOverTask: (id: string) => void;
+  onDropOnTask: (targetId: string, position: "before" | "after") => void;
+  onDragEnd: () => void;
 }) {
   const openCount = tasks.filter((t) => !t.done).length;
   const name = topic?.name || "No topic";
@@ -448,6 +527,9 @@ function TopicSection({
           <span className="font-display text-base italic">{name}</span>
           <span className="text-[10px] italic text-ink-700/70">
             {openCount === 0 ? "all clear" : `${openCount} open`}
+            {topicMinutes > 0 && (
+              <span className="ml-1.5 text-ink-700/85">· {formatMinutes(topicMinutes)}</span>
+            )}
           </span>
         </button>
         {topic && (
@@ -480,8 +562,11 @@ function TopicSection({
             <TaskRow
               key={task.id}
               task={task}
+              minutes={minutesByTask[task.id] || 0}
               isCurrent={task.id === currentTaskId}
               expanded={expandedTaskId === task.id}
+              isDragging={draggingTaskId === task.id}
+              isDragOver={dragOverTaskId === task.id && draggingTaskId !== task.id}
               onSelect={() => onSelectTask(task.id)}
               onToggle={() => onToggle(task)}
               onDelete={() => onDelete(task.id)}
@@ -491,6 +576,10 @@ function TopicSection({
               onUpdateText={(v) => onUpdateText(task, v)}
               onUpdateNotes={(v) => onUpdateNotes(task, v)}
               onExpand={() => onExpand(task.id)}
+              onDragStart={() => onDragStartTask(task.id)}
+              onDragOver={() => onDragOverTask(task.id)}
+              onDrop={(position) => onDropOnTask(task.id, position)}
+              onDragEnd={onDragEnd}
             />
           ))}
 
@@ -527,13 +616,17 @@ function TopicSection({
 // =================================================================
 
 function TaskRow({
-  task, isCurrent, expanded,
+  task, minutes, isCurrent, expanded, isDragging, isDragOver,
   onSelect, onToggle, onDelete,
-  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onUpdateNotes, onExpand
+  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onUpdateNotes, onExpand,
+  onDragStart, onDragOver, onDrop, onDragEnd
 }: {
   task: Task;
+  minutes: number;
   isCurrent: boolean;
   expanded: boolean;
+  isDragging: boolean;
+  isDragOver: boolean;
   onSelect: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -543,6 +636,10 @@ function TaskRow({
   onUpdateText: (value: string) => void;
   onUpdateNotes: (value: string) => void;
   onExpand: () => void;
+  onDragStart: () => void;
+  onDragOver: () => void;
+  onDrop: (position: "before" | "after") => void;
+  onDragEnd: () => void;
 }) {
   const [editingText, setEditingText] = useState(false);
   const [draft, setDraft] = useState(task.text);
@@ -572,12 +669,45 @@ function TaskRow({
   };
 
   return (
-    <li>
+    <li
+      onDragOver={(e) => {
+        if (!isDragging) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          onDragOver();
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        if (isDragging) return;
+        const rect = (e.currentTarget as HTMLLIElement).getBoundingClientRect();
+        const position: "before" | "after" =
+          e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+        onDrop(position);
+      }}
+      className={`relative ${isDragOver ? "before:absolute before:inset-x-2 before:-top-px before:h-[2px] before:rounded-full before:bg-emerald-700" : ""}`}
+    >
       <div
-        className={`group/row flex items-center gap-2 rounded-lg px-2 py-1.5 transition ${
+        className={`group/row flex items-center gap-2 rounded-lg px-1.5 py-1.5 transition ${
           isCurrent ? "bg-emerald-700/[0.08] ring-1 ring-emerald-700/25" : "hover:bg-cream-50/50"
-        }`}
+        } ${isDragging ? "opacity-40" : ""}`}
       >
+        {/* Drag handle (only visible on hover; native HTML5 drag) */}
+        <span
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", task.id);
+            onDragStart();
+          }}
+          onDragEnd={onDragEnd}
+          aria-label="Drag to reorder"
+          title="Drag to reorder"
+          className="flex h-5 w-3 shrink-0 cursor-grab items-center justify-center text-ink-900/30 opacity-0 transition group-hover/row:opacity-100 active:cursor-grabbing"
+        >
+          <GripVertical className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+        </span>
+
         {/* Done checkbox + leaf burst on completion */}
         <div className="relative shrink-0">
           <button
@@ -633,6 +763,16 @@ function TaskRow({
           >
             {task.text}
           </button>
+        )}
+
+        {/* Time spent pill — focus minutes attributed to this task. */}
+        {minutes > 0 && (
+          <span
+            className="shrink-0 text-[10px] tabular-nums text-ink-700/75"
+            title={`${minutes} minute${minutes === 1 ? "" : "s"} focused on this task`}
+          >
+            {formatMinutes(minutes)}
+          </span>
         )}
 
         {/* Due date pill (compact) */}

@@ -121,6 +121,22 @@ export function GrowthTree({ lifetimeMinutes, todayMinutes = 0, tasksDone = 0, s
           {leafCount} {leafCount === 1 ? "leaf" : "leaves"}
           {streak > 0 && <span className="ml-2">· {streak}-day streak</span>}
         </p>
+
+        {/* Concrete next-step feedback — "next leaf in X min". */}
+        {leafCount < MAX_LEAVES && (
+          <p
+            className="mt-2 text-[10px] italic text-ink-700/75"
+            title={`Each ${MINUTES_PER_LEAF} min of focus grows a leaf. ` +
+              `Branches at 30, 180, 720 min. Cap is ${MAX_LEAVES} leaves.`}
+          >
+            next leaf in {Math.max(1, MINUTES_PER_LEAF - (lifetimeMinutes % MINUTES_PER_LEAF))}m
+          </p>
+        )}
+
+        {/* Mini legend — explains the growth at a glance. */}
+        <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-ink-700/55">
+          1 leaf per {MINUTES_PER_LEAF} min focus
+        </p>
       </div>
     </div>
   );

@@ -1,25 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronUp, Music, Pause, Play } from "lucide-react";
+import { ChevronUp, Music, Pause, Play, VolumeX } from "lucide-react";
 import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
 
 export type SoundOption = { id: string | null; label: string; tag?: string };
 
 export type TimerSoundMode = "focus" | "short" | "long";
 
+// Curated, ambient-only set. The previous procedural "music" tracks
+// (chord progressions on synth oscillators) sounded thin and synthetic;
+// these noise-based ambient soundscapes feel natural and are easier on
+// the ears for long focus sessions.
 export const SOUND_OPTIONS: SoundOption[] = [
-  { id: null,             label: "Silence",         tag: "calm"    },
-  { id: "sound-lofi",     label: "Lo-fi pad",       tag: "music"   },
-  { id: "sound-sweden",   label: "Sweden (C418)",   tag: "music"   },
-  { id: "sound-hisaishi", label: "Hisaishi piano",  tag: "music"   },
-  { id: "sound-satie",    label: "Satie waltz",     tag: "music"   },
   { id: "sound-rain",     label: "Soft rain",       tag: "ambient" },
-  { id: "sound-library",  label: "Quiet library",   tag: "ambient" },
+  { id: "sound-ocean",    label: "Ocean waves",     tag: "ambient" },
   { id: "sound-forest",   label: "Forest morning",  tag: "ambient" },
   { id: "sound-cafe",     label: "Cosy café",       tag: "ambient" },
   { id: "sound-fire",     label: "Fireplace",       tag: "ambient" },
-  { id: "sound-ocean",    label: "Ocean waves",     tag: "ambient" }
+  { id: "sound-library",  label: "Quiet library",   tag: "ambient" },
+  { id: "sound-brown",    label: "Brown noise",     tag: "noise"   },
+  { id: "sound-pink",     label: "Pink noise",      tag: "noise"   },
+  { id: "sound-white",    label: "White noise",     tag: "noise"   }
 ];
 
 const MODE_LABEL: Record<TimerSoundMode, string> = {
@@ -69,12 +71,16 @@ export function SoundDock({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const current = SOUND_OPTIONS.find((s) => s.id === sound) || SOUND_OPTIONS[0];
+  // Sound is "off" when id is null. Preserve label so the dock shows
+  // either the active sound or "Off".
+  const current =
+    sound === null
+      ? { id: null, label: "Off" }
+      : SOUND_OPTIONS.find((s) => s.id === sound) || { id: null, label: "Off" };
 
   const groups: { title: string; tag: string }[] = [
-    { title: "Music",   tag: "music" },
     { title: "Ambient", tag: "ambient" },
-    { title: "Calm",    tag: "calm" }
+    { title: "Noise",   tag: "noise" }
   ];
 
   return (
@@ -161,6 +167,33 @@ export function SoundDock({
               </div>
             )}
             <div className="max-h-80 overflow-y-auto">
+              {/* Top-level Off / Silence — always the first thing the user sees. */}
+              <div className="px-2 pb-1 pt-2">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={editingSound === null}
+                  onClick={() => {
+                    if (perModeEnabled) {
+                      onSelectForMode!(editingMode, null);
+                      if (editingMode === timerMode) onSelect(null);
+                    } else {
+                      onSelect(null);
+                    }
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition ${
+                    editingSound === null
+                      ? "bg-ink-900 text-cream-50"
+                      : "text-ink-900 hover:bg-cream-100"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <VolumeX className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                    <span className="font-display italic">Off (silence)</span>
+                  </span>
+                </button>
+              </div>
               {groups.map((g) => {
                 const items = SOUND_OPTIONS.filter((s) => s.tag === g.tag);
                 if (!items.length) return null;

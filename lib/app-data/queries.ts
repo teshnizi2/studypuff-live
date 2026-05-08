@@ -17,9 +17,10 @@ export async function getUserWorkspace(userId: string) {
       .from("tasks")
       .select("*")
       .eq("user_id", userId)
-      // Open tasks first; within each group, oldest first so newly added
-      // tasks land at the bottom of the list.
+      // Open tasks first; within each group, sort by user-defined position
+      // so drag-to-reorder is the source of truth. Tie-break by created_at.
       .order("done", { ascending: true })
+      .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
     supabase
       .from("study_sessions")

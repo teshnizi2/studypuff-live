@@ -17,6 +17,7 @@ import {
   createTopicAction,
   deleteTaskAction,
   deleteTopicAction,
+  reorderTasksAction,
   toggleTaskAction,
   updateTaskAction,
   updateProfileAction,
@@ -87,6 +88,10 @@ type Props = {
   todayMinutes: number;
   equippedSound: string | null;
   equippedAccessory: string | null;
+  /** Lifetime focus minutes by topic id (last 90 days). */
+  minutesByTopic?: Record<string, number>;
+  /** Lifetime focus minutes by task id (last 90 days). */
+  minutesByTask?: Record<string, number>;
   stats?: Omit<StatsContentProps, "onCloseHref">;
   rewards?: RewardsContentProps;
 };
@@ -100,6 +105,14 @@ export function DashboardActions(props: Props) {
   const [running, setRunning] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
   const [sidebarHidden, setSidebarHidden] = useState(false);
+  // Sound playback is independent from the timer — user can preview a sound
+  // even while the timer is paused. Auto-syncs ON when timer starts.
+  const [soundPlaying, setSoundPlaying] = useState(false);
+
+  useEffect(() => {
+    if (running) setSoundPlaying(true);
+    else setSoundPlaying(false);
+  }, [running]);
 
   // Restore sidebar hidden state from localStorage so focus mode persists.
   useEffect(() => {
@@ -126,7 +139,7 @@ export function DashboardActions(props: Props) {
     window.addEventListener(PROFILE_OPEN_EVENT, handler);
     return () => window.removeEventListener(PROFILE_OPEN_EVENT, handler);
   }, []);
-  const defaultSound = props.equippedSound ?? "sound-lofi";
+  const defaultSound = props.equippedSound ?? "sound-rain";
   const [soundsByMode, setSoundsByMode] = useState<Record<TimerSoundMode, string | null>>({
     focus: defaultSound,
     short: "sound-rain",
@@ -224,6 +237,9 @@ export function DashboardActions(props: Props) {
             onDeleteTask={deleteTaskAction}
             onDeleteTopic={deleteTopicAction}
             onUpdateTask={updateTaskAction}
+            onReorderTasks={reorderTasksAction}
+            minutesByTopic={props.minutesByTopic}
+            minutesByTask={props.minutesByTask}
             onHide={() => setSidebarHiddenPersist(true)}
           />
         </aside>
@@ -259,6 +275,9 @@ export function DashboardActions(props: Props) {
             onDeleteTask={deleteTaskAction}
             onDeleteTopic={deleteTopicAction}
             onUpdateTask={updateTaskAction}
+            onReorderTasks={reorderTasksAction}
+            minutesByTopic={props.minutesByTopic}
+            minutesByTask={props.minutesByTask}
           />
         </div>
 
@@ -315,12 +334,14 @@ export function DashboardActions(props: Props) {
         </button>
       )}
 
-      {/* Floating sound dock — bottom right, persistent */}
+      {/* Floating sound dock — bottom right, persistent.
+          Sound is now decoupled from the timer: hitting play in the dock
+          plays the chosen sound regardless of whether the timer is running. */}
       <SoundDock
         sound={sound}
-        playing={running && !!sound}
+        playing={soundPlaying && !!sound}
         onSelect={handleSelectActiveSound}
-        onTogglePlay={() => setRunning((r) => !r)}
+        onTogglePlay={() => setSoundPlaying((p) => !p)}
         timerMode={timerMode}
         soundsByMode={soundsByMode}
         onSelectForMode={handleSelectSoundForMode}

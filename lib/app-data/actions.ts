@@ -175,18 +175,55 @@ export async function createTaskAction(formData: FormData) {
   if (!text) return;
 
   const priority = (stringValue(formData, "priority") || "normal") as TaskPriority;
+  const topicId = nullableValue(formData, "topic_id");
   const supabase = createSupabaseServerClient();
+
+  // Place the new task at the bottom of its topic — read the current max
+  // position and add 1. Cheap query and avoids fighting the user's order.
+  const { data: maxRow } = await supabase
+    .from("tasks")
+    .select("position")
+    .eq("user_id", user.id)
+    .eq("topic_id", topicId as string | null)
+    .order("position", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextPosition = (maxRow?.position ?? 0) + 1;
 
   await supabase.from("tasks").insert({
     user_id: user.id,
-    topic_id: nullableValue(formData, "topic_id"),
+    topic_id: topicId,
     text,
     priority,
-    due_date: nullableValue(formData, "due_date")
+    due_date: nullableValue(formData, "due_date"),
+    position: nextPosition
   });
 
   revalidatePath("/dashboard/tasks");
   revalidatePath("/dashboard");
+}
+
+// Reorder tasks within a topic. Receives an ordered list of task IDs and
+// rewrites their positions to 1..N. Idempotent.
+export async function reorderTasksAction(formData: FormData) {
+  const { user } = await requireUser();
+  const idsRaw = stringValue(formData, "ids");
+  if (!idsRaw) return;
+  const ids = idsRaw.split(",").map((s) => s.trim()).filter(Boolean);
+  if (ids.length === 0) return;
+
+  const supabase = createSupabaseServerClient();
+  // Sequential updates — small N (one topic's worth), simpler than upsert.
+  for (let i = 0; i < ids.length; i++) {
+    await supabase
+      .from("tasks")
+      .update({ position: i + 1 })
+      .eq("id", ids[i])
+      .eq("user_id", user.id);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/tasks");
 }
 
 export async function toggleTaskAction(formData: FormData) {
