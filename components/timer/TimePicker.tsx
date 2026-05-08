@@ -119,20 +119,31 @@ function Column({
     setEditing(false);
   };
 
-  // Both states use the SAME width and padding so toggling between display
-  // and edit mode never resizes the digit. The only visible change is a
-  // thin emerald underline that shows when you're editing.
-  const numCls =
-    "block w-[1.7em] rounded-lg px-1 text-center font-display text-[clamp(3rem,6.5vw,5rem)] italic leading-[1] tabular-nums text-ink-900";
+  // Toggling between a <button> and an <input> caused a small height shift
+  // because of UA-stylesheet differences (different default padding/border).
+  // We solve that by giving the wrapper a fixed size via an invisible
+  // spacer "00" and absolute-positioning the actual control inside, so the
+  // wrapper's outer box never changes regardless of edit state.
+  const sharedCls =
+    "absolute inset-0 m-0 box-border flex items-center justify-center rounded-lg border-2 border-transparent bg-transparent p-0 text-center font-display text-[inherit] italic leading-[1] tabular-nums text-ink-900 outline-none appearance-none";
 
   return (
     <div
-      className="relative flex items-center justify-center"
+      className="relative inline-flex items-center justify-center text-[clamp(3rem,6.5vw,5rem)]"
       onWheel={onWheel}
       role="spinbutton"
       aria-label={ariaLabel}
       aria-valuenow={current}
     >
+      {/* Invisible spacer establishes the box height + width. The
+          button/input below absolute-fill it, so swapping never reflows. */}
+      <span
+        aria-hidden
+        className="invisible block w-[1.7em] px-1 text-center font-display italic leading-[1] tabular-nums"
+      >
+        00
+      </span>
+
       {editing ? (
         <input
           ref={inputRef}
@@ -155,7 +166,7 @@ function Column({
             }
           }}
           aria-label={`edit ${ariaLabel}`}
-          className={`${numCls} bg-transparent outline-none border-b-2 border-emerald-700/40 focus:border-emerald-700/70`}
+          className={`${sharedCls} border-b-emerald-700/55 focus:border-b-emerald-700/85`}
         />
       ) : (
         <button
@@ -164,7 +175,7 @@ function Column({
           disabled={disabled}
           aria-label={`edit ${ariaLabel}, currently ${current}`}
           title="Click to type, scroll to adjust"
-          className={`${numCls} border-b-2 border-transparent transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
+          className={`${sharedCls} transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
         >
           {String(current).padStart(2, "0")}
         </button>
