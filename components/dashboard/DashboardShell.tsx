@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { HeaderAvatarButton } from "@/components/dashboard/HeaderAvatarButton";
+import { HeaderActions } from "@/components/dashboard/HeaderActions";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -54,7 +55,7 @@ export async function DashboardShell({
   return (
     <main className={mainBg}>
       <header className={headerBg}>
-        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-10 2xl:px-14">
+        <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-5 px-6 py-5 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-10 2xl:px-14">
           <div className="flex items-center gap-6">
             <div className="flex flex-col gap-1">
               <Link
@@ -76,7 +77,13 @@ export async function DashboardShell({
               {coins}
             </Link>
           </div>
-          <nav className="flex flex-wrap items-center gap-3 text-sm">
+          {/* Center column — Rooms / Stats / Settings entries.
+              Only on the dashboard background (green); the cream sub-pages
+              skip them to keep their headers calm. */}
+          <div className="hidden justify-self-center lg:flex">
+            {bg === "green" && <HeaderActions />}
+          </div>
+          <nav className="flex flex-wrap items-center justify-self-end gap-3 text-sm">
             {isAdmin && (
               <Link href="/admin" className="nav-link text-ink-700">
                 Admin

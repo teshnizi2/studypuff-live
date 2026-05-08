@@ -119,8 +119,11 @@ function Column({
     setEditing(false);
   };
 
+  // Both states use the SAME width and padding so toggling between display
+  // and edit mode never resizes the digit. The only visible change is a
+  // thin emerald underline that shows when you're editing.
   const numCls =
-    "font-display text-[clamp(3rem,6.5vw,5rem)] italic leading-[1] tabular-nums text-ink-900";
+    "block w-[1.7em] rounded-lg px-1 text-center font-display text-[clamp(3rem,6.5vw,5rem)] italic leading-[1] tabular-nums text-ink-900";
 
   return (
     <div
@@ -152,7 +155,7 @@ function Column({
             }
           }}
           aria-label={`edit ${ariaLabel}`}
-          className={`${numCls} w-[1.6em] rounded-lg bg-ink-900/[0.06] px-1 text-center outline-none ring-2 ring-emerald-700/40`}
+          className={`${numCls} bg-transparent outline-none border-b-2 border-emerald-700/40 focus:border-emerald-700/70`}
         />
       ) : (
         <button
@@ -161,7 +164,7 @@ function Column({
           disabled={disabled}
           aria-label={`edit ${ariaLabel}, currently ${current}`}
           title="Click to type, scroll to adjust"
-          className={`${numCls} rounded-lg px-1 transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
+          className={`${numCls} border-b-2 border-transparent transition hover:bg-ink-900/[0.04] disabled:cursor-not-allowed disabled:hover:bg-transparent`}
         >
           {String(current).padStart(2, "0")}
         </button>

@@ -1,10 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Settings as SettingsIcon, DoorOpen, BarChart3,
-  RotateCcw, Play, Pause, type LucideIcon
-} from "lucide-react";
+import { RotateCcw, Play, Pause } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
 
@@ -25,9 +22,6 @@ type Props = {
   onRunningChange: (running: boolean) => void;
   onComplete: (form: FormData) => Promise<void>;
   equippedAccessory?: string | null;
-  onSettingsClick?: () => void;
-  onRoomsClick?: () => void;
-  onStatsClick?: () => void;
   onModeChange?: (mode: StudyMode) => void;
   /** Last 7 days in chronological order, ending today. Used for the dashboard sparkline. */
   weekly?: { date: string; minutes: number }[];
@@ -46,7 +40,7 @@ export function TimerCircle({
   tasks, topics, taskId, topicId,
   running, onRunningChange,
   onComplete, equippedAccessory,
-  onSettingsClick, onRoomsClick, onStatsClick, onModeChange,
+  onModeChange,
   weekly
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
@@ -149,19 +143,6 @@ export function TimerCircle({
 
   return (
     <div className="relative flex flex-col items-center text-ink-900">
-      {/* Top utility row — labeled pills so each affordance is unambiguous */}
-      <div className="mb-5 flex items-center gap-1 rounded-full bg-cream-50/55 p-1 ring-1 ring-ink-900/10 backdrop-blur-sm">
-        {onRoomsClick && <PillButton Icon={DoorOpen} label="Rooms" onClick={onRoomsClick} />}
-        {onStatsClick ? (
-          <PillButton Icon={BarChart3} label="Stats" onClick={onStatsClick} />
-        ) : (
-          <PillButton Icon={BarChart3} label="Stats" href="/dashboard/stats" />
-        )}
-        {onSettingsClick && (
-          <PillButton Icon={SettingsIcon} label="Settings" onClick={onSettingsClick} />
-        )}
-      </div>
-
       {/* Sheep ring — floating, no card */}
       <div className="relative">
         <div
@@ -325,31 +306,6 @@ function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }
         );
       })}
     </div>
-  );
-}
-
-function PillButton({ Icon, label, onClick, href }: {
-  Icon: LucideIcon; label: string; onClick?: () => void; href?: string;
-}) {
-  const cls =
-    "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-display italic text-ink-900/75 transition hover:bg-cream-50/70 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700";
-  const inner = (
-    <>
-      <Icon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-      <span>{label}</span>
-    </>
-  );
-  if (href) {
-    return (
-      <a href={href} className={cls} aria-label={label} title={label}>
-        {inner}
-      </a>
-    );
-  }
-  return (
-    <button type="button" onClick={onClick} className={cls} aria-label={label} title={label}>
-      {inner}
-    </button>
   );
 }
 

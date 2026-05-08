@@ -11,6 +11,7 @@ import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
+import { HEADER_OPEN_ROOMS, HEADER_OPEN_STATS, HEADER_OPEN_SETTINGS } from "./HeaderActions";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -138,6 +139,23 @@ export function DashboardActions(props: Props) {
     const handler = () => setOpen("profile");
     window.addEventListener(PROFILE_OPEN_EVENT, handler);
     return () => window.removeEventListener(PROFILE_OPEN_EVENT, handler);
+  }, []);
+
+  // Listen for the header pills (Rooms / Stats / Settings) which live in
+  // DashboardShell and dispatch via custom events.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onRooms    = () => setOpen("rooms");
+    const onStats    = () => setOpen("stats");
+    const onSettings = () => setOpen("settings");
+    window.addEventListener(HEADER_OPEN_ROOMS,    onRooms);
+    window.addEventListener(HEADER_OPEN_STATS,    onStats);
+    window.addEventListener(HEADER_OPEN_SETTINGS, onSettings);
+    return () => {
+      window.removeEventListener(HEADER_OPEN_ROOMS,    onRooms);
+      window.removeEventListener(HEADER_OPEN_STATS,    onStats);
+      window.removeEventListener(HEADER_OPEN_SETTINGS, onSettings);
+    };
   }, []);
   const defaultSound = props.equippedSound ?? "sound-rain";
   const [soundsByMode, setSoundsByMode] = useState<Record<TimerSoundMode, string | null>>({
@@ -299,9 +317,6 @@ export function DashboardActions(props: Props) {
               onRunningChange={setRunning}
               onComplete={addStudySessionAction}
               equippedAccessory={props.equippedAccessory}
-              onSettingsClick={() => setOpen("settings")}
-              onRoomsClick={() => setOpen("rooms")}
-              onStatsClick={props.stats ? () => setOpen("stats") : undefined}
               onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
               weekly={props.stats?.last7}
             />
