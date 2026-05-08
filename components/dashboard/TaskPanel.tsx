@@ -179,9 +179,8 @@ export function TaskPanel(p: Props) {
     });
   };
 
-  const cyclePriority = (task: Task) => {
-    if (!p.onUpdateTask) return;
-    const next = PRIORITY_NEXT[task.priority];
+  const setPriority = (task: Task, next: TaskPriority) => {
+    if (!p.onUpdateTask || task.priority === next) return;
     optimisticReplace(task.id, { priority: next });
     startTransition(async () => {
       const fd = new FormData();
@@ -191,6 +190,9 @@ export function TaskPanel(p: Props) {
       catch (e) { console.error(e); optimisticReplace(task.id, { priority: task.priority }); }
     });
   };
+
+  // The priority dot cycles through low → normal → high for quick toggling.
+  const cyclePriority = (task: Task) => setPriority(task, PRIORITY_NEXT[task.priority]);
 
   const updateDueDate = (task: Task, due: string) => {
     if (!p.onUpdateTask) return;
@@ -293,6 +295,7 @@ export function TaskPanel(p: Props) {
                 onToggle={handleToggle}
                 onDelete={handleDelete}
                 onCyclePriority={cyclePriority}
+                onSetPriority={setPriority}
                 onUpdateDue={updateDueDate}
                 onUpdateText={updateText}
                 onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
@@ -321,6 +324,7 @@ export function TaskPanel(p: Props) {
                 onToggle={handleToggle}
                 onDelete={handleDelete}
                 onCyclePriority={cyclePriority}
+                onSetPriority={setPriority}
                 onUpdateDue={updateDueDate}
                 onUpdateText={updateText}
                 onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
@@ -370,7 +374,7 @@ function TopicSection({
   collapsed, confirmingDelete, addingText,
   onAddingTextChange,
   onSelectTopic, onSelectTask, onToggle, onDelete,
-  onCyclePriority, onUpdateDue, onUpdateText,
+  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText,
   onExpand, onCreateTask, onCollapse,
   onAskDelete, onCancelDelete, onConfirmDelete
 }: {
@@ -388,6 +392,7 @@ function TopicSection({
   onToggle: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onCyclePriority: (task: Task) => void;
+  onSetPriority: (task: Task, priority: TaskPriority) => void;
   onUpdateDue: (task: Task, value: string) => void;
   onUpdateText: (task: Task, value: string) => void;
   onExpand: (taskId: string) => void;
@@ -464,6 +469,7 @@ function TopicSection({
               onToggle={() => onToggle(task)}
               onDelete={() => onDelete(task.id)}
               onCyclePriority={() => onCyclePriority(task)}
+              onSetPriority={(p) => onSetPriority(task, p)}
               onUpdateDue={(v) => onUpdateDue(task, v)}
               onUpdateText={(v) => onUpdateText(task, v)}
               onExpand={() => onExpand(task.id)}
@@ -505,7 +511,7 @@ function TopicSection({
 function TaskRow({
   task, isCurrent, expanded,
   onSelect, onToggle, onDelete,
-  onCyclePriority, onUpdateDue, onUpdateText, onExpand
+  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onExpand
 }: {
   task: Task;
   isCurrent: boolean;
@@ -514,6 +520,7 @@ function TaskRow({
   onToggle: () => void;
   onDelete: () => void;
   onCyclePriority: () => void;
+  onSetPriority: (priority: TaskPriority) => void;
   onUpdateDue: (value: string) => void;
   onUpdateText: (value: string) => void;
   onExpand: () => void;
@@ -616,7 +623,7 @@ function TaskRow({
       {expanded && (
         <div className="ml-6 mt-1 rounded-xl bg-cream-50/65 px-3 py-3 ring-1 ring-ink-900/10">
           <div className="flex flex-wrap items-center gap-3 text-xs">
-            <PriorityChips current={task.priority} onChange={onCyclePriority} />
+            <PriorityChips current={task.priority} onSelect={onSetPriority} />
             <label className="flex items-center gap-1.5 text-ink-700">
               <Calendar className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
               <input
@@ -661,8 +668,12 @@ function PriorityDot({ priority }: { priority: TaskPriority }) {
   return <span className="block h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden />;
 }
 
-function PriorityChips({ current, onChange }: { current: TaskPriority; onChange: () => void }) {
-  // The button cycles via the parent's onCyclePriority for simplicity.
+function PriorityChips({
+  current, onSelect
+}: {
+  current: TaskPriority;
+  onSelect: (priority: TaskPriority) => void;
+}) {
   const items: { id: TaskPriority; label: string }[] = [
     { id: "low",    label: "Low" },
     { id: "normal", label: "Med" },
@@ -676,7 +687,7 @@ function PriorityChips({ current, onChange }: { current: TaskPriority; onChange:
           <button
             key={it.id}
             type="button"
-            onClick={onChange}
+            onClick={() => onSelect(it.id)}
             className={`rounded-full px-2 py-0.5 text-[11px] italic transition ${
               current === it.id ? "bg-cream-50 text-ink-900 shadow-sm" : "text-ink-700/75 hover:text-ink-900"
             }`}
