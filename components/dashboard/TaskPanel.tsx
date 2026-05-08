@@ -16,6 +16,7 @@ type Task = {
   topic_id: string | null;
   priority: TaskPriority;
   due_date: string | null;
+  notes: string | null;
 };
 type Topic = { id: string; name: string };
 
@@ -107,7 +108,7 @@ export function TaskPanel(p: Props) {
     if (!text) return;
     const tmp: Task = {
       id: tempId(), text, done: false, topic_id: topicId,
-      priority: "normal", due_date: null
+      priority: "normal", due_date: null, notes: null
     };
     optimisticAdd(tmp);
     setAddingTopicTaskTexts((prev) => ({ ...prev, [key]: "" }));
@@ -219,6 +220,19 @@ export function TaskPanel(p: Props) {
     });
   };
 
+  const updateNotes = (task: Task, notes: string) => {
+    if (!p.onUpdateTask) return;
+    if ((notes || "") === (task.notes || "")) return;
+    optimisticReplace(task.id, { notes: notes || null });
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", task.id);
+      fd.set("notes", notes);
+      try { await p.onUpdateTask!(fd); router.refresh(); }
+      catch (e) { console.error(e); optimisticReplace(task.id, { notes: task.notes }); }
+    });
+  };
+
   const toggleTopicCollapse = (id: string) => {
     setCollapsedTopics((prev) => {
       const next = new Set(prev);
@@ -298,6 +312,7 @@ export function TaskPanel(p: Props) {
                 onSetPriority={setPriority}
                 onUpdateDue={updateDueDate}
                 onUpdateText={updateText}
+                onUpdateNotes={updateNotes}
                 onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
                 onCreateTask={() => handleCreateTask(topic.id)}
                 onCollapse={() => toggleTopicCollapse(topic.id)}
@@ -327,6 +342,7 @@ export function TaskPanel(p: Props) {
                 onSetPriority={setPriority}
                 onUpdateDue={updateDueDate}
                 onUpdateText={updateText}
+                onUpdateNotes={updateNotes}
                 onExpand={(id) => setExpandedTaskId((cur) => (cur === id ? null : id))}
                 onCreateTask={() => handleCreateTask(null)}
                 onCollapse={() => toggleTopicCollapse("__none__")}
@@ -374,7 +390,7 @@ function TopicSection({
   collapsed, confirmingDelete, addingText,
   onAddingTextChange,
   onSelectTopic, onSelectTask, onToggle, onDelete,
-  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText,
+  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onUpdateNotes,
   onExpand, onCreateTask, onCollapse,
   onAskDelete, onCancelDelete, onConfirmDelete
 }: {
@@ -395,6 +411,7 @@ function TopicSection({
   onSetPriority: (task: Task, priority: TaskPriority) => void;
   onUpdateDue: (task: Task, value: string) => void;
   onUpdateText: (task: Task, value: string) => void;
+  onUpdateNotes: (task: Task, value: string) => void;
   onExpand: (taskId: string) => void;
   onCreateTask: () => void;
   onCollapse: () => void;
@@ -472,6 +489,7 @@ function TopicSection({
               onSetPriority={(p) => onSetPriority(task, p)}
               onUpdateDue={(v) => onUpdateDue(task, v)}
               onUpdateText={(v) => onUpdateText(task, v)}
+              onUpdateNotes={(v) => onUpdateNotes(task, v)}
               onExpand={() => onExpand(task.id)}
             />
           ))}
@@ -511,7 +529,7 @@ function TopicSection({
 function TaskRow({
   task, isCurrent, expanded,
   onSelect, onToggle, onDelete,
-  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onExpand
+  onCyclePriority, onSetPriority, onUpdateDue, onUpdateText, onUpdateNotes, onExpand
 }: {
   task: Task;
   isCurrent: boolean;
@@ -523,17 +541,34 @@ function TaskRow({
   onSetPriority: (priority: TaskPriority) => void;
   onUpdateDue: (value: string) => void;
   onUpdateText: (value: string) => void;
+  onUpdateNotes: (value: string) => void;
   onExpand: () => void;
 }) {
   const [editingText, setEditingText] = useState(false);
   const [draft, setDraft] = useState(task.text);
+  const [notesDraft, setNotesDraft] = useState(task.notes || "");
+  const [bursting, setBursting] = useState(false);
 
   useEffect(() => { setDraft(task.text); }, [task.text]);
+  useEffect(() => { setNotesDraft(task.notes || ""); }, [task.notes]);
 
   const commitText = () => {
     setEditingText(false);
     if (draft.trim() && draft !== task.text) onUpdateText(draft.trim());
     else setDraft(task.text);
+  };
+
+  const commitNotes = () => {
+    if (notesDraft !== (task.notes || "")) onUpdateNotes(notesDraft);
+  };
+
+  // Leaf burst — fires only when checking a task done (not when un-checking).
+  const handleToggleWithBurst = () => {
+    if (!task.done) {
+      setBursting(true);
+      window.setTimeout(() => setBursting(false), 900);
+    }
+    onToggle();
   };
 
   return (
@@ -543,20 +578,23 @@ function TaskRow({
           isCurrent ? "bg-emerald-700/[0.08] ring-1 ring-emerald-700/25" : "hover:bg-cream-50/50"
         }`}
       >
-        {/* Done checkbox */}
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={task.done ? "Mark not done" : "Mark done"}
-          title={task.done ? "Mark not done" : "Mark done"}
-          className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[5px] border border-ink-900/30 transition hover:border-ink-900/55"
-        >
-          {task.done && (
-            <svg viewBox="0 0 16 16" className="h-3 w-3 text-emerald-700" aria-hidden>
-              <path d="M3 8.5 L7 12 L13 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </button>
+        {/* Done checkbox + leaf burst on completion */}
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={handleToggleWithBurst}
+            aria-label={task.done ? "Mark not done" : "Mark done"}
+            title={task.done ? "Mark not done" : "Mark done"}
+            className="flex h-4 w-4 items-center justify-center rounded-[5px] border border-ink-900/30 transition hover:border-emerald-700/70 active:scale-90"
+          >
+            {task.done && (
+              <svg viewBox="0 0 16 16" className="h-3 w-3 text-emerald-700" aria-hidden>
+                <path d="M3 8.5 L7 12 L13 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+          {bursting && <LeafBurst />}
+        </div>
 
         {/* Priority dot — clickable */}
         <button
@@ -621,7 +659,7 @@ function TaskRow({
 
       {/* Expanded details */}
       {expanded && (
-        <div className="ml-6 mt-1 rounded-xl bg-cream-50/65 px-3 py-3 ring-1 ring-ink-900/10">
+        <div className="animate-task-in ml-6 mt-1 flex flex-col gap-3 rounded-xl bg-cream-50/65 px-3 py-3 ring-1 ring-ink-900/10">
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <PriorityChips current={task.priority} onSelect={onSetPriority} />
             <label className="flex items-center gap-1.5 text-ink-700">
@@ -652,6 +690,23 @@ function TaskRow({
               <span className="italic">delete</span>
             </button>
           </div>
+
+          {/* Notes — saves on blur. Auto-grows up to a max height. */}
+          <textarea
+            value={notesDraft}
+            onChange={(e) => setNotesDraft(e.target.value)}
+            onBlur={commitNotes}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                commitNotes();
+                (e.target as HTMLTextAreaElement).blur();
+              }
+            }}
+            placeholder="notes — anything you want to remember"
+            rows={notesDraft ? Math.min(8, Math.max(2, notesDraft.split("\n").length)) : 2}
+            className="w-full resize-y rounded-lg border border-ink-900/10 bg-cream-50 px-2.5 py-2 text-xs leading-relaxed text-ink-900 outline-none placeholder:italic placeholder:text-ink-700/55 focus:border-emerald-700/35 focus:ring-1 focus:ring-emerald-700/20"
+          />
         </div>
       )}
     </li>
@@ -659,6 +714,42 @@ function TaskRow({
 }
 
 // =================================================================
+
+function LeafBurst() {
+  // Six tiny leaves spreading out from the checkbox.
+  const leaves = [
+    { lx: -22, ly: -28, lr: -30 },
+    { lx:  22, ly: -28, lr:  30 },
+    { lx: -16, ly: -42, lr: -10 },
+    { lx:  16, ly: -42, lr:  10 },
+    { lx: -30, ly: -10, lr: -55 },
+    { lx:  30, ly: -10, lr:  55 }
+  ];
+  return (
+    <span className="pointer-events-none absolute left-1/2 top-1/2 z-10 block h-0 w-0">
+      {leaves.map((l, i) => (
+        <span
+          key={i}
+          className="animate-leaf-burst absolute -left-[5px] -top-[5px] block h-[10px] w-[10px]"
+          style={{
+            ["--lx" as string]: `${l.lx}px`,
+            ["--ly" as string]: `${l.ly}px`,
+            ["--lr" as string]: `${l.lr}deg`,
+            animationDelay: `${i * 35}ms`
+          } as React.CSSProperties}
+        >
+          <svg viewBox="-6 -6 12 12" className="h-full w-full" aria-hidden>
+            <path
+              d="M 0 -5 C 4 -3, 4 3, 0 5 C -4 3, -4 -3, 0 -5 Z"
+              fill="#5fa05a"
+              opacity="0.95"
+            />
+          </svg>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function PriorityDot({ priority }: { priority: TaskPriority }) {
   if (priority === "high")

@@ -210,7 +210,12 @@ export async function updateTaskAction(formData: FormData) {
   const id = stringValue(formData, "id");
   if (!id) return;
 
-  const updates: { text?: string; priority?: TaskPriority; due_date?: string | null } = {};
+  const updates: {
+    text?: string;
+    priority?: TaskPriority;
+    due_date?: string | null;
+    notes?: string | null;
+  } = {};
 
   if (formData.has("text")) {
     const text = stringValue(formData, "text");
@@ -228,6 +233,12 @@ export async function updateTaskAction(formData: FormData) {
   if (formData.has("due_date")) {
     const due = stringValue(formData, "due_date");
     updates.due_date = due ? due : null;
+  }
+
+  // notes: empty string clears, missing key leaves untouched
+  if (formData.has("notes")) {
+    const notes = stringValue(formData, "notes");
+    updates.notes = notes ? notes.slice(0, 4000) : null;
   }
 
   if (Object.keys(updates).length === 0) return;

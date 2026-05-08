@@ -50,7 +50,7 @@ export async function DashboardShell({
   return (
     <main className={mainBg}>
       <header className={headerBg}>
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-6 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-10 2xl:px-14">
           <div className="flex items-center gap-6">
             <div className="flex flex-col gap-1">
               <Link
@@ -89,7 +89,7 @@ export async function DashboardShell({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[1280px] px-6 py-8 lg:px-10">
+      <section className="mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14">
         {title || subtitle ? (
           <div className="mb-8">
             {title && (

@@ -149,6 +149,7 @@ export interface Database {
           done: boolean;
           priority: TaskPriority;
           due_date: string | null;
+          notes: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -160,6 +161,7 @@ export interface Database {
           done?: boolean;
           priority?: TaskPriority;
           due_date?: string | null;
+          notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -169,6 +171,7 @@ export interface Database {
           done?: boolean;
           priority?: TaskPriority;
           due_date?: string | null;
+          notes?: string | null;
           updated_at?: string;
         };
       };

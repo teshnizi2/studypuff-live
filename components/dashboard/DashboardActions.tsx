@@ -6,6 +6,7 @@ import { Dialog } from "./Dialog";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
+import { GrowthTree } from "./GrowthTree";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
@@ -34,6 +35,7 @@ type TaskRow = {
   priority: TaskPriority;
   topic_id: string | null;
   due_date: string | null;
+  notes: string | null;
 };
 
 type TopicRow = { id: string; name: string };
@@ -191,14 +193,15 @@ export function DashboardActions(props: Props) {
       <div className="bg-paper-grain relative pb-28">
         <LeavesAccent />
 
-        {/* Permanent left sidebar (Topics & Tasks) + centered timer.
-            When the sidebar is hidden the grid collapses to a single column
-            and a small "show tasks" tab floats on the left edge. */}
+        {/* 3-column dashboard:
+              [ Tasks sidebar | Timer (center) | Growth garden ]
+            When the tasks sidebar is hidden the grid collapses to 2 columns
+            (timer + garden) and a small "show tasks" tab floats on the left. */}
         <div
           className={`grid grid-cols-1 gap-y-10 ${
             sidebarHidden
-              ? "lg:grid-cols-1 lg:place-items-center"
-              : "lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-x-12"
+              ? "lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-x-10"
+              : "lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(260px,300px)] lg:gap-x-10"
           }`}
         >
           {!sidebarHidden && (
@@ -211,7 +214,8 @@ export function DashboardActions(props: Props) {
                     done: t.done,
                     topic_id: t.topic_id,
                     priority: t.priority,
-                    due_date: t.due_date
+                    due_date: t.due_date,
+                    notes: t.notes
                   }))}
                   topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
                   currentTaskId={currentTaskId}
@@ -254,6 +258,18 @@ export function DashboardActions(props: Props) {
               />
             </div>
           </div>
+
+          {/* Garden — right column. Lifetime focus minutes grow the tree. */}
+          <aside className="order-3 lg:sticky lg:top-8 lg:self-start">
+            <div className="rounded-3xl bg-cream-50/55 p-5 ring-1 ring-ink-900/10 backdrop-blur-sm">
+              <GrowthTree
+                lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+                todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+                tasksDone={props.tasks.filter((t) => t.done).length}
+                streak={props.stats?.streak ?? 0}
+              />
+            </div>
+          </aside>
         </div>
       </div>
 
