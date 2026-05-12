@@ -431,7 +431,7 @@ function WorkshopsFAQ(){
         <p className="mt-4 text-[16px] leading-relaxed text-ink-700 max-w-[52ch] mx-auto">
           Refunds, scholarships, what happens if you miss a session — answered in detail on the FAQ page.
         </p>
-        <a href="faq.html#workshops" className="btn-ink mt-6">Visit the FAQ page <I.arrow/></a>
+        <a href="/faq#workshops" className="btn-ink mt-6">Visit the FAQ page <I.arrow/></a>
       </div>
     </section>
   );
@@ -454,7 +454,7 @@ function CozyNotBootcamp(){
           </p>
           <div className="mt-7 flex justify-center gap-3 flex-wrap">
             <a href={SCHOLARSHIP_FORM} target="_blank" rel="noreferrer" className="btn-ink">Apply for a scholarship seat <I.arrow/></a>
-            <a href="contact.html" className="btn-ghost">Or just say hi</a>
+            <a href="/contact" className="btn-ghost">Or just say hi</a>
           </div>
         </div>
       </div>

@@ -149,7 +149,7 @@ function FAQPage(){
               </span>, on one page.
             </h1>
             <p className="mt-7 max-w-[58ch] text-[17px] leading-relaxed text-ink-700">
-              We've grouped {totalQs} questions by what you came for. Search, browse, or jump to a section — and if your question's not here, <a className="underline underline-offset-4 decoration-brand-rust" href="contact.html">just write us</a>.
+              We've grouped {totalQs} questions by what you came for. Search, browse, or jump to a section — and if your question's not here, <a className="underline underline-offset-4 decoration-brand-rust" href="/contact">just write us</a>.
             </p>
 
             {/* search */}
@@ -201,7 +201,7 @@ function FAQPage(){
                 ))}
               </ul>
               <p className="hand text-[16px] text-brand-rust mt-5 leading-snug border-t border-dashed border-ink-900/25 pt-3">
-                still stuck? → <a href="contact.html" className="underline underline-offset-4">write us</a>
+                still stuck? → <a href="/contact" className="underline underline-offset-4">write us</a>
               </p>
             </div>
           </div>
@@ -281,7 +281,7 @@ function FAQPage(){
               We reply within three workdays — usually faster. From a person, not a bot.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-              <a href="contact.html" className="btn-ink">Open the contact form <I.arrow/></a>
+              <a href="/contact" className="btn-ink">Open the contact form <I.arrow/></a>
               <a href="mailto:hello@studypuff.com" className="btn-ghost">hello@studypuff.com</a>
             </div>
           </div>

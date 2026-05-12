@@ -54,7 +54,7 @@ function Manifesto() {
         {/* PLNT row — kept, but as an editorial colophon strip, not a stacked card */}
         <div className="mt-16 pt-8 border-t border-ink-900/15 grid grid-cols-12 gap-6 items-center" style={{ padding: "32px 0px 1px" }}>
           <div className="col-span-12 md:col-span-2">
-            <img src="public/assets/plnt-logo-transparent.png" alt="PLNT Leiden" className="h-14 w-auto object-contain mix-blend-multiply" />
+            <img src="/assets/plnt-logo-transparent.png" alt="PLNT Leiden" className="h-14 w-auto object-contain mix-blend-multiply" />
           </div>
           <div className="col-span-12 md:col-span-7">
             <p className="eyebrow text-ink-700 mb-2">Proud partner</p>

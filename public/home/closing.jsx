@@ -29,7 +29,7 @@ function Newsletter(){
 
               {/* sheep */}
               <div className="absolute inset-0 flex items-end justify-center pb-4">
-                <img src="public/sheep.png" alt="" className="w-[74%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.12)]"/>
+                <img src="/sheep.png" alt="" className="w-[74%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.12)]"/>
               </div>
 
               {/* postage stamp w/ perforated edge */}
@@ -127,7 +127,7 @@ function Newsletter(){
               </form>
 
               {/* archive link bottom-right */}
-              <a href="coming-soon.html" className="absolute bottom-6 right-8 hidden md:inline-flex items-center gap-1.5 text-[12px] font-mono uppercase tracking-widest text-ink-700 hover:text-ink-900 underline underline-offset-4 decoration-brand-rust">
+              <a href="/coming-soon" className="absolute bottom-6 right-8 hidden md:inline-flex items-center gap-1.5 text-[12px] font-mono uppercase tracking-widest text-ink-700 hover:text-ink-900 underline underline-offset-4 decoration-brand-rust">
                 Read past issues →
               </a>
             </div>
@@ -165,7 +165,7 @@ function Footer(){
         {/* masthead row */}
         <div className="flex items-end justify-between gap-6 flex-wrap border-b-2 border-ink-900 pb-4">
           <div className="flex items-baseline gap-4 flex-wrap">
-            <a href="Home.html" className="font-display text-[44px] leading-none text-ink-900">StudyPuff</a>
+            <a href="/" className="font-display text-[44px] leading-none text-ink-900">StudyPuff</a>
             <span className="hand text-[18px] text-brand-rust -rotate-[2deg]">— made in Leiden, NL</span>
           </div>
           <div className="font-mono text-[10px] uppercase tracking-widest text-ink-700 text-right leading-relaxed">

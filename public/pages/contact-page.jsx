@@ -155,7 +155,7 @@ function ContactForm(){
                   <textarea rows={6} className={inputCls + " resize-none leading-[1.7]"} placeholder="Tell us a bit about what you're working on…" value={form.message} onChange={onChange("message")}/>
                 </Field>
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-                  <p className="text-[12px] text-ink-700">By sending, you agree to our <a className="underline underline-offset-4" href="coming-soon.html">privacy policy</a>.</p>
+                  <p className="text-[12px] text-ink-700">By sending, you agree to our <a className="underline underline-offset-4" href="/coming-soon">privacy policy</a>.</p>
                   <button className="btn-ink">Send message <I.arrow/></button>
                 </div>
               </form>

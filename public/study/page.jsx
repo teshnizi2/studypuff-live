@@ -72,7 +72,7 @@ function StudyHero(){
               {/* twitch polaroid behind */}
               <div className="absolute -left-8 top-32 w-[60%] rotate-[6deg] bg-cream-50 p-2.5 pb-3 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.35)] z-[1]">
                 <div className="aspect-[4/3] relative overflow-hidden bg-brand-lilac/40">
-                  <img src="public/twitch-lifestyle.jpg" alt="" className="absolute inset-0 h-full w-full object-cover"/>
+                  <img src="/twitch-lifestyle.jpg" alt="" className="absolute inset-0 h-full w-full object-cover"/>
                   <span className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-[#9146ff] px-2 py-0.5 text-white text-[9px] font-mono uppercase tracking-widest">
                     <I.twitch/> Twitch
                   </span>
@@ -85,7 +85,7 @@ function StudyHero(){
                 <span aria-hidden className="absolute -top-3 left-10 h-6 w-28 -rotate-[8deg] opacity-90"
                       style={{background:"repeating-linear-gradient(135deg, #c7e2c7 0 8px, #fbe9a5 8px 16px)",boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
                 <div className="aspect-[4/3] relative overflow-hidden bg-brand-mint/40">
-                  <img src="public/youtube-lifestyle.jpg" alt="" className="absolute inset-0 h-full w-full object-cover"/>
+                  <img src="/youtube-lifestyle.jpg" alt="" className="absolute inset-0 h-full w-full object-cover"/>
                   <span className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-ink-900/90 px-3 py-1 text-cream-50 text-[10px] font-mono uppercase tracking-widest backdrop-blur">
                     <I.yt className="text-red-400"/> Live · <StudyingNowCount/> watching
                   </span>
@@ -590,7 +590,7 @@ function StudyFAQ(){
         <p className="mt-4 text-[16px] leading-relaxed text-ink-700 max-w-[52ch] mx-auto">
           All our co-study, workshop, and app FAQs now live in one place.
         </p>
-        <a href="faq.html#livestreams" className="btn-ink mt-6">Visit the FAQ page <I.arrow/></a>
+        <a href="/faq#livestreams" className="btn-ink mt-6">Visit the FAQ page <I.arrow/></a>
       </div>
     </section>
   );
