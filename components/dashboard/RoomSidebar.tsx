@@ -96,7 +96,7 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
       className="
         relative mx-auto mt-6 flex w-full max-w-[420px] flex-col gap-3 px-4 pb-10
         lg:fixed lg:right-0 lg:top-[100px] lg:z-30 lg:m-0 lg:h-[calc(100vh-120px)]
-        lg:w-[360px] lg:max-w-none lg:overflow-y-auto lg:px-4 lg:pt-4 lg:pb-10
+        lg:w-[360px] lg:max-w-none lg:px-4 lg:pt-4 lg:pb-4
         xl:w-[400px]
       "
     >
@@ -177,15 +177,20 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
 
       {/* Reuse the existing chat component — it owns its own realtime
           subscription, optimistic input, soft-delete, etc. */}
-      <RoomChat
-        roomId={room.id}
-        initialMessages={initialMessages}
-        members={room.members}
-        currentUserId={currentUserId}
-        isOwner={room.is_owner}
-        disabled={!!room.ended_at}
-        chatClosed={chatClosed}
-      />
+      {/* Chat takes the remaining vertical space; the messages list inside
+          handles its own scroll. min-h-0 is required for the flex child to
+          actually shrink rather than push the leave/end row off-screen. */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <RoomChat
+          roomId={room.id}
+          initialMessages={initialMessages}
+          members={room.members}
+          currentUserId={currentUserId}
+          isOwner={room.is_owner}
+          disabled={!!room.ended_at}
+          chatClosed={chatClosed}
+        />
+      </div>
 
       {room.is_owner && !room.ended_at && (
         <button

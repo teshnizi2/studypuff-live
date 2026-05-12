@@ -206,7 +206,7 @@ export function RoomChat({
   );
 
   return (
-    <div className="rounded-[28px] border border-ink-900/10 bg-cream-50 shadow-soft">
+    <div className="flex h-full min-h-0 flex-col rounded-[28px] border border-ink-900/10 bg-cream-50 shadow-soft">
       <header className="flex items-center justify-between border-b border-ink-900/10 px-6 py-4">
         <h2 className="font-display text-2xl text-ink-900">Chat</h2>
         <span className="text-xs text-ink-700">
@@ -215,7 +215,10 @@ export function RoomChat({
         </span>
       </header>
 
-      <div ref={scrollRef} className="max-h-[480px] min-h-[280px] overflow-y-auto px-6 py-4">
+      {/* Messages list — only this scrolls. min-h-0 + flex-1 lets the flex
+          parent shrink this down so the composer below stays visible. The
+          max-h cap kicks in on mobile where the parent has no fixed height. */}
+      <div ref={scrollRef} className="min-h-[160px] max-h-[480px] flex-1 overflow-y-auto px-6 py-4 lg:max-h-none">
         {messages.length === 0 ? (
           <p className="text-sm text-ink-700">No messages yet. Say hi.</p>
         ) : (
