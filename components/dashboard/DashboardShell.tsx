@@ -45,12 +45,12 @@ export async function DashboardShell({
 
   const mainBg =
     bg === "green"
-      ? "min-h-screen bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad]"
-      : "min-h-screen bg-cream-100";
+      ? "min-h-screen bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] lg:flex lg:h-screen lg:min-h-0 lg:flex-col lg:overflow-hidden"
+      : "min-h-screen bg-cream-100 lg:flex lg:h-screen lg:min-h-0 lg:flex-col lg:overflow-hidden";
   const headerBg =
     bg === "green"
-      ? "border-b border-ink-900/10 bg-[#dfead2]/85 backdrop-blur"
-      : "border-b border-ink-900/10 bg-cream-50/90 backdrop-blur";
+      ? "border-b border-ink-900/10 bg-[#dfead2]/85 backdrop-blur lg:flex-shrink-0"
+      : "border-b border-ink-900/10 bg-cream-50/90 backdrop-blur lg:flex-shrink-0";
 
   return (
     <main className={mainBg}>
@@ -103,8 +103,8 @@ export async function DashboardShell({
       <section
         className={
           fullBleed
-            ? "w-full"
-            : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14"
+            ? "w-full lg:flex-1 lg:min-h-0 lg:overflow-hidden"
+            : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
         }
       >
         {title || subtitle ? (

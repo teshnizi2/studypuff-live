@@ -253,7 +253,7 @@ export function DashboardActions(props: Props) {
           Mobile:
             Stacks naturally — sidebar above, then timer, then garden — since
             the rails fall back to inline rendering below the lg breakpoint. */}
-      <div className="bg-paper-grain relative min-h-[calc(100vh-100px)] pb-28">
+      <div className="bg-paper-grain relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />
 
         {/* Sidebar — desktop only, fixed flush to the left edge of the viewport.
@@ -316,8 +316,12 @@ export function DashboardActions(props: Props) {
         {/* Timer — centered in the viewport on every screen size.
             Position is independent of sidebar visibility. When in a room
             the solo TimerCircle is replaced by the shared RoomTimer so
-            every member sees the owner's clock in lockstep. */}
-        <div className="flex justify-center pt-6 lg:pt-10">
+            every member sees the owner's clock in lockstep.
+            At lg+ this column owns the only vertical scroll on the page:
+            if the timer + gauge + sparkline + chooser stack exceeds the
+            available height, it scrolls internally. The page itself
+            never scrolls. */}
+        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pt-10 lg:pb-8">
           <div className="journal-rise jrise-2">
             {props.activeRoomTimer ? (
               <RoomTimer
