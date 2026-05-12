@@ -8,13 +8,13 @@ const PRINCIPLES = [
 ];
 
 const TEAM = [
-  { name:"Elaine Herkul", first:"Elaine", role:"Founder · CEO", photo:"public/assets/elaine.jpg", tone:"bg-brand-pink",   rot:"-2deg",
+  { name:"Elaine Herkul", first:"Elaine", role:"Founder · CEO", photo:"/assets/elaine.jpg", tone:"bg-brand-pink",   rot:"-2deg",
     bio:"Elaine is currently pursuing her master's in Applied Cognitive Psychology and her master's in Statistics and Data Science. She has been hosting the study with me livestreams since 2021 and continues to work on ways to give back to students.",
     tag:"hosts the livestreams" },
-  { name:"Hera Imthorn",  first:"Hera",   role:"Co-founder · Research & Development", photo:"public/assets/hera.jpg", tone:"bg-brand-mint", rot:"1.6deg",
+  { name:"Hera Imthorn",  first:"Hera",   role:"Co-founder · Research & Development", photo:"/assets/hera.jpg", tone:"bg-brand-mint", rot:"1.6deg",
     bio:"As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning.",
     tag:"reads the papers" },
-  { name:"Reza Teshnizi", first:"Reza",   role:"Co-founder · Engineering & Automation", photo:"public/assets/reza.jpg", tone:"bg-brand-lilac", rot:"-1deg",
+  { name:"Reza Teshnizi", first:"Reza",   role:"Co-founder · Engineering & Automation", photo:"/assets/reza.jpg", tone:"bg-brand-lilac", rot:"-1deg",
     bio:"Reza is the computer scientist behind the StudyPuff app and the website. He also focuses on the automation to make sure that everything keeps running smoothly in the background.",
     tag:"writes the code" }
 ];

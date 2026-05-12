@@ -426,11 +426,11 @@ function Schedule(){
 /* ── HOSTS ───────────────────────────────────────────────────────── */
 function Hosts(){
   const TEAM = [
-    { name:"Hera",   role:"Lead host · Deep Work",  photo:"public/assets/hera.jpg",   tone:"bg-brand-mint",   rot:"-2deg",
+    { name:"Hera",   role:"Lead host · Deep Work",  photo:"/assets/hera.jpg",   tone:"bg-brand-mint",   rot:"-2deg",
       bio:"PhD candidate. Loves the quiet kind of focus. Hosts the Monday rounds and the Sunday reset." },
-    { name:"Reza",   role:"Workshops · Spaced repetition", photo:"public/assets/reza.jpg",   tone:"bg-brand-butter", rot:"1.5deg",
+    { name:"Reza",   role:"Workshops · Spaced repetition", photo:"/assets/reza.jpg",   tone:"bg-brand-butter", rot:"1.5deg",
       bio:"Cognitive science nerd. Runs the workshops and the early morning quiet room. Drinks too much tea." },
-    { name:"Elaine", role:"Twitch host · Cozy game nights", photo:"public/assets/elaine.jpg", tone:"bg-brand-lilac",  rot:"-1deg",
+    { name:"Elaine", role:"Twitch host · Cozy game nights", photo:"/assets/elaine.jpg", tone:"bg-brand-lilac",  rot:"-1deg",
       bio:"Streamer & student. Lights the candles, picks the music, and hosts the Saturday game-study crossovers." }
   ];
   return (
@@ -518,10 +518,10 @@ function RoomRules(){
 /* ── PAST SESSIONS (replays) ─────────────────────────────────────── */
 function Replays(){
   const REPLAYS = [
-    { title:"3hr Co-study · Late Night Library",  duration:"3:04:21", views:"82K",  platform:"yt", img:"public/youtube-lifestyle.jpg", tone:"bg-brand-sky",    tape:"#c6dceb", date:"Nov 05" },
-    { title:"Pomodoro Co-study · Rain & Pages",   duration:"2:50:00", views:"61K",  platform:"yt", img:"public/sheep.png",            tone:"bg-brand-mint",   tape:"#c7e2c7", date:"Nov 03" },
-    { title:"Cozy Cottage Study · Lo-fi",          duration:"4:12:08", views:"118K", platform:"yt", img:"public/youtube-lifestyle.jpg", tone:"bg-brand-butter", tape:"#fbe9a5", date:"Oct 30" },
-    { title:"Twitch Game Night · Stardew Valley",  duration:"3:48:11", views:"24K",  platform:"tw", img:"public/twitch-lifestyle.jpg",  tone:"bg-brand-lilac",  tape:"#d9cdea", date:"Oct 28" }
+    { title:"3hr Co-study · Late Night Library",  duration:"3:04:21", views:"82K",  platform:"yt", img:"/youtube-lifestyle.jpg", tone:"bg-brand-sky",    tape:"#c6dceb", date:"Nov 05" },
+    { title:"Pomodoro Co-study · Rain & Pages",   duration:"2:50:00", views:"61K",  platform:"yt", img:"/sheep.png",            tone:"bg-brand-mint",   tape:"#c7e2c7", date:"Nov 03" },
+    { title:"Cozy Cottage Study · Lo-fi",          duration:"4:12:08", views:"118K", platform:"yt", img:"/youtube-lifestyle.jpg", tone:"bg-brand-butter", tape:"#fbe9a5", date:"Oct 30" },
+    { title:"Twitch Game Night · Stardew Valley",  duration:"3:48:11", views:"24K",  platform:"tw", img:"/twitch-lifestyle.jpg",  tone:"bg-brand-lilac",  tape:"#d9cdea", date:"Oct 28" }
   ];
   return (
     <section id="replays" className="spread relative">
