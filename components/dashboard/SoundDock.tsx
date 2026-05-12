@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronUp, Music, Pause, Play, VolumeX } from "lucide-react";
-import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
+// AmbientPlayer is now rendered once at the DashboardActions level so the
+// audio keeps playing when this dock is hidden (e.g. in room mode where the
+// inline chooser under the timer replaces it). Don't add it back here —
+// two AmbientPlayer instances would each spin up their own oscillator and
+// double the sound.
 
 export type SoundOption = { id: string | null; label: string; tag?: string };
 
@@ -85,8 +89,6 @@ export function SoundDock({
 
   return (
     <>
-      <AmbientPlayer sound={sound} playing={playing} />
-
       <div
         ref={dockRef}
         className="fixed bottom-6 right-6 z-40 select-none"

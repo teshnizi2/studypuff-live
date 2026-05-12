@@ -9,6 +9,7 @@ import { LeavesAccent } from "./LeavesAccent";
 import { GrowthTree } from "./GrowthTree";
 import { RoomTimer } from "./RoomTimer";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
+import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
@@ -383,9 +384,14 @@ export function DashboardActions(props: Props) {
         </button>
       )}
 
-      {/* Floating sound dock — bottom right, persistent.
-          Sound is now decoupled from the timer: hitting play in the dock
-          plays the chosen sound regardless of whether the timer is running. */}
+      {/* Audio engine — rendered unconditionally so the inline room-mode
+          chooser keeps playing even when the floating SoundDock is hidden. */}
+      <AmbientPlayer sound={sound} playing={soundPlaying && !!sound} />
+
+      {/* Floating sound dock — bottom right, persistent in solo mode only.
+          In room mode the inline chooser under the timer covers this, so
+          we hide the dock to avoid two controls fighting for attention. */}
+      {!props.inRoom && (
       <SoundDock
         sound={sound}
         playing={soundPlaying && !!sound}
@@ -395,6 +401,7 @@ export function DashboardActions(props: Props) {
         soundsByMode={soundsByMode}
         onSelectForMode={handleSelectSoundForMode}
       />
+      )}
 
       {/* Rooms dialog */}
       <Dialog
