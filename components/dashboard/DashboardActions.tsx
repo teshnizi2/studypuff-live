@@ -28,7 +28,7 @@ import {
   uploadAvatarAction,
   removeAvatarAction
 } from "@/lib/app-data/actions";
-import { joinRoomAction, leaveRoomAction } from "@/lib/app-data/rooms";
+import { createRoomAction, joinRoomAction, leaveRoomAction } from "@/lib/app-data/rooms";
 
 type TaskPriority = "low" | "normal" | "high";
 
@@ -145,6 +145,22 @@ export function DashboardActions(props: Props) {
         setSidebarHidden(true);
       }
     } catch { /* ignore */ }
+  }, []);
+
+  // Lock body scroll while the dashboard is mounted — the layout puts
+  // every scrollable thing inside its own pane (tasks, members, chat,
+  // timer column). With `body { overflow: hidden }` the page itself
+  // can't be pushed up by mouse-wheel scroll.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
   }, []);
 
   const setSidebarHiddenPersist = (next: boolean) => {
@@ -403,15 +419,18 @@ export function DashboardActions(props: Props) {
           chooser under the sparkline so the dashboard is visually
           identical in/out of a room. */}
 
-      {/* Rooms dialog */}
+      {/* Rooms dialog — single entry point. No separate /dashboard/rooms page;
+          joining or creating a room redirects back to /dashboard and the room
+          shows up in the right rail. */}
       <Dialog
         open={open === "rooms"}
         onClose={close}
         title="Study rooms"
-        description="Join with a code, see your active rooms, or jump into one."
+        description="Join with a code, or start a room and share the code with friends."
         size="md"
       >
-        <form action={joinRoomAction} className="flex gap-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-700">Join with a code</p>
+        <form action={joinRoomAction} className="mt-2 flex gap-2">
           <input
             name="code"
             required
@@ -424,38 +443,59 @@ export function DashboardActions(props: Props) {
           </button>
         </form>
 
-        <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-ink-700">Active rooms</p>
-        <ul className="mt-2 space-y-2">
-          {props.rooms.filter((r) => !r.ended_at).length === 0 && (
-            <li className="rounded-2xl bg-cream-100 px-4 py-3 text-sm text-ink-700">
-              No active rooms. Create one to study with friends.
-            </li>
-          )}
-          {props.rooms
-            .filter((r) => !r.ended_at)
-            .map((r) => (
-              <li
-                key={r.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-cream-100 px-4 py-2.5 text-sm"
-              >
-                <a href={`/dashboard/rooms/${r.id}`} className="flex flex-1 items-center gap-3 text-ink-900 hover:underline">
-                  <span className="font-semibold">{r.name}</span>
-                  <span className="font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
-                </a>
-                {r.owner_id !== props.userId && (
-                  <form action={leaveRoomAction}>
-                    <input type="hidden" name="room_id" value={r.id} />
-                    <button type="submit" className="text-xs text-ink-700 underline-offset-4 hover:text-red-700 hover:underline">
-                      Leave
-                    </button>
-                  </form>
-                )}
-              </li>
-            ))}
-        </ul>
-        <a href="/dashboard/rooms" className="btn-outline mt-5 inline-flex w-fit px-4 py-2 text-sm">
-          + Create new room
-        </a>
+        <div className="my-5 h-px bg-ink-900/10" aria-hidden />
+
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-700">Create a new room</p>
+        <form action={createRoomAction} className="mt-2 grid gap-2 sm:grid-cols-[1fr_120px_auto]">
+          <input
+            name="name"
+            required
+            maxLength={80}
+            placeholder="Calculus crunch"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+          />
+          <input
+            name="focus_minutes"
+            type="number"
+            min={1}
+            max={180}
+            defaultValue={25}
+            aria-label="Focus minutes"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+          />
+          <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
+            Create
+          </button>
+        </form>
+
+        {props.rooms.filter((r) => !r.ended_at).length > 0 && (
+          <>
+            <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-ink-700">Your active rooms</p>
+            <ul className="mt-2 space-y-2">
+              {props.rooms
+                .filter((r) => !r.ended_at)
+                .map((r) => (
+                  <li
+                    key={r.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-cream-100 px-4 py-2.5 text-sm"
+                  >
+                    <span className="flex flex-1 items-center gap-3 text-ink-900">
+                      <span className="font-semibold">{r.name}</span>
+                      <span className="font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
+                    </span>
+                    {r.owner_id !== props.userId && (
+                      <form action={leaveRoomAction}>
+                        <input type="hidden" name="room_id" value={r.id} />
+                        <button type="submit" className="text-xs text-ink-700 underline-offset-4 hover:text-red-700 hover:underline">
+                          Leave
+                        </button>
+                      </form>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          </>
+        )}
       </Dialog>
 
       {/* Settings dialog — timer prefs only */}

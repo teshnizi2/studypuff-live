@@ -243,7 +243,6 @@ export async function createRoomAction(formData: FormData) {
   // The room lives inside /dashboard now — the chat, member list, leave button
   // are rendered as a side panel there rather than on a dedicated detail page.
   revalidatePath("/dashboard");
-  revalidatePath("/dashboard/rooms");
   redirect("/dashboard");
 }
 
@@ -268,7 +267,6 @@ export async function joinRoomAction(formData: FormData) {
   if (!roomId) throw new Error("Could not join room.");
 
   revalidatePath("/dashboard");
-  revalidatePath("/dashboard/rooms");
   redirect("/dashboard");
 }
 
@@ -285,8 +283,6 @@ export async function leaveRoomAction(formData: FormData) {
     .eq("user_id", user.id);
 
   revalidatePath("/dashboard");
-  revalidatePath(`/dashboard/rooms/${roomId}`);
-  revalidatePath("/dashboard/rooms");
   redirect("/dashboard");
 }
 
@@ -321,7 +317,7 @@ export async function updateRoomAction(formData: FormData) {
   const { error } = await supabase.from("study_rooms").update(updates).eq("id", roomId);
   if (error) throw error;
 
-  revalidatePath(`/dashboard/rooms/${roomId}`);
+  revalidatePath("/dashboard");
 }
 
 export async function endRoomAction(formData: FormData) {
@@ -344,9 +340,8 @@ export async function endRoomAction(formData: FormData) {
     .update({ ended_at: new Date().toISOString(), is_open: false })
     .eq("id", roomId);
 
-  revalidatePath(`/dashboard/rooms/${roomId}`);
-  revalidatePath("/dashboard/rooms");
-  redirect("/dashboard/rooms");
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -563,5 +558,5 @@ export async function kickMemberAction(formData: FormData) {
     .eq("room_id", roomId)
     .eq("user_id", targetUserId);
 
-  revalidatePath(`/dashboard/rooms/${roomId}`);
+  revalidatePath("/dashboard");
 }
