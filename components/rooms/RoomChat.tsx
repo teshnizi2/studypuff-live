@@ -23,11 +23,17 @@ export function RoomChat({
   currentUserId,
   isOwner,
   disabled,
-  chatClosed
+  chatClosed: initialChatClosed
 }: Props) {
+  // chatClosed can change in real time when the owner toggles it — we mirror
+  // it into state so a subscription to study_rooms updates can flip the
+  // composer without a page refresh.
+  const [chatClosed, setChatClosed] = useState<boolean>(!!initialChatClosed);
+  useEffect(() => { setChatClosed(!!initialChatClosed); }, [initialChatClosed]);
+
   // Owners are always allowed to post; non-owners are blocked when the
   // owner has closed the chat.
-  const composerLocked = disabled || (!!chatClosed && !isOwner);
+  const composerLocked = disabled || (chatClosed && !isOwner);
   const [messages, setMessages] = useState<RoomMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -47,7 +53,9 @@ export function RoomChat({
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const channel = supabase
-      .channel(`room-chat:${roomId}`)
+      // Single channel for both message events and the room-state mirror so
+      // we don't burn extra websocket connections per chat panel.
+      .channel(`room-chat:${roomId}`, { config: { broadcast: { self: false } } })
       .on(
         "postgres_changes",
         {
@@ -74,6 +82,26 @@ export function RoomChat({
           setMessages((prev) => prev.map((m) => (m.id === next.id ? next : m)));
         }
       )
+      // Mirror study_rooms.chat_closed so the composer locks/unlocks in real
+      // time when the owner toggles it. Both transports — postgres_changes
+      // and the room broadcast — keep us in sync.
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "study_rooms",
+          filter: `id=eq.${roomId}`
+        },
+        (payload) => {
+          const r = payload.new as Record<string, unknown>;
+          if (typeof r.chat_closed === "boolean") setChatClosed(r.chat_closed);
+        }
+      )
+      .on("broadcast", { event: "chat-closed" }, (msg) => {
+        const payload = msg.payload as { chat_closed?: boolean };
+        if (typeof payload.chat_closed === "boolean") setChatClosed(payload.chat_closed);
+      })
       .subscribe();
 
     return () => {
@@ -99,7 +127,15 @@ export function RoomChat({
         .insert({ room_id: roomId, user_id: currentUserId, body: body.slice(0, 2000) });
       setSending(false);
       if (insertError) {
-        setError(insertError.message);
+        // 42501 = row-level security violation. Most common cause here is
+        // the owner closed chat between the moment we rendered the
+        // composer and the moment send fired.
+        if ((insertError as { code?: string }).code === "42501") {
+          setChatClosed(true);
+          setError("The chat is closed.");
+        } else {
+          setError(insertError.message);
+        }
         return;
       }
       setDraft("");

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RoomChat } from "@/components/rooms/RoomChat";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   endRoomAction,
   leaveRoomAction,
@@ -23,6 +24,43 @@ type Props = {
 export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Mirror chat_closed so the button's label updates instantly without
+  // waiting for the next server render.
+  const [chatClosed, setChatClosed] = useState<boolean>(!!room.chat_closed);
+
+  const toggleChatClosed = async () => {
+    const nextClosed = !chatClosed;
+    // Optimistic — flip the label right away.
+    setChatClosed(nextClosed);
+    const fd = new FormData();
+    fd.set("room_id", room.id);
+    fd.set("closed", nextClosed ? "true" : "false");
+    try {
+      await setRoomChatClosedAction(fd);
+    } catch {
+      // Server rejected — roll back the optimistic flip.
+      setChatClosed(!nextClosed);
+      return;
+    }
+    // Broadcast so every member's RoomChat composer flips state without
+    // depending on postgres_changes delivery from study_rooms.
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const channel = supabase.channel(`room-chat:${room.id}`, { config: { broadcast: { self: false } } });
+      channel.subscribe((status) => {
+        if (status !== "SUBSCRIBED") return;
+        channel.send({
+          type: "broadcast",
+          event: "chat-closed",
+          payload: { chat_closed: nextClosed }
+        }).finally(() => {
+          // Remove right after sending — this isn't the channel members
+          // listen on for the long-running session.
+          supabase.removeChannel(channel);
+        });
+      });
+    } catch { /* ignore — postgres_changes is the fallback */ }
+  };
 
   const copyCode = async () => {
     try {
@@ -146,20 +184,17 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
         currentUserId={currentUserId}
         isOwner={room.is_owner}
         disabled={!!room.ended_at}
-        chatClosed={room.chat_closed}
+        chatClosed={chatClosed}
       />
 
       {room.is_owner && !room.ended_at && (
-        <form action={setRoomChatClosedAction}>
-          <input type="hidden" name="room_id" value={room.id} />
-          <input type="hidden" name="closed" value={room.chat_closed ? "false" : "true"} />
-          <button
-            type="submit"
-            className="w-full rounded-full border border-ink-900/15 bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:border-ink-900/30"
-          >
-            {room.chat_closed ? "Open chat to members" : "Close chat to members"}
-          </button>
-        </form>
+        <button
+          type="button"
+          onClick={toggleChatClosed}
+          className="w-full rounded-full border border-ink-900/15 bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:border-ink-900/30"
+        >
+          {chatClosed ? "Open chat to members" : "Close chat to members"}
+        </button>
       )}
 
       <div className="flex gap-2">
