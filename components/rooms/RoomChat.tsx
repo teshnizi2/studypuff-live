@@ -38,6 +38,21 @@ export function RoomChat({
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<ReturnType<ReturnType<typeof createSupabaseBrowserClient>["channel"]> | null>(null);
+
+  // Single helper that merges a message into local state with dedup; used
+  // by postgres_changes, by inbound broadcast, and by the sender's own
+  // optimistic insert. Memoized so the send/softDelete callbacks can list
+  // it in their dep arrays without re-creating every render.
+  const upsertMessage = useCallback((next: RoomMessage) => {
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === next.id);
+      if (idx === -1) return [...prev, next];
+      const out = prev.slice();
+      out[idx] = next;
+      return out;
+    });
+  }, []);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const memberMap = useMemo(() => {
@@ -64,10 +79,7 @@ export function RoomChat({
           table: "room_messages",
           filter: `room_id=eq.${roomId}`
         },
-        (payload) => {
-          const next = payload.new as RoomMessage;
-          setMessages((prev) => (prev.some((m) => m.id === next.id) ? prev : [...prev, next]));
-        }
+        (payload) => upsertMessage(payload.new as RoomMessage)
       )
       .on(
         "postgres_changes",
@@ -77,11 +89,17 @@ export function RoomChat({
           table: "room_messages",
           filter: `room_id=eq.${roomId}`
         },
-        (payload) => {
-          const next = payload.new as RoomMessage;
-          setMessages((prev) => prev.map((m) => (m.id === next.id ? next : m)));
-        }
+        (payload) => upsertMessage(payload.new as RoomMessage)
       )
+      // Belt-and-suspenders for message events too: in some Supabase setups
+      // postgres_changes for room_messages doesn't reach non-sender clients
+      // (the SELECT policy's SECURITY DEFINER call doesn't always evaluate
+      // through the realtime worker). Broadcasts skip RLS entirely so they
+      // always land.
+      .on("broadcast", { event: "message" }, (msg) => {
+        const payload = msg.payload as { row?: RoomMessage };
+        if (payload?.row) upsertMessage(payload.row);
+      })
       // Mirror study_rooms.chat_closed so the composer locks/unlocks in real
       // time when the owner toggles it. Both transports — postgres_changes
       // and the room broadcast — keep us in sync.
@@ -104,10 +122,13 @@ export function RoomChat({
       })
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [roomId]);
+  }, [roomId, upsertMessage]);
 
   useEffect(() => {
     const node = scrollRef.current;
@@ -122,9 +143,11 @@ export function RoomChat({
       setSending(true);
       setError(null);
       const supabase = createSupabaseBrowserClient();
-      const { error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await supabase
         .from("room_messages")
-        .insert({ room_id: roomId, user_id: currentUserId, body: body.slice(0, 2000) });
+        .insert({ room_id: roomId, user_id: currentUserId, body: body.slice(0, 2000) })
+        .select("id, room_id, user_id, body, created_at, deleted_at")
+        .single();
       setSending(false);
       if (insertError) {
         // 42501 = row-level security violation. Most common cause here is
@@ -139,20 +162,47 @@ export function RoomChat({
         return;
       }
       setDraft("");
+      if (inserted) {
+        const row = inserted as RoomMessage;
+        // Sender shows their own message immediately (we're on self:false so
+        // we don't loop our own broadcast back).
+        upsertMessage(row);
+        // Push the new row to every other subscriber via broadcast — this
+        // is what gets around postgres_changes filtering for chat events.
+        channelRef.current?.send({
+          type: "broadcast",
+          event: "message",
+          payload: { row }
+        });
+      }
     },
-    [draft, roomId, currentUserId, sending, composerLocked]
+    [draft, roomId, currentUserId, sending, composerLocked, upsertMessage]
   );
 
   const softDelete = useCallback(
     async (id: string) => {
       const supabase = createSupabaseBrowserClient();
-      const { error: updateError } = await supabase
+      const { data: updated, error: updateError } = await supabase
         .from("room_messages")
         .update({ deleted_at: new Date().toISOString() })
-        .eq("id", id);
-      if (updateError) setError(updateError.message);
+        .eq("id", id)
+        .select("id, room_id, user_id, body, created_at, deleted_at")
+        .single();
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+      if (updated) {
+        const row = updated as RoomMessage;
+        upsertMessage(row);
+        channelRef.current?.send({
+          type: "broadcast",
+          event: "message",
+          payload: { row }
+        });
+      }
     },
-    []
+    [upsertMessage]
   );
 
   return (
