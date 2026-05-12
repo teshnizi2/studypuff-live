@@ -11,7 +11,7 @@ import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
-import { HEADER_OPEN_ROOMS, HEADER_OPEN_STATS, HEADER_OPEN_SETTINGS } from "./HeaderActions";
+import { HEADER_OPEN_ROOMS, HEADER_OPEN_STATS, HEADER_OPEN_SETTINGS, HEADER_OPEN_GARDEN } from "./HeaderActions";
 import {
   addStudySessionAction,
   createTaskAction,
@@ -101,7 +101,7 @@ type Props = {
   inRoom?: boolean;
 };
 
-type ModalKey = "rooms" | "settings" | "stats" | "rewards" | "profile" | null;
+type ModalKey = "rooms" | "settings" | "stats" | "rewards" | "profile" | "garden" | null;
 
 export function DashboardActions(props: Props) {
   const [open, setOpen] = useState<ModalKey>(null);
@@ -152,13 +152,16 @@ export function DashboardActions(props: Props) {
     const onRooms    = () => setOpen("rooms");
     const onStats    = () => setOpen("stats");
     const onSettings = () => setOpen("settings");
+    const onGarden   = () => setOpen("garden");
     window.addEventListener(HEADER_OPEN_ROOMS,    onRooms);
     window.addEventListener(HEADER_OPEN_STATS,    onStats);
     window.addEventListener(HEADER_OPEN_SETTINGS, onSettings);
+    window.addEventListener(HEADER_OPEN_GARDEN,   onGarden);
     return () => {
       window.removeEventListener(HEADER_OPEN_ROOMS,    onRooms);
       window.removeEventListener(HEADER_OPEN_STATS,    onStats);
       window.removeEventListener(HEADER_OPEN_SETTINGS, onSettings);
+      window.removeEventListener(HEADER_OPEN_GARDEN,   onGarden);
     };
   }, []);
   const defaultSound = props.equippedSound ?? "sound-rain";
@@ -266,22 +269,7 @@ export function DashboardActions(props: Props) {
           />
         </aside>
 
-        {/* Garden — desktop only, fixed flush to the right edge.
-            Suppressed when in a room so RoomSidebar can claim the right rail;
-            the inline garden block below covers the rendering in that case. */}
-        {!props.inRoom && (
-          <aside
-            aria-label="Garden"
-            className="fixed right-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-4 pb-10 pt-4 lg:block"
-          >
-            <GrowthTree
-              lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-              todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-              tasksDone={props.tasks.filter((t) => t.done).length}
-              streak={props.stats?.streak ?? 0}
-            />
-          </aside>
-        )}
+        {/* Garden moved to the header "Garden" tab; rendered as a modal below. */}
 
         {/* Mobile sidebar + garden — stacked above the timer below lg. */}
         <div className="flex flex-col gap-10 px-4 pt-6 lg:hidden">
@@ -331,16 +319,7 @@ export function DashboardActions(props: Props) {
           </div>
         </div>
 
-        {/* Mobile garden — under timer at small sizes. Shows at all sizes
-            when in a room (since the fixed right rail is hidden then). */}
-        <div className={`flex justify-center px-4 pt-10 ${props.inRoom ? "" : "lg:hidden"}`}>
-          <GrowthTree
-            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-            tasksDone={props.tasks.filter((t) => t.done).length}
-            streak={props.stats?.streak ?? 0}
-          />
-        </div>
+        {/* Inline mobile garden removed — open via header "Garden" tab. */}
       </div>
 
       {/* "Show tasks" tab — only visible when sidebar is hidden, anchored
@@ -565,6 +544,24 @@ export function DashboardActions(props: Props) {
           <RewardsContent {...props.rewards} />
         </Dialog>
       )}
+
+      {/* Garden dialog — replaces the always-visible right rail. */}
+      <Dialog
+        open={open === "garden"}
+        onClose={close}
+        title="Your garden"
+        description="A new leaf for every 25 minutes of focus."
+        size="md"
+      >
+        <div className="flex justify-center py-2">
+          <GrowthTree
+            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+            tasksDone={props.tasks.filter((t) => t.done).length}
+            streak={props.stats?.streak ?? 0}
+          />
+        </div>
+      </Dialog>
     </>
   );
 }

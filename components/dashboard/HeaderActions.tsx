@@ -1,12 +1,13 @@
 "use client";
 
-import { DoorOpen, BarChart3, Settings as SettingsIcon } from "lucide-react";
+import { DoorOpen, BarChart3, Settings as SettingsIcon, Sprout } from "lucide-react";
 
 // Custom events used to communicate between this header-rendered component
 // (server-tree) and the client-side DashboardActions modal state.
 export const HEADER_OPEN_ROOMS    = "studypuff:open-rooms";
 export const HEADER_OPEN_STATS    = "studypuff:open-stats";
 export const HEADER_OPEN_SETTINGS = "studypuff:open-settings";
+export const HEADER_OPEN_GARDEN   = "studypuff:open-garden";
 
 function dispatch(event: string) {
   if (typeof window === "undefined") return;
@@ -14,7 +15,7 @@ function dispatch(event: string) {
 }
 
 /**
- * The Rooms / Stats / Settings entry points, rendered in the page header.
+ * The Rooms / Garden / Stats / Settings entry points, rendered in the page header.
  * Lives outside DashboardActions so the dashboard can keep its 3-column
  * layout free of nav noise.
  */
@@ -22,6 +23,7 @@ export function HeaderActions() {
   return (
     <div className="flex items-center gap-1 rounded-full bg-cream-50/55 p-1 ring-1 ring-ink-900/10 backdrop-blur-sm">
       <Pill icon={<DoorOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />} label="Rooms"    onClick={() => dispatch(HEADER_OPEN_ROOMS)} />
+      <Pill icon={<Sprout className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />} label="Garden"   onClick={() => dispatch(HEADER_OPEN_GARDEN)} />
       <Pill icon={<BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />} label="Stats"    onClick={() => dispatch(HEADER_OPEN_STATS)} />
       <Pill icon={<SettingsIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />} label="Settings" onClick={() => dispatch(HEADER_OPEN_SETTINGS)} />
     </div>
