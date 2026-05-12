@@ -5,6 +5,7 @@ import { ChevronDown, Music, Pause, Play, RotateCcw, VolumeX } from "lucide-reac
 import { TimePicker } from "@/components/timer/TimePicker";
 import { SOUND_OPTIONS } from "./SoundDock";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { addStudySessionAction } from "@/lib/app-data/actions";
 import {
   advanceRoomTimerAction,
   pauseRoomTimerAction,
@@ -12,6 +13,9 @@ import {
   setRoomTimerModeAction,
   startRoomTimerAction
 } from "@/lib/app-data/rooms";
+
+type TaskLite = { id: string; text: string };
+type TopicLite = { id: string; name: string };
 
 type TimerMode = "idle" | "focus" | "short" | "long";
 
@@ -36,6 +40,12 @@ export type RoomTimerProps = {
   soundPlaying: boolean;
   onTogglePlaySound: () => void;
   onSelectSound: (id: string | null) => void;
+  /** Per-user task/topic — visible only to this user. The shared timer
+   *  is in common, but what each member is working on is private. */
+  tasks: TaskLite[];
+  topics: TopicLite[];
+  currentTaskId: string;
+  currentTopicId: string;
 };
 
 // Match the solo TimerCircle's accessory overlay table so the sheep
@@ -118,7 +128,11 @@ export function RoomTimer({
   sound,
   soundPlaying,
   onTogglePlaySound,
-  onSelectSound
+  onSelectSound,
+  tasks,
+  topics,
+  currentTaskId,
+  currentTopicId
 }: RoomTimerProps) {
   const [state, setState] = useState<TimerColumns>(initial);
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -164,6 +178,33 @@ export function RoomTimer({
   }, [roomId, initial.focus_minutes, initial.short_break_minutes, initial.long_break_minutes, initial]);
 
   const display = useMemo(() => deriveDisplay(state, nowMs), [state, nowMs]);
+
+  // Log a study session for THIS user whenever a focus phase completes —
+  // every member's client fires independently, attributed to their own
+  // currently-selected topic/task. We detect 'focus → short/long' on the
+  // canonical room state so partial sessions from pause/reset don't log.
+  const lastModeRef = useRef<TimerMode>(initial.timer_mode);
+  useEffect(() => {
+    const prev = lastModeRef.current;
+    const next = state.timer_mode;
+    lastModeRef.current = next;
+    if (prev === "focus" && (next === "short" || next === "long")) {
+      const fd = new FormData();
+      fd.set("minutes", String(state.focus_minutes));
+      fd.set("mode", "focus");
+      if (currentTopicId) {
+        fd.set("topic_id", currentTopicId);
+        const t = topics.find((x) => x.id === currentTopicId);
+        if (t) fd.set("topic_name", t.name);
+      }
+      if (currentTaskId) {
+        fd.set("task_id", currentTaskId);
+        const t = tasks.find((x) => x.id === currentTaskId);
+        if (t) fd.set("task_name", t.text);
+      }
+      addStudySessionAction(fd).catch(() => {});
+    }
+  }, [state.timer_mode, state.focus_minutes, currentTaskId, currentTopicId, tasks, topics]);
 
   // Owner-driven auto-advance: at zero, the owner's browser flips to the
   // next mode and writes; every member sees it via realtime.
@@ -252,8 +293,35 @@ export function RoomTimer({
 
   const playPauseLabel = display.isRunning ? "Pause" : "Start";
 
+  const currentTopic = useMemo(
+    () => topics.find((t) => t.id === currentTopicId) ?? null,
+    [topics, currentTopicId]
+  );
+  const currentTask = useMemo(
+    () => tasks.find((t) => t.id === currentTaskId) ?? null,
+    [tasks, currentTaskId]
+  );
+
   return (
     <div className="relative flex flex-col items-center text-ink-900">
+      {/* Per-user 'working on' caption — visible only to this user. The shared
+          timer is in common, but each member's task/topic is private. Pick a
+          different task in the Tasks panel on the left. */}
+      <div className="mb-3 text-center">
+        <p className="text-[10px] uppercase tracking-[0.28em] text-ink-700/65">
+          Working on
+        </p>
+        <p className="mt-1 max-w-[280px] truncate font-display text-sm italic text-ink-900">
+          {currentTopic && currentTask
+            ? `${currentTopic.name} · ${currentTask.text}`
+            : currentTopic
+              ? currentTopic.name
+              : currentTask
+                ? currentTask.text
+                : "General study — pick a topic in Tasks"}
+        </p>
+      </div>
+
       {/* Sheep ring — identical to solo */}
       <div className="relative">
         <div

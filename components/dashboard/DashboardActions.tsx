@@ -328,6 +328,10 @@ export function DashboardActions(props: Props) {
                 soundPlaying={soundPlaying && !!sound}
                 onTogglePlaySound={() => setSoundPlaying((p) => !p)}
                 onSelectSound={handleSelectActiveSound}
+                tasks={props.tasks.filter((t) => !t.done).map((t) => ({ id: t.id, text: t.text }))}
+                topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
+                currentTaskId={currentTaskId}
+                currentTopicId={currentTopicId}
                 initial={{
                   timer_mode: props.activeRoomTimer.timer_mode,
                   timer_started_at: props.activeRoomTimer.timer_started_at,
