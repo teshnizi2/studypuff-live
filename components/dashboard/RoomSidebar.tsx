@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { RoomChat } from "@/components/rooms/RoomChat";
-import { endRoomAction, leaveRoomAction, type RoomDetail, type RoomMessage } from "@/lib/app-data/rooms";
+import {
+  endRoomAction,
+  leaveRoomAction,
+  setRoomChatClosedAction,
+  type RoomDetail,
+  type RoomMessage
+} from "@/lib/app-data/rooms";
 
 type Props = {
   room: RoomDetail;
@@ -140,7 +146,21 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
         currentUserId={currentUserId}
         isOwner={room.is_owner}
         disabled={!!room.ended_at}
+        chatClosed={room.chat_closed}
       />
+
+      {room.is_owner && !room.ended_at && (
+        <form action={setRoomChatClosedAction}>
+          <input type="hidden" name="room_id" value={room.id} />
+          <input type="hidden" name="closed" value={room.chat_closed ? "false" : "true"} />
+          <button
+            type="submit"
+            className="w-full rounded-full border border-ink-900/15 bg-cream-50 px-4 py-2 text-xs font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:border-ink-900/30"
+          >
+            {room.chat_closed ? "Open chat to members" : "Close chat to members"}
+          </button>
+        </form>
+      )}
 
       <div className="flex gap-2">
         <form action={leaveRoomAction} className="flex-1">

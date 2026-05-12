@@ -63,6 +63,7 @@ export type RoomDetail = {
   timer_paused_at: string | null;
   timer_pause_offset_seconds: number;
   timer_round: number;
+  chat_closed: boolean;
   is_open: boolean;
   started_at: string | null;
   ended_at: string | null;
@@ -138,7 +139,7 @@ export async function getRoomDetail(roomId: string): Promise<RoomDetail | null> 
   const { data: room } = await supabase
     .from("study_rooms")
     .select(
-      "id, code, owner_id, name, focus_minutes, short_break_minutes, long_break_minutes, timer_mode, timer_started_at, timer_paused_at, timer_pause_offset_seconds, timer_round, is_open, started_at, ended_at, created_at"
+      "id, code, owner_id, name, focus_minutes, short_break_minutes, long_break_minutes, timer_mode, timer_started_at, timer_paused_at, timer_pause_offset_seconds, timer_round, chat_closed, is_open, started_at, ended_at, created_at"
     )
     .eq("id", roomId)
     .single();
@@ -510,6 +511,23 @@ export async function setRoomTimerModeAction(formData: FormData) {
       timer_paused_at: null,
       timer_pause_offset_seconds: 0
     })
+    .eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+/** Owner toggles whether members can post in chat. The owner can always
+ *  post regardless; this only locks out everyone else. RLS enforces the
+ *  same rule independently so the client can't cheat. */
+export async function setRoomChatClosedAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  if (!roomId) return;
+  const closed = s(formData, "closed") === "true";
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("study_rooms")
+    .update({ chat_closed: closed })
     .eq("id", roomId);
   if (error) throw error;
   revalidatePath("/dashboard");

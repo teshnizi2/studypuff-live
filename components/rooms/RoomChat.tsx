@@ -10,7 +10,10 @@ type Props = {
   members: RoomMemberSummary[];
   currentUserId: string;
   isOwner: boolean;
+  /** Whole chat is unusable (room ended). Hides the composer for everyone. */
   disabled?: boolean;
+  /** Owner toggled chat off. Members can't send; owner can still post. */
+  chatClosed?: boolean;
 };
 
 export function RoomChat({
@@ -19,8 +22,12 @@ export function RoomChat({
   members,
   currentUserId,
   isOwner,
-  disabled
+  disabled,
+  chatClosed
 }: Props) {
+  // Owners are always allowed to post; non-owners are blocked when the
+  // owner has closed the chat.
+  const composerLocked = disabled || (!!chatClosed && !isOwner);
   const [messages, setMessages] = useState<RoomMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -83,7 +90,7 @@ export function RoomChat({
     async (e: React.FormEvent) => {
       e.preventDefault();
       const body = draft.trim();
-      if (!body || sending || disabled) return;
+      if (!body || sending || composerLocked) return;
       setSending(true);
       setError(null);
       const supabase = createSupabaseBrowserClient();
@@ -97,7 +104,7 @@ export function RoomChat({
       }
       setDraft("");
     },
-    [draft, roomId, currentUserId, sending, disabled]
+    [draft, roomId, currentUserId, sending, composerLocked]
   );
 
   const softDelete = useCallback(
@@ -183,19 +190,32 @@ export function RoomChat({
 
       <form onSubmit={send} className="border-t border-ink-900/10 px-6 py-4">
         {error && <p className="mb-2 text-xs text-red-700">{error}</p>}
+        {chatClosed && !isOwner && (
+          <p className="mb-2 text-xs text-ink-700">
+            The owner has closed the chat. You can still read what was posted.
+          </p>
+        )}
         <div className="flex gap-2">
           <input
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder={disabled ? "Chat is closed." : "Type a message…"}
+            placeholder={
+              disabled
+                ? "Chat is closed."
+                : chatClosed && !isOwner
+                  ? "Chat is closed by the owner."
+                  : chatClosed && isOwner
+                    ? "Chat is closed — only you can post."
+                    : "Type a message…"
+            }
             maxLength={2000}
-            disabled={disabled || sending}
+            disabled={composerLocked || sending}
             className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-3 text-sm"
           />
           <button
             type="submit"
-            disabled={!draft.trim() || sending || disabled}
+            disabled={!draft.trim() || sending || composerLocked}
             className="btn-primary px-5 disabled:opacity-50"
           >
             Send

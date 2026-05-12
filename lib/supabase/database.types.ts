@@ -243,6 +243,7 @@ export interface Database {
           timer_paused_at: string | null;
           timer_pause_offset_seconds: number;
           timer_round: number;
+          chat_closed: boolean;
           is_open: boolean;
           started_at: string | null;
           ended_at: string | null;
@@ -263,6 +264,7 @@ export interface Database {
           timer_paused_at?: string | null;
           timer_pause_offset_seconds?: number;
           timer_round?: number;
+          chat_closed?: boolean;
           is_open?: boolean;
           started_at?: string | null;
           ended_at?: string | null;
@@ -280,6 +282,7 @@ export interface Database {
           timer_paused_at?: string | null;
           timer_pause_offset_seconds?: number;
           timer_round?: number;
+          chat_closed?: boolean;
           is_open?: boolean;
           started_at?: string | null;
           ended_at?: string | null;
