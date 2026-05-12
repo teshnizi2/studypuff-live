@@ -95,6 +95,10 @@ type Props = {
   minutesByTask?: Record<string, number>;
   stats?: Omit<StatsContentProps, "onCloseHref">;
   rewards?: RewardsContentProps;
+  /** When true, the right-edge garden rail is suppressed so the
+      RoomSidebar can take that space. Garden falls back to the inline
+      under-timer position it uses on mobile. */
+  inRoom?: boolean;
 };
 
 type ModalKey = "rooms" | "settings" | "stats" | "rewards" | "profile" | null;
@@ -262,18 +266,22 @@ export function DashboardActions(props: Props) {
           />
         </aside>
 
-        {/* Garden — desktop only, fixed flush to the right edge. */}
-        <aside
-          aria-label="Garden"
-          className="fixed right-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-4 pb-10 pt-4 lg:block"
-        >
-          <GrowthTree
-            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-            tasksDone={props.tasks.filter((t) => t.done).length}
-            streak={props.stats?.streak ?? 0}
-          />
-        </aside>
+        {/* Garden — desktop only, fixed flush to the right edge.
+            Suppressed when in a room so RoomSidebar can claim the right rail;
+            the inline garden block below covers the rendering in that case. */}
+        {!props.inRoom && (
+          <aside
+            aria-label="Garden"
+            className="fixed right-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-4 pb-10 pt-4 lg:block"
+          >
+            <GrowthTree
+              lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+              todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+              tasksDone={props.tasks.filter((t) => t.done).length}
+              streak={props.stats?.streak ?? 0}
+            />
+          </aside>
+        )}
 
         {/* Mobile sidebar + garden — stacked above the timer below lg. */}
         <div className="flex flex-col gap-10 px-4 pt-6 lg:hidden">
@@ -323,8 +331,9 @@ export function DashboardActions(props: Props) {
           </div>
         </div>
 
-        {/* Mobile garden — under timer at small sizes. */}
-        <div className="flex justify-center px-4 pt-10 lg:hidden">
+        {/* Mobile garden — under timer at small sizes. Shows at all sizes
+            when in a room (since the fixed right rail is hidden then). */}
+        <div className={`flex justify-center px-4 pt-10 ${props.inRoom ? "" : "lg:hidden"}`}>
           <GrowthTree
             lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
             todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}

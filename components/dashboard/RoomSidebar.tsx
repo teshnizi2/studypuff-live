@@ -35,7 +35,15 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
   }
 
   return (
-    <aside className="flex h-full w-full flex-col gap-3 lg:gap-4">
+    <aside
+      aria-label="Study room"
+      className="
+        relative mx-auto mt-6 flex w-full max-w-[420px] flex-col gap-3 px-4 pb-10
+        lg:fixed lg:right-0 lg:top-[100px] lg:z-30 lg:m-0 lg:h-[calc(100vh-120px)]
+        lg:w-[360px] lg:max-w-none lg:overflow-y-auto lg:px-4 lg:pt-4 lg:pb-10
+        xl:w-[400px]
+      "
+    >
       <header className="flex items-start justify-between gap-3 rounded-[24px] border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">

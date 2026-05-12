@@ -136,14 +136,9 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell profile={profile} bg="green" fullBleed>
-      <div
-        className={
-          activeRoom
-            ? "grid w-full gap-4 px-4 lg:gap-6 lg:px-6 xl:grid-cols-[1fr_minmax(320px,400px)]"
-            : "w-full"
-        }
-      >
+      <div className="w-full">
         <DashboardActions
+          inRoom={!!activeRoom}
           userId={user.id}
           tasks={workspace.tasks.map((t) => ({
             id: t.id,
@@ -224,13 +219,11 @@ export default async function DashboardPage() {
           }}
         />
         {activeRoom && (
-          <div className="px-2 pb-8 pt-4 xl:pt-0">
-            <RoomSidebar
-              room={activeRoom}
-              initialMessages={activeRoomMessages}
-              currentUserId={user.id}
-            />
-          </div>
+          <RoomSidebar
+            room={activeRoom}
+            initialMessages={activeRoomMessages}
+            currentUserId={user.id}
+          />
         )}
       </div>
     </DashboardShell>
