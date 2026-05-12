@@ -333,6 +333,9 @@ export function DashboardActions(props: Props) {
                 topics={props.topics.map((t) => ({ id: t.id, name: t.name }))}
                 currentTaskId={currentTaskId}
                 currentTopicId={currentTopicId}
+                todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+                dailyGoalMinutes={props.settings?.daily_goal_minutes ?? 0}
+                weekly={props.stats?.last7}
                 initial={{
                   timer_mode: props.activeRoomTimer.timer_mode,
                   timer_started_at: props.activeRoomTimer.timer_started_at,
@@ -361,6 +364,10 @@ export function DashboardActions(props: Props) {
               equippedAccessory={props.equippedAccessory}
               onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
               weekly={props.stats?.last7}
+              sound={sound}
+              soundPlaying={soundPlaying && !!sound}
+              onTogglePlaySound={() => setSoundPlaying((p) => !p)}
+              onSelectSound={handleSelectActiveSound}
             />
             )}
           </div>
@@ -384,24 +391,13 @@ export function DashboardActions(props: Props) {
         </button>
       )}
 
-      {/* Audio engine — rendered unconditionally so the inline room-mode
-          chooser keeps playing even when the floating SoundDock is hidden. */}
+      {/* Audio engine — rendered unconditionally so both the solo and
+          room inline sound choosers stay audible. */}
       <AmbientPlayer sound={sound} playing={soundPlaying && !!sound} />
-
-      {/* Floating sound dock — bottom right, persistent in solo mode only.
-          In room mode the inline chooser under the timer covers this, so
-          we hide the dock to avoid two controls fighting for attention. */}
-      {!props.inRoom && (
-      <SoundDock
-        sound={sound}
-        playing={soundPlaying && !!sound}
-        onSelect={handleSelectActiveSound}
-        onTogglePlay={() => setSoundPlaying((p) => !p)}
-        timerMode={timerMode}
-        soundsByMode={soundsByMode}
-        onSelectForMode={handleSelectSoundForMode}
-      />
-      )}
+      {/* The floating SoundDock is intentionally not rendered anymore.
+          Both timers (solo TimerCircle and RoomTimer) embed an inline
+          chooser under the sparkline so the dashboard is visually
+          identical in/out of a room. */}
 
       {/* Rooms dialog */}
       <Dialog

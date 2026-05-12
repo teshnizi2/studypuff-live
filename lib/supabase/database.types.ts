@@ -340,7 +340,16 @@ export interface Database {
         Update: never;
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      public_profiles: {
+        Row: {
+          id: string;
+          display_name: string | null;
+          username: string | null;
+          avatar_url: string | null;
+        };
+      };
+    };
     Functions: {
       join_room_by_code: {
         Args: { p_code: string };

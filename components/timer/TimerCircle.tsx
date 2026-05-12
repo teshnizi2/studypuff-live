@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Play, Pause } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
+import { InlineSoundChooser } from "@/components/dashboard/InlineSoundChooser";
 
 type Task = { id: string; text: string };
 type Topic = { id: string; name: string };
@@ -25,6 +26,12 @@ type Props = {
   onModeChange?: (mode: StudyMode) => void;
   /** Last 7 days in chronological order, ending today. Used for the dashboard sparkline. */
   weekly?: { date: string; minutes: number }[];
+  /** Ambient sound state — same source the room timer uses, so the dashboard
+   *  looks identical in/out of a room. The floating SoundDock is gone now. */
+  sound?: string | null;
+  soundPlaying?: boolean;
+  onTogglePlaySound?: () => void;
+  onSelectSound?: (id: string | null) => void;
 };
 
 const ACCESSORY_OVERLAY: Record<string, { emoji: string; top: string; left: string; size: string }> = {
@@ -41,7 +48,11 @@ export function TimerCircle({
   running, onRunningChange,
   onComplete, equippedAccessory,
   onModeChange,
-  weekly
+  weekly,
+  sound = null,
+  soundPlaying = false,
+  onTogglePlaySound,
+  onSelectSound
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
@@ -274,6 +285,17 @@ export function TimerCircle({
           </div>
           <WeeklySparkline data={weekly} />
         </div>
+      )}
+
+      {/* Sound chooser — same shape as the room timer's. The floating
+          SoundDock is hidden now, so this is the only sound control. */}
+      {onTogglePlaySound && onSelectSound && (
+        <InlineSoundChooser
+          sound={sound}
+          playing={soundPlaying}
+          onTogglePlay={onTogglePlaySound}
+          onSelect={onSelectSound}
+        />
       )}
     </div>
   );

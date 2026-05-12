@@ -153,9 +153,13 @@ export async function getRoomDetail(roomId: string): Promise<RoomDetail | null> 
     .order("joined_at", { ascending: true });
 
   const userIds = (memberRows || []).map((m) => m.user_id);
+  // Use the public_profiles view, not profiles directly. profiles' SELECT
+  // policy hides every row except the caller's own; the view exposes the
+  // four public-presentable columns (id, display_name, username,
+  // avatar_url) to all authenticated users with RLS bypassed.
   const { data: profiles } = userIds.length
     ? await supabase
-        .from("profiles")
+        .from("public_profiles")
         .select("id, display_name, username, avatar_url")
         .in("id", userIds)
     : { data: [] as { id: string; display_name: string | null; username: string | null; avatar_url: string | null }[] };
