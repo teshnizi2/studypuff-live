@@ -324,6 +324,10 @@ export function DashboardActions(props: Props) {
                 isOwner={props.activeRoomTimer.isOwner}
                 ownerLabel={props.activeRoomTimer.ownerLabel}
                 equippedAccessory={props.equippedAccessory}
+                sound={sound}
+                soundPlaying={soundPlaying && !!sound}
+                onTogglePlaySound={() => setSoundPlaying((p) => !p)}
+                onSelectSound={handleSelectActiveSound}
                 initial={{
                   timer_mode: props.activeRoomTimer.timer_mode,
                   timer_started_at: props.activeRoomTimer.timer_started_at,
