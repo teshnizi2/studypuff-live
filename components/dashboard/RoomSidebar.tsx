@@ -16,6 +16,18 @@ type Props = {
 // that nothing yet renders.
 export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
   const [collapsed, setCollapsed] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(room.code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // Clipboard API can fail in non-secure contexts or denied permission;
+      // fall back to a manual selectable element if it ever bites.
+    }
+  };
 
   if (collapsed) {
     return (
@@ -50,11 +62,25 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
             {room.is_owner ? "Your room" : "Joined"}
           </p>
           <h2 className="mt-0.5 truncate font-display text-xl text-ink-900">{room.name}</h2>
-          <p className="mt-1 text-xs text-ink-700">
-            Code:{" "}
-            <span className="rounded-md bg-ink-900/5 px-2 py-0.5 font-mono tracking-[0.24em]">
-              {room.code}
-            </span>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-700">
+            <span>Code:</span>
+            <button
+              type="button"
+              onClick={copyCode}
+              title="Click to copy"
+              aria-label={`Copy room code ${room.code}`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-ink-900/5 px-2 py-0.5 font-mono tracking-[0.24em] text-ink-900 transition hover:bg-ink-900/10"
+            >
+              <span>{room.code}</span>
+              <span aria-hidden className="text-[10px] tracking-normal text-ink-700">
+                {copied ? "✓" : "⧉"}
+              </span>
+            </button>
+            {copied && (
+              <span aria-live="polite" className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Copied
+              </span>
+            )}
           </p>
         </div>
         <button
@@ -72,7 +98,9 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
             Members · {room.members.length}
           </p>
-          <ul className="mt-3 flex flex-wrap gap-2">
+          {/* Cap to ~3 rows of chips and scroll the rest, so a 100-member room
+              doesn't push the chat off the screen. */}
+          <ul className="mt-3 flex max-h-32 flex-wrap content-start gap-2 overflow-y-auto pr-1">
             {room.members.map((m) => {
               const label = m.display_name || m.username || "Member";
               const initial = label.charAt(0).toUpperCase();
