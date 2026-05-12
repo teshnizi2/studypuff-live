@@ -323,6 +323,7 @@ export function DashboardActions(props: Props) {
                 roomId={props.activeRoomTimer.roomId}
                 isOwner={props.activeRoomTimer.isOwner}
                 ownerLabel={props.activeRoomTimer.ownerLabel}
+                equippedAccessory={props.equippedAccessory}
                 initial={{
                   timer_mode: props.activeRoomTimer.timer_mode,
                   timer_started_at: props.activeRoomTimer.timer_started_at,
