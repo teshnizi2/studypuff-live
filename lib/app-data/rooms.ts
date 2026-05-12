@@ -105,6 +105,25 @@ export async function getMyRooms() {
   );
 }
 
+// The single room the user is currently a member of, used by /dashboard to
+// render the side panel. Returns null when the user is not in any room.
+// With "one room at a time" semantics enforced in joinRoomAction this should
+// only ever return at most one row; if the DB somehow has more, we pick the
+// most recently joined one.
+export async function getActiveRoom(): Promise<RoomDetail | null> {
+  const { user } = await requireUser();
+  const supabase = createSupabaseServerClient();
+  const { data: membership } = await supabase
+    .from("study_room_members")
+    .select("room_id, joined_at")
+    .eq("user_id", user.id)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!membership?.room_id) return null;
+  return getRoomDetail(membership.room_id);
+}
+
 export async function getRoomDetail(roomId: string): Promise<RoomDetail | null> {
   const { user } = await requireUser();
   const supabase = createSupabaseServerClient();
@@ -207,23 +226,36 @@ export async function createRoomAction(formData: FormData) {
     throw new Error(msg);
   }
 
+  // The room lives inside /dashboard now — the chat, member list, leave button
+  // are rendered as a side panel there rather than on a dedicated detail page.
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/rooms");
-  redirect(`/dashboard/rooms/${roomId}`);
+  redirect("/dashboard");
 }
 
 export async function joinRoomAction(formData: FormData) {
-  await requireUser();
+  const { user } = await requireUser();
   const code = s(formData, "code").toUpperCase();
   if (!code) throw new Error("Enter a room code.");
 
   const supabase = createSupabaseServerClient();
+
+  // One-room-at-a-time: drop any existing memberships (other than rooms this
+  // user owns) before joining the new one, so /dashboard has a single
+  // unambiguous "active room" to render.
+  await supabase
+    .from("study_room_members")
+    .delete()
+    .eq("user_id", user.id);
+
   const { data: roomId, error } = await supabase.rpc("join_room_by_code", { p_code: code });
 
   if (error) throw new Error(error.message || "Could not join room.");
   if (!roomId) throw new Error("Could not join room.");
 
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/rooms");
-  redirect(`/dashboard/rooms/${roomId}`);
+  redirect("/dashboard");
 }
 
 export async function leaveRoomAction(formData: FormData) {
@@ -238,9 +270,10 @@ export async function leaveRoomAction(formData: FormData) {
     .eq("room_id", roomId)
     .eq("user_id", user.id);
 
+  revalidatePath("/dashboard");
   revalidatePath(`/dashboard/rooms/${roomId}`);
   revalidatePath("/dashboard/rooms");
-  redirect("/dashboard/rooms");
+  redirect("/dashboard");
 }
 
 export async function updateRoomAction(formData: FormData) {

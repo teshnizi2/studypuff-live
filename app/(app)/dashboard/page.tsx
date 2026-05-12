@@ -1,8 +1,9 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardActions } from "@/components/dashboard/DashboardActions";
+import { RoomSidebar } from "@/components/dashboard/RoomSidebar";
 import { requireUser } from "@/lib/auth/guards";
 import { getUserWorkspace } from "@/lib/app-data/queries";
-import { getMyRooms } from "@/lib/app-data/rooms";
+import { getActiveRoom, getMyRooms, getRoomMessages } from "@/lib/app-data/rooms";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SessionRow = {
@@ -27,6 +28,11 @@ export default async function DashboardPage() {
   const { user, profile } = await requireUser();
   const workspace = await getUserWorkspace(user.id);
   const myRooms = await getMyRooms();
+  // Single-room-at-a-time membership — used to render the right-rail panel
+  // with chat + members + leave/end controls. Falls through to solo mode
+  // when null.
+  const activeRoom = await getActiveRoom();
+  const activeRoomMessages = activeRoom ? await getRoomMessages(activeRoom.id, 200) : [];
 
   const supabase = createSupabaseServerClient();
 
@@ -130,7 +136,13 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell profile={profile} bg="green" fullBleed>
-      <div className="w-full">
+      <div
+        className={
+          activeRoom
+            ? "grid w-full gap-4 px-4 lg:gap-6 lg:px-6 xl:grid-cols-[1fr_minmax(320px,400px)]"
+            : "w-full"
+        }
+      >
         <DashboardActions
           userId={user.id}
           tasks={workspace.tasks.map((t) => ({
@@ -211,6 +223,15 @@ export default async function DashboardPage() {
             equippedAccessory: settings?.equipped_accessory ?? null
           }}
         />
+        {activeRoom && (
+          <div className="px-2 pb-8 pt-4 xl:pt-0">
+            <RoomSidebar
+              room={activeRoom}
+              initialMessages={activeRoomMessages}
+              currentUserId={user.id}
+            />
+          </div>
+        )}
       </div>
     </DashboardShell>
   );
