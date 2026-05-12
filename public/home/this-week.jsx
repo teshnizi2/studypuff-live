@@ -101,7 +101,7 @@ function ThisWeek() {
               {/* TWITCH polaroid — peeking behind */}
               <div className="absolute -left-6 top-32 w-[58%] rotate-[5deg] bg-cream-50 p-2.5 pb-3 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.35)] z-[1]">
                 <div className="aspect-[4/3] relative overflow-hidden bg-brand-lilac/40">
-                  <img src="public/twitch-lifestyle.jpg" alt="Twitch co-study" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src="/twitch-lifestyle.jpg" alt="Twitch co-study" className="absolute inset-0 h-full w-full object-cover" />
                   <span className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-[#9146ff] px-2 py-0.5 text-white text-[9px] font-mono uppercase tracking-widest">
                     <I.twitch /> Live on Twitch
                   </span>
@@ -120,7 +120,7 @@ function ThisWeek() {
                 </svg>
 
                 <div className="aspect-[4/3] relative overflow-hidden bg-brand-mint/40">
-                  <img src="public/youtube-lifestyle.jpg" alt="YouTube co-study livestream" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src="/youtube-lifestyle.jpg" alt="YouTube co-study livestream" className="absolute inset-0 h-full w-full object-cover" />
                   {/* film-grain top vignette */}
                   <span aria-hidden className="absolute inset-x-0 top-0 h-20 pointer-events-none"
                   style={{ background: "linear-gradient(to bottom, rgba(0,0,0,.45), transparent)" }} />
@@ -192,7 +192,7 @@ function ThisWeek() {
               <p className="eyebrow text-brand-rust">On the air this week</p>
               <span className="font-mono text-[10px] uppercase tracking-widest text-ink-700">Nov 12 — 18 · CET</span>
             </div>
-            <a href="study.html#schedule" className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-ink-900 underline underline-offset-4 decoration-brand-rust hover:text-brand-rust">
+            <a href="/study#schedule" className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-ink-900 underline underline-offset-4 decoration-brand-rust hover:text-brand-rust">
               See the full week ({SCHEDULE.length} streams) →
             </a>
           </div>
@@ -203,7 +203,7 @@ function ThisWeek() {
             return (
               <div className="grid grid-cols-12 gap-6 items-stretch">
                 {/* TONIGHT — featured card */}
-                <a href="study.html#schedule"
+                <a href="/study#schedule"
                 className={`col-span-12 md:col-span-6 group relative ${tonight.tone} p-7 md:p-8 shadow-[0_22px_50px_-26px_rgba(0,0,0,0.32)] -rotate-[0.4deg] hover:-translate-y-0.5 transition border border-ink-900/12 flex flex-col`}>
                   {/* washi tape */}
                   <span aria-hidden className="absolute -top-3 right-10 h-5 w-24 rotate-[6deg] opacity-90"
@@ -262,7 +262,7 @@ function ThisWeek() {
 
                   <div className="flex-1 bg-cream-50 border border-ink-900/12 divide-y divide-ink-900/10">
                     {upcoming.map((s, i) =>
-                    <a href="study.html#schedule" key={i} className="group grid grid-cols-12 items-center gap-3 py-4 px-4 hover:bg-cream-100/70 transition relative">
+                    <a href="/study#schedule" key={i} className="group grid grid-cols-12 items-center gap-3 py-4 px-4 hover:bg-cream-100/70 transition relative">
                         <span aria-hidden className={`${s.tone} absolute left-0 top-3 bottom-3 w-1`} />
                         <div className="col-span-3 flex items-baseline gap-2 pl-2">
                           <p className="eyebrow text-ink-700">{s.day}</p>
@@ -291,7 +291,7 @@ function ThisWeek() {
                       <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-red-500" />YouTube</span>
                       <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-[#9146ff]" />Twitch</span>
                     </span>
-                    <a href="study.html#schedule" className="underline underline-offset-4 decoration-brand-rust hover:text-brand-rust">
+                    <a href="/study#schedule" className="underline underline-offset-4 decoration-brand-rust hover:text-brand-rust">
                       Full schedule →
                     </a>
                   </div>

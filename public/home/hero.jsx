@@ -63,7 +63,7 @@ function Hero() {
 
             {/* peeking polaroid behind (workshop / YT lifestyle photo) */}
             <div aria-hidden className="absolute -left-6 top-12 hidden sm:block bg-cream-50 p-2.5 pb-7 -rotate-[10deg] shadow-[0_18px_38px_-22px_rgba(0,0,0,0.3)] w-[58%]">
-              <img src="public/youtube-lifestyle.jpg" alt="" className="block w-full aspect-[4/5] object-cover"/>
+              <img src="/youtube-lifestyle.jpg" alt="" className="block w-full aspect-[4/5] object-cover"/>
             </div>
 
             {/* main polaroid */}
@@ -81,7 +81,7 @@ function Hero() {
                   <svg aria-hidden className="absolute inset-2 w-[calc(100%-1rem)] h-[calc(100%-1rem)]" viewBox="0 0 100 125" preserveAspectRatio="none" fill="none">
                     <path d="M2 3 Q 50 1 98 3 Q 99 60 97 122 Q 50 124 3 122 Q 1 60 2 3 Z" stroke="#2f4d34" strokeOpacity=".4" strokeWidth=".5" strokeDasharray="1.5 1.5"/>
                   </svg>
-                  <img src="public/sheep.png" alt="StudyPuff sheep mascot — reading a book" className="relative bob mb-1 w-[88%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.18)]"/>
+                  <img src="/sheep.png" alt="StudyPuff sheep mascot — reading a book" className="relative bob mb-1 w-[88%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.18)]"/>
 
                   {/* LIVE tag */}
                   <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-cream-50/95 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-ink-900">

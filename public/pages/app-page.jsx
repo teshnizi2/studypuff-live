@@ -464,7 +464,7 @@ function DashHeader({ coins, theme }){
       <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-5 px-6 py-5 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-10">
         <div className="flex items-center gap-6">
           <div className="flex flex-col gap-1">
-            <a href="index.html" className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900">
+            <a href="/" className="inline-flex w-fit items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900">
               <span aria-hidden>←</span> Back to site
             </a>
             <a href="#" className="font-display text-2xl text-ink-900 leading-none">StudyPuff</a>

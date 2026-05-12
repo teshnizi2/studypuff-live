@@ -38,8 +38,8 @@ function AboutHero(){
             A small team of three, building a calm home for students who want to study well together — grounded in research, run with care, free at the door.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="contact.html" className="btn-ink">Say hello <I.arrow/></a>
-            <a href="study.html"   className="btn-ghost">Study with us tonight</a>
+            <a href="/contact" className="btn-ink">Say hello <I.arrow/></a>
+            <a href="/study"   className="btn-ghost">Study with us tonight</a>
           </div>
         </div>
         <div className="col-span-12 lg:col-span-5">
@@ -217,7 +217,7 @@ function Team(){
             <p className="hand text-[17px] text-brand-rust mt-2">guest hosts, scholarship students, friendly nerds welcome.</p>
           </div>
           <div className="col-span-12 md:col-span-4 md:text-right">
-            <a href="contact.html" className="btn-ink">Say hello <I.arrow/></a>
+            <a href="/contact" className="btn-ink">Say hello <I.arrow/></a>
           </div>
         </div>
       </div>

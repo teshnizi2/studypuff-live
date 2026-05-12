@@ -390,8 +390,8 @@ function ResourcesCTA(){
           <h3 className="display text-[28px] text-ink-900 mt-2 leading-tight">Paid workshops <em>go deeper, faster.</em></h3>
           <p className="text-[14px] text-ink-700 mt-3 max-w-md">Our cohorts take these free tools and build a full practice around them — with peer accountability and coach feedback.</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a href="workshops.html" className="btn-ink">See workshops <I.arrow/></a>
-            <a href="contact.html" className="btn-ghost">Ask a question</a>
+            <a href="/workshops" className="btn-ink">See workshops <I.arrow/></a>
+            <a href="/contact" className="btn-ghost">Ask a question</a>
           </div>
         </div>
       </div>

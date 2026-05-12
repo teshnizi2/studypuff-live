@@ -49,7 +49,7 @@ function InsideApp() {
               3 friends in your room
             </div>
             <div className="absolute -bottom-6 -right-6 hidden md:block">
-              <img src="public/studypuff-sheep-sm.png" alt="" className="bob w-[110px] h-auto drop-shadow-[0_12px_22px_rgba(0,0,0,.2)]"/>
+              <img src="/studypuff-sheep-sm.png" alt="" className="bob w-[110px] h-auto drop-shadow-[0_12px_22px_rgba(0,0,0,.2)]"/>
             </div>
             <svg className="absolute -left-10 top-1/2 hidden lg:block" width="80" height="120" viewBox="0 0 80 120" fill="none" aria-hidden>
               <path d="M70 10 C 20 30, 20 60, 60 90" stroke="#c97f72" strokeWidth="2.2" strokeLinecap="round"/>
@@ -109,7 +109,7 @@ function AppMock(){
               <circle cx={dx} cy={dy} r="9" fill="#fff" stroke="#1f4d2c" strokeWidth="3"/>
             </svg>
             <div className="absolute inset-[18%] rounded-full bg-[#5b8a55] flex items-end justify-center overflow-hidden">
-              <img src="public/sheep.png" alt="" className="w-[88%] object-contain mb-[-4%]"/>
+              <img src="/sheep.png" alt="" className="w-[88%] object-contain mb-[-4%]"/>
             </div>
           </div>
           <p className="mt-3 font-display text-[44px] tabular-nums tracking-[.05em] text-ink-900">14:42</p>
