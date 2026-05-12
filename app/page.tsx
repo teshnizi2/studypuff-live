@@ -20,13 +20,6 @@ const COSTUDY_BULLETS: string[] = [
   "Regular cozy game streams"
 ];
 
-const APP_BULLETS: string[] = [
-  "Pomodoro timer with the sheep at the centre",
-  "Tasks, topics, and a daily goal",
-  "Earn & spend coins on rewards",
-  "Group study rooms with chat"
-];
-
 const LIVE_SESSIONS_THIS_WEEK: number = 3;
 
 export default function Page() {
@@ -114,16 +107,6 @@ export default function Page() {
               completed tasks, and more. Use them on new ambient sounds, themes, and more to come.
               Join study rooms with a code so you can study with your friends in real time.
             </p>
-            <ul className="mt-6 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-              {APP_BULLETS.map((b) => (
-                <li
-                  key={b}
-                  className="rounded-2xl bg-cream-50/70 px-3 py-2.5 text-ink-900"
-                >
-                  <span className="font-semibold">{b}</span>
-                </li>
-              ))}
-            </ul>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/dashboard" className="btn-primary">
                 Open the app <span aria-hidden>→</span>
