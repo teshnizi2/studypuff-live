@@ -153,6 +153,17 @@ export async function getRoomDetail(roomId: string): Promise<RoomDetail | null> 
   };
 }
 
+// 6-char room code — A-Z + 2-9 (no 0/1/O/I to avoid confusion). Generated
+// app-side so we don't rely on a DB DEFAULT that might be missing.
+function generateRoomCode(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 6; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return out;
+}
+
 export async function createRoomAction(formData: FormData) {
   const { user } = await requireUser();
   const name = s(formData, "name");
@@ -161,21 +172,43 @@ export async function createRoomAction(formData: FormData) {
   const focusMinutes = Math.min(180, Math.max(1, n(formData, "focus_minutes", 25)));
   const supabase = createSupabaseServerClient();
 
-  const { data: room, error } = await supabase
-    .from("study_rooms")
-    .insert({
-      owner_id: user.id,
-      name: name.slice(0, 80),
-      focus_minutes: focusMinutes,
-      topic_id: nullable(formData, "topic_id")
-    })
-    .select("id")
-    .single();
+  // Retry a few times on the unlikely event of a code collision.
+  let lastError: unknown = null;
+  let roomId: string | null = null;
+  for (let attempt = 0; attempt < 5 && !roomId; attempt++) {
+    const { data: room, error } = await supabase
+      .from("study_rooms")
+      .insert({
+        owner_id: user.id,
+        name: name.slice(0, 80),
+        focus_minutes: focusMinutes,
+        topic_id: nullable(formData, "topic_id"),
+        code: generateRoomCode()
+      })
+      .select("id")
+      .single();
+    if (room) {
+      roomId = room.id;
+      break;
+    }
+    lastError = error;
+    // 23505 = unique_violation (code collision) → retry. Anything else, bail.
+    if (!error || (error as { code?: string }).code !== "23505") break;
+  }
 
-  if (error || !room) throw error || new Error("Could not create room.");
+  if (!roomId) {
+    // Surface the real Supabase error to Vercel logs so future failures
+    // show up as something other than an opaque digest.
+    console.error("[createRoomAction] failed", lastError);
+    const msg =
+      lastError && typeof lastError === "object" && "message" in lastError
+        ? String((lastError as { message: unknown }).message)
+        : "Could not create room.";
+    throw new Error(msg);
+  }
 
   revalidatePath("/dashboard/rooms");
-  redirect(`/dashboard/rooms/${room.id}`);
+  redirect(`/dashboard/rooms/${roomId}`);
 }
 
 export async function joinRoomAction(formData: FormData) {
