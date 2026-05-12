@@ -56,6 +56,13 @@ export type RoomDetail = {
   owner_id: string;
   name: string;
   focus_minutes: number;
+  short_break_minutes: number;
+  long_break_minutes: number;
+  timer_mode: "idle" | "focus" | "short" | "long";
+  timer_started_at: string | null;
+  timer_paused_at: string | null;
+  timer_pause_offset_seconds: number;
+  timer_round: number;
   is_open: boolean;
   started_at: string | null;
   ended_at: string | null;
@@ -130,7 +137,9 @@ export async function getRoomDetail(roomId: string): Promise<RoomDetail | null> 
 
   const { data: room } = await supabase
     .from("study_rooms")
-    .select("id, code, owner_id, name, focus_minutes, is_open, started_at, ended_at, created_at")
+    .select(
+      "id, code, owner_id, name, focus_minutes, short_break_minutes, long_break_minutes, timer_mode, timer_started_at, timer_paused_at, timer_pause_offset_seconds, timer_round, is_open, started_at, ended_at, created_at"
+    )
     .eq("id", roomId)
     .single();
 
@@ -334,6 +343,179 @@ export async function endRoomAction(formData: FormData) {
   revalidatePath("/dashboard/rooms");
   redirect("/dashboard/rooms");
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared timer — only the room owner can change timer state. RLS already
+// restricts UPDATE on study_rooms to owner_id = auth.uid(), so we don't
+// duplicate that check at the app layer.
+
+type TimerMode = "idle" | "focus" | "short" | "long";
+
+function durationFor(mode: TimerMode, room: {
+  focus_minutes: number;
+  short_break_minutes: number;
+  long_break_minutes: number;
+}): number {
+  switch (mode) {
+    case "focus": return room.focus_minutes;
+    case "short": return room.short_break_minutes;
+    case "long":  return room.long_break_minutes;
+    default:      return room.focus_minutes;
+  }
+}
+
+async function loadTimerRoom(roomId: string) {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("study_rooms")
+    .select(
+      "id, owner_id, focus_minutes, short_break_minutes, long_break_minutes, timer_mode, timer_started_at, timer_paused_at, timer_pause_offset_seconds, timer_round, ended_at"
+    )
+    .eq("id", roomId)
+    .single();
+  return data;
+}
+
+/** Owner starts (or resumes from paused) the current mode. If mode is idle,
+ *  flips it to focus first. */
+export async function startRoomTimerAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  if (!roomId) return;
+  const supabase = createSupabaseServerClient();
+  const room = await loadTimerRoom(roomId);
+  if (!room || room.ended_at) return;
+
+  const nowIso = new Date().toISOString();
+  const updates: Record<string, unknown> = {};
+
+  if (room.timer_mode === "idle") {
+    updates.timer_mode = "focus";
+    updates.timer_started_at = nowIso;
+    updates.timer_paused_at = null;
+    updates.timer_pause_offset_seconds = 0;
+  } else if (room.timer_paused_at) {
+    // Resume: accumulate the time spent paused into pause_offset, clear paused.
+    const pausedMs = new Date(room.timer_paused_at).getTime();
+    const startedMs = new Date(room.timer_started_at!).getTime();
+    const elapsedSinceStart = Math.max(0, Math.floor((pausedMs - startedMs) / 1000));
+    const _ = elapsedSinceStart; void _;
+    // The "remaining" calculation does: total - (paused - started - existing_offset).
+    // To resume cleanly we shift started_at forward by the wall-clock time spent
+    // paused; equivalent and simpler than accumulating into pause_offset.
+    const pauseDurationMs = Date.now() - pausedMs;
+    const newStartedMs = startedMs + pauseDurationMs;
+    updates.timer_started_at = new Date(newStartedMs).toISOString();
+    updates.timer_paused_at = null;
+  } else if (!room.timer_started_at) {
+    updates.timer_started_at = nowIso;
+    updates.timer_paused_at = null;
+    updates.timer_pause_offset_seconds = 0;
+  } else {
+    // already running, no-op
+    return;
+  }
+
+  const { error } = await supabase.from("study_rooms").update(updates).eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+export async function pauseRoomTimerAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  if (!roomId) return;
+  const supabase = createSupabaseServerClient();
+  const room = await loadTimerRoom(roomId);
+  if (!room || !room.timer_started_at || room.timer_paused_at) return;
+  const { error } = await supabase
+    .from("study_rooms")
+    .update({ timer_paused_at: new Date().toISOString() })
+    .eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+export async function resetRoomTimerAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  if (!roomId) return;
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("study_rooms")
+    .update({
+      timer_mode: "idle",
+      timer_started_at: null,
+      timer_paused_at: null,
+      timer_pause_offset_seconds: 0,
+      timer_round: 1
+    })
+    .eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+/** Used by the owner when a phase finishes (or they press Skip). Auto-cycles
+ *  focus → short, short → focus, with a long break after every 4 focuses. */
+export async function advanceRoomTimerAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  if (!roomId) return;
+  const supabase = createSupabaseServerClient();
+  const room = await loadTimerRoom(roomId);
+  if (!room || room.ended_at) return;
+
+  const justFinished = room.timer_mode as TimerMode;
+  let nextMode: TimerMode = "focus";
+  let nextRound = room.timer_round;
+
+  if (justFinished === "focus") {
+    nextRound = room.timer_round + 1;
+    nextMode = nextRound % 5 === 0 ? "long" : "short";
+  } else if (justFinished === "short" || justFinished === "long") {
+    nextMode = "focus";
+  }
+
+  const { error } = await supabase
+    .from("study_rooms")
+    .update({
+      timer_mode: nextMode,
+      timer_started_at: new Date().toISOString(),
+      timer_paused_at: null,
+      timer_pause_offset_seconds: 0,
+      timer_round: nextRound
+    })
+    .eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+/** Owner picks a mode manually while idle (e.g. "let's do a long break"). */
+export async function setRoomTimerModeAction(formData: FormData) {
+  await requireUser();
+  const roomId = s(formData, "room_id");
+  const modeRaw = s(formData, "mode");
+  if (!roomId) return;
+  const mode = (["focus", "short", "long", "idle"] as const).includes(modeRaw as TimerMode)
+    ? (modeRaw as TimerMode) : "focus";
+  // Touch durationFor so TS keeps it; used by client for display, server only
+  // writes the mode and resets the clock.
+  void durationFor;
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("study_rooms")
+    .update({
+      timer_mode: mode,
+      timer_started_at: null,
+      timer_paused_at: null,
+      timer_pause_offset_seconds: 0
+    })
+    .eq("id", roomId);
+  if (error) throw error;
+  revalidatePath("/dashboard");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function kickMemberAction(formData: FormData) {
   const { user } = await requireUser();

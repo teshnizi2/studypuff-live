@@ -7,6 +7,7 @@ import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
 import { GrowthTree } from "./GrowthTree";
+import { RoomTimer } from "./RoomTimer";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
 import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
@@ -99,6 +100,22 @@ type Props = {
       RoomSidebar can take that space. Garden falls back to the inline
       under-timer position it uses on mobile. */
   inRoom?: boolean;
+  /** Snapshot of the active room's timer state for server-side initial
+      render. When present, the dashboard renders the shared RoomTimer
+      in place of the solo TimerCircle. */
+  activeRoomTimer?: {
+    roomId: string;
+    isOwner: boolean;
+    ownerLabel: string;
+    timer_mode: "idle" | "focus" | "short" | "long";
+    timer_started_at: string | null;
+    timer_paused_at: string | null;
+    timer_pause_offset_seconds: number;
+    timer_round: number;
+    focus_minutes: number;
+    short_break_minutes: number;
+    long_break_minutes: number;
+  };
 };
 
 type ModalKey = "rooms" | "settings" | "stats" | "rewards" | "profile" | "garden" | null;
@@ -296,9 +313,28 @@ export function DashboardActions(props: Props) {
         </div>
 
         {/* Timer — centered in the viewport on every screen size.
-            Position is independent of sidebar visibility. */}
+            Position is independent of sidebar visibility. When in a room
+            the solo TimerCircle is replaced by the shared RoomTimer so
+            every member sees the owner's clock in lockstep. */}
         <div className="flex justify-center pt-6 lg:pt-10">
           <div className="journal-rise jrise-2">
+            {props.activeRoomTimer ? (
+              <RoomTimer
+                roomId={props.activeRoomTimer.roomId}
+                isOwner={props.activeRoomTimer.isOwner}
+                ownerLabel={props.activeRoomTimer.ownerLabel}
+                initial={{
+                  timer_mode: props.activeRoomTimer.timer_mode,
+                  timer_started_at: props.activeRoomTimer.timer_started_at,
+                  timer_paused_at: props.activeRoomTimer.timer_paused_at,
+                  timer_pause_offset_seconds: props.activeRoomTimer.timer_pause_offset_seconds,
+                  timer_round: props.activeRoomTimer.timer_round,
+                  focus_minutes: props.activeRoomTimer.focus_minutes,
+                  short_break_minutes: props.activeRoomTimer.short_break_minutes,
+                  long_break_minutes: props.activeRoomTimer.long_break_minutes
+                }}
+              />
+            ) : (
             <TimerCircle
               focusMinutes={props.settings?.focus_minutes ?? 25}
               shortBreakMinutes={props.settings?.short_break_minutes ?? 5}
@@ -316,6 +352,7 @@ export function DashboardActions(props: Props) {
               onModeChange={(m) => setTimerMode(m as TimerSoundMode)}
               weekly={props.stats?.last7}
             />
+            )}
           </div>
         </div>
 

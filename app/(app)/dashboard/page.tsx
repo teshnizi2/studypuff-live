@@ -139,6 +139,26 @@ export default async function DashboardPage() {
       <div className="w-full">
         <DashboardActions
           inRoom={!!activeRoom}
+          activeRoomTimer={
+            activeRoom
+              ? {
+                  roomId: activeRoom.id,
+                  isOwner: activeRoom.is_owner,
+                  ownerLabel:
+                    activeRoom.members.find((m) => m.is_owner)?.display_name ||
+                    activeRoom.members.find((m) => m.is_owner)?.username ||
+                    "the owner",
+                  timer_mode: activeRoom.timer_mode,
+                  timer_started_at: activeRoom.timer_started_at,
+                  timer_paused_at: activeRoom.timer_paused_at,
+                  timer_pause_offset_seconds: activeRoom.timer_pause_offset_seconds,
+                  timer_round: activeRoom.timer_round,
+                  focus_minutes: activeRoom.focus_minutes,
+                  short_break_minutes: activeRoom.short_break_minutes,
+                  long_break_minutes: activeRoom.long_break_minutes
+                }
+              : undefined
+          }
           userId={user.id}
           tasks={workspace.tasks.map((t) => ({
             id: t.id,
