@@ -84,10 +84,31 @@ function deriveDisplay(
   };
 }
 
+type TimerColumns = RoomTimerProps["initial"];
+
+const TIMER_SELECT =
+  "timer_mode, timer_started_at, timer_paused_at, timer_pause_offset_seconds, timer_round, focus_minutes, short_break_minutes, long_break_minutes";
+
+function rowToState(r: Record<string, unknown>, fallback: TimerColumns): TimerColumns {
+  return {
+    timer_mode: (r.timer_mode as TimerMode) ?? "idle",
+    timer_started_at: (r.timer_started_at as string | null) ?? null,
+    timer_paused_at: (r.timer_paused_at as string | null) ?? null,
+    timer_pause_offset_seconds: Number(r.timer_pause_offset_seconds ?? 0),
+    timer_round: Number(r.timer_round ?? 1),
+    focus_minutes: Number(r.focus_minutes ?? fallback.focus_minutes),
+    short_break_minutes: Number(r.short_break_minutes ?? fallback.short_break_minutes),
+    long_break_minutes: Number(r.long_break_minutes ?? fallback.long_break_minutes)
+  };
+}
+
 export function RoomTimer({ roomId, isOwner, ownerLabel, equippedAccessory, initial }: RoomTimerProps) {
-  const [state, setState] = useState(initial);
+  const [state, setState] = useState<TimerColumns>(initial);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const advancingRef = useRef(false);
+  // The broadcast channel — owner sends after each timer write, every member
+  // receives. Falls back to postgres_changes if the channel is silent.
+  const broadcastChannelRef = useRef<ReturnType<ReturnType<typeof createSupabaseBrowserClient>["channel"]> | null>(null);
 
   // 1Hz tick
   useEffect(() => {
@@ -96,33 +117,34 @@ export function RoomTimer({ roomId, isOwner, ownerLabel, equippedAccessory, init
   }, []);
 
   // Realtime: UPDATEs on this room → re-sync state for every member.
+  // We also listen for a broadcast on the same channel because postgres_changes
+  // events for study_rooms were observed to skip non-owner subscribers (likely
+  // a quirk of how Realtime evaluates SECURITY DEFINER function calls inside
+  // the SELECT policy). Broadcasts bypass RLS so they always land.
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     const channel = supabase
-      .channel(`room-timer:${roomId}`)
+      .channel(`room-timer:${roomId}`, { config: { broadcast: { self: false } } })
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "study_rooms", filter: `id=eq.${roomId}` },
         (payload) => {
-          const r = payload.new as Record<string, unknown>;
-          setState({
-            timer_mode: (r.timer_mode as TimerMode) ?? "idle",
-            timer_started_at: (r.timer_started_at as string | null) ?? null,
-            timer_paused_at: (r.timer_paused_at as string | null) ?? null,
-            timer_pause_offset_seconds: Number(r.timer_pause_offset_seconds ?? 0),
-            timer_round: Number(r.timer_round ?? 1),
-            focus_minutes: Number(r.focus_minutes ?? initial.focus_minutes),
-            short_break_minutes: Number(r.short_break_minutes ?? initial.short_break_minutes),
-            long_break_minutes: Number(r.long_break_minutes ?? initial.long_break_minutes)
-          });
+          setState(rowToState(payload.new as Record<string, unknown>, initial));
           advancingRef.current = false;
         }
       )
+      .on("broadcast", { event: "timer-state" }, (msg) => {
+        const payload = msg.payload as Record<string, unknown>;
+        setState(rowToState(payload, initial));
+        advancingRef.current = false;
+      })
       .subscribe();
+    broadcastChannelRef.current = channel;
     return () => {
       supabase.removeChannel(channel);
+      broadcastChannelRef.current = null;
     };
-  }, [roomId, initial.focus_minutes, initial.short_break_minutes, initial.long_break_minutes]);
+  }, [roomId, initial.focus_minutes, initial.short_break_minutes, initial.long_break_minutes, initial]);
 
   const display = useMemo(() => deriveDisplay(state, nowMs), [state, nowMs]);
 
@@ -137,24 +159,54 @@ export function RoomTimer({ roomId, isOwner, ownerLabel, equippedAccessory, init
     advancingRef.current = true;
     const fd = new FormData();
     fd.set("room_id", roomId);
-    advanceRoomTimerAction(fd).catch(() => {
-      advancingRef.current = false;
-    });
+    advanceRoomTimerAction(fd)
+      .then(() => syncAndBroadcast())
+      .catch(() => { advancingRef.current = false; });
+    // syncAndBroadcast is intentionally not in deps — it's defined inline
+    // and stable enough for this fire-once-at-zero effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOwner, display.isRunning, display.remainingSeconds, state.timer_mode, roomId]);
 
-  const callAction = (fn: (fd: FormData) => Promise<void>) => {
+  // After the owner's server action lands, refetch the canonical state and
+  // broadcast it on the room channel. Every member listening picks it up
+  // immediately — no page refresh, no waiting on postgres_changes filters.
+  const syncAndBroadcast = async () => {
+    if (!isOwner) return;
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase
+        .from("study_rooms")
+        .select(TIMER_SELECT)
+        .eq("id", roomId)
+        .single();
+      if (!data) return;
+      const next = rowToState(data as unknown as Record<string, unknown>, initial);
+      setState(next);
+      broadcastChannelRef.current?.send({
+        type: "broadcast",
+        event: "timer-state",
+        payload: next as unknown as Record<string, unknown>
+      });
+    } catch {
+      /* swallow: the next realtime event will eventually correct us */
+    }
+  };
+
+  const callAction = async (fn: (fd: FormData) => Promise<void>) => {
     if (!isOwner) return;
     const fd = new FormData();
     fd.set("room_id", roomId);
-    fn(fd).catch(() => {});
+    try { await fn(fd); } catch { /* ignore */ }
+    await syncAndBroadcast();
   };
 
-  const setMode = (mode: TimerMode) => {
+  const setMode = async (mode: TimerMode) => {
     if (!isOwner) return;
     const fd = new FormData();
     fd.set("room_id", roomId);
     fd.set("mode", mode);
-    setRoomTimerModeAction(fd).catch(() => {});
+    try { await setRoomTimerModeAction(fd); } catch { /* ignore */ }
+    await syncAndBroadcast();
   };
 
   // Same SVG geometry as the solo TimerCircle so the rings are visually
