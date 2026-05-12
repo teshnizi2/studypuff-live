@@ -10,16 +10,13 @@ function ThisWeek() {
   "Regular cozy game streams",
   "Free, forever"];
 
-  // expanded weekly schedule (8 sessions)
+  // Weekly schedule — Tuesday + Friday livestreams. Other days marked as quiet so
+  // the grid still reads as a full week without inventing sessions we won't run.
   const SCHEDULE = [
-  { day: "Mon", date: "12", title: "Co-study · Deep Work", time: "19:00 CET", end: "22:00", kind: "Live", platform: "yt", host: "w/ Hera", tone: "bg-brand-mint", live: true, rsvp: 128, dur: "3h" },
-  { day: "Tue", date: "13", title: "Quiet Hours · Reading Room", time: "08:00 CET", end: "10:00", kind: "Live", platform: "yt", host: "w/ Reza", tone: "bg-brand-sky", live: false, rsvp: 64, dur: "2h", note: "☕ slow start" },
-  { day: "Wed", date: "14", title: "Workshop · Spaced Repetition", time: "18:30 CET", end: "20:00", kind: "Workshop", platform: "yt", host: "w/ Reza", tone: "bg-brand-butter", live: false, rsvp: 212, dur: "90m" },
-  { day: "Thu", date: "15", title: "Co-study · Rainy Library", time: "20:00 CET", end: "23:00", kind: "Live", platform: "tw", host: "w/ Elaine", tone: "bg-brand-lilac", live: true, rsvp: 96, dur: "3h", note: "🌧 ambient rain" },
-  { day: "Fri", date: "16", title: "Deadline Sprint · Submit Night", time: "21:00 CET", end: "01:00", kind: "Live", platform: "yt", host: "w/ Hera", tone: "bg-brand-pink", live: false, rsvp: 174, dur: "4h", note: "🚀 last-mile" },
-  { day: "Sat", date: "17", title: "Cozy Game Night · Stardew", time: "21:00 CET", end: "23:30", kind: "Stream", platform: "tw", host: "w/ Elaine", tone: "bg-brand-pink", live: false, rsvp: 88, dur: "2.5h" },
-  { day: "Sun", date: "18", title: "Week Reset · Planning Room", time: "16:00 CET", end: "18:00", kind: "Live", platform: "yt", host: "w/ Hera", tone: "bg-brand-mint", live: false, rsvp: 142, dur: "2h", note: "📓 planning" },
-  { day: "Sun", date: "18", title: "Late Night Library · LoFi", time: "23:00 CET", end: "02:00", kind: "Live", platform: "tw", host: "w/ guest", tone: "bg-brand-lilac", live: false, rsvp: 54, dur: "3h", note: "🌙 night owls" }];
+  { day: "Fri", date: "16", title: "Co-study · Friday livestream", time: "14:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-mint", live: true, rsvp: 96, dur: "3h", note: "this week · 14:00 start" },
+  { day: "Tue", date: "20", title: "Co-study · Tuesday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-sky", live: true, rsvp: 64, dur: "5h", note: "next week onward" },
+  { day: "Fri", date: "23", title: "Co-study · Friday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-pink", live: true, rsvp: 88, dur: "5h", note: "next week onward" },
+  { day: "Tue", date: "27", title: "Co-study · Tuesday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-butter", live: false, rsvp: 0, dur: "5h" }];
 
 
   const PlatformDot = ({ p }) =>
@@ -40,7 +37,7 @@ function ThisWeek() {
                 <span className="absolute inset-0 animate-ping rounded-full bg-red-500 opacity-60"></span>
                 <span className="relative inline-block h-2 w-2 rounded-full bg-red-500"></span>
               </span>
-              Live this week · 8 streams →
+              Live this week · Friday →
             </a>
 
             <h2 className="display text-[clamp(2rem,3.5vw,3rem)] text-ink-900">

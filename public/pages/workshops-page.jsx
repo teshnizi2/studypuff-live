@@ -1,30 +1,36 @@
-// Workshops — three tiers + curriculum + outcomes + testimonials + scholarship CTA.
+// Workshops — StudyPuff Toolkit hero + intro + two workshop cards + outcomes + testimonials + scholarship CTA.
 
 const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
 const WAITLIST_FORM    = "https://forms.gle/YPYHPUwiwY8esmK39";
 
-const TIERS = [
-  { name:"Time Management Toolkit", badge:"Starter · single session", price:"€10", cadence:"2-hour workshop",
-    sessions:1, sessionLabel:"1 live session", dur:"2 hrs",
-    bestFor:"Best for: anyone heading into exams in 4–6 weeks.",
-    tagline:"One two-hour workshop to help you manage your time. Not just about the science of time management, but to help you plan your upcoming period.",
-    bullets:["1 live session","Personalized advice","Workbook (PDF)","Discord / WhatsApp group"],
-    seats:"8 of 30 seats left", nextDate:"Sat · Feb 8",
-    tone:"bg-brand-sky" },
-  { name:"StudyPuff Academy", badge:"Flagship · 8-week series", price:"€40", cadence:"8 weeks",
-    sessions:8, sessionLabel:"4 live + 4 checkups", dur:"8 weeks",
-    bestFor:"Best for: students who want a method that lasts past finals.",
-    tagline:"Our structured, 8-week series to help you build the foundation you need to improve your academic performance. Built on the science of studying.",
-    bullets:["4 sessions + 4 checkups","Printed workbook (96 pages)","Discord / WhatsApp group","Lifetime alumni support"],
-    seats:"12 of 30 seats left", nextDate:"Cohort 04 · Jan 13",
-    tone:"bg-brand-butter", featured:true },
-  { name:"Focus Foundation", badge:"Advanced · long session", price:"€20", cadence:"1 long session",
-    sessions:1, sessionLabel:"1 long session", dur:"4 hrs",
-    bestFor:"Best for: returning students rebuilding a routine.",
-    tagline:"Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
-    bullets:["1 long session","Personalized advice","Workbook (PDF)","Discord / WhatsApp group"],
-    seats:"19 of 30 seats left", nextDate:"Sun · Feb 23",
-    tone:"bg-brand-pink" }
+const WORKSHOPS = [
+  {
+    name: "Time Management Toolkit",
+    subhead: "Take back control of your days, and actually feel on top of things.",
+    body: "Feeling like there's never enough time is one of the most common struggles students face. This workshop helps you figure out exactly where your time is going, and gives you a system to change it. You'll leave with a clear, personalised 30-day plan you can start using immediately.",
+    bullets: [
+      "Your personal workbook to use during and after the session",
+      "Discover what's actually getting in the way of your time",
+      "Try proven time management methods hands-on",
+      "Walk away with a personalised 30-day plan, ready to use and test from day one",
+      "30 days of post-workshop support so you stay on track"
+    ],
+    tone: "bg-brand-sky",
+    accent: "#c6dceb"
+  },
+  {
+    name: "Effective Studying Toolkit",
+    subhead: "Study less, retain more and finally stop dreading revision.",
+    body: "Most students study hard. Not many study smart. This workshop helps you understand how you personally learn best, then gives you a toolkit of evidence-based techniques to match. Less time at your desk, better results and a lot less stress.",
+    bullets: [
+      "Understand how you learn best and what's been holding you back",
+      "Try evidence-based study techniques hands-on during the session",
+      "Walk away with a personalised study toolkit built around your needs",
+      "30 days of support so the results actually stick"
+    ],
+    tone: "bg-brand-butter",
+    accent: "#fbe9a5"
+  }
 ];
 
 /* ── HERO ────────────────────────────────────────────────────────── */
@@ -42,19 +48,19 @@ function WorkshopsHero(){
             <span className="hand text-[16px] text-brand-rust normal-case tracking-normal">— since 2022</span>
           </p>
           <h1 className="display text-[clamp(2.6rem,7vw,6rem)] text-ink-900 leading-[1.02]">
-            Workshops that<br/><em>change how you</em>{" "}
+            StudyPuff{" "}
             <span className="relative inline-block">
-              study.
+              <em>Toolkit</em>
               <svg aria-hidden viewBox="0 0 260 30" className="absolute left-0 right-0 -bottom-3 w-full h-4" preserveAspectRatio="none">
                 <path d="M4 22 C 40 8, 90 30, 140 16 S 220 4, 252 18 C 258 21, 256 26, 250 25 C 246 24, 248 19, 252 19" stroke="#c97f72" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
           </h1>
           <p className="mt-8 max-w-[56ch] text-[18px] leading-relaxed text-ink-700">
-            Small in-person cohorts in Leiden, plus an online seat for every session. Choose the depth you need — one focused workshop, a foundation session, or the full eight-week Academy.
+            One two-hour workshop built around you. Not just advice, but a personalised plan and real tools you can use straight away.
           </p>
           <div className="mt-7 flex flex-wrap gap-3 items-center">
-            <a href="#tiers" className="btn-ink">See the tiers <I.arrow/></a>
+            <a href="#workshops" className="btn-ink">Explore workshops <I.arrow/></a>
             <a href={SCHOLARSHIP_FORM} target="_blank" rel="noreferrer" className="btn-ghost">Apply for a scholarship seat</a>
             <span className="hand text-[17px] text-ink-700">— 2 scholarship seats / cohort</span>
           </div>
@@ -121,12 +127,12 @@ function WorkshopsHero(){
               <p className="hand mt-2 text-center text-[18px] text-ink-700">your printed workbook · 96 pages</p>
             </div>
 
-            {/* waitlist sticky */}
+            {/* next workshop sticky */}
             <div className="absolute -right-6 -bottom-6 w-[200px] rotate-[6deg] bg-cream-50 border border-ink-900/15 p-4 shadow-[0_18px_40px_-18px_rgba(0,0,0,.35)] z-[3]">
-              <p className="eyebrow text-brand-rust">Cohort 04 · Jan 2026</p>
-              <p className="font-display text-[44px] leading-none text-ink-900 mt-1.5">12 <span className="text-ink-700 text-[18px]">/ 30</span></p>
-              <p className="hand text-[15px] text-ink-700 leading-tight mt-1">seats filled — early-bird</p>
-              <a href={WAITLIST_FORM} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-ink-900 underline underline-offset-4 decoration-brand-rust">Join the waitlist →</a>
+              <p className="eyebrow text-brand-rust">Next session</p>
+              <p className="font-display text-[28px] leading-none text-ink-900 mt-1.5">2 hours.<br/>One plan.</p>
+              <p className="hand text-[15px] text-ink-700 leading-tight mt-2">Personal toolkit · for you</p>
+              <a href="#workshops" className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-ink-900 underline underline-offset-4 decoration-brand-rust">Explore workshops →</a>
             </div>
           </div>
         </div>
@@ -136,168 +142,71 @@ function WorkshopsHero(){
   );
 }
 
-/* ── TIERS ───────────────────────────────────────────────────────── */
-function Tiers(){
+/* ── INTRO ───────────────────────────────────────────────────────── */
+function Intro(){
   return (
-    <section id="tiers" className="spread relative pt-0">
-      <div className="mx-auto max-w-[1300px] px-6 lg:px-12">
+    <section className="spread relative pt-0">
+      <div className="mx-auto max-w-[1100px] px-6 lg:px-12">
         <div className="border-t-2 border-ink-900/80 pt-3 mb-2 flex items-baseline justify-between gap-4 flex-wrap">
-          <p className="eyebrow text-ink-900">Pick a path</p>
-          <p className="hand text-[18px] text-brand-rust">all in-person · Leiden + online seat</p>
+          <p className="eyebrow text-ink-900">What you'll get</p>
+          <p className="hand text-[18px] text-brand-rust">two hours · built around you</p>
         </div>
-        <h2 className="display text-[clamp(1.8rem,3vw,2.6rem)] text-ink-900 mb-10 max-w-2xl">Three ways in. <em>Same kind teachers.</em></h2>
+        <p className="display text-[clamp(1.5rem,2.6vw,2.2rem)] text-ink-900 leading-[1.25] max-w-[42ch]">
+          Knowing what you should do is one thing. Actually doing it consistently, <em>without the stress,</em> is another.
+        </p>
+        <p className="mt-6 max-w-[64ch] text-[17px] leading-relaxed text-ink-700">
+          Our workshops skip the theory overload and get straight to what works for you. In two hours, you'll walk away with a personalised plan, hands-on experience with proven methods, and the support to keep it going.
+        </p>
+      </div>
+    </section>
+  );
+}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          {TIERS.map((t,i)=>{
-            const filled = parseInt(t.seats);
-            const total = 30;
-            const pct = ((total-filled)/total)*100;
-            return (
-            <article key={t.name}
-                     className={`relative flex flex-col ${t.tone} p-7 border border-ink-900/10 shadow-[0_22px_50px_-22px_rgba(0,0,0,0.32)] ${t.featured?'lg:-mt-6 lg:mb-2':''}`}>
-              {/* tape on featured */}
-              {t.featured && (
-                <span aria-hidden className="absolute -top-3 right-10 h-5 w-20 -rotate-[6deg] opacity-90"
-                      style={{background:"repeating-linear-gradient(135deg, #f3c6c2 0 7px, #c7e2c7 7px 14px)",boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
-              )}
-              {t.featured && (
-                <span className="absolute -top-3 left-6 bg-ink-900 text-cream-50 px-3 py-1 text-[10px] font-mono uppercase tracking-widest -rotate-[3deg] shadow-[0_4px_10px_rgba(0,0,0,.25)]">
-                  ★ Most popular
-                </span>
-              )}
+/* ── WORKSHOPS ───────────────────────────────────────────────────── */
+function Workshops(){
+  return (
+    <section id="workshops" className="spread relative pt-0">
+      <div className="mx-auto max-w-[1200px] px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {WORKSHOPS.map((w,i)=>(
+            <article key={w.name}
+                     className={`relative flex flex-col ${w.tone} p-8 lg:p-10 border border-ink-900/10 shadow-[0_22px_50px_-22px_rgba(0,0,0,0.32)]`}
+                     style={{transform: i===0 ? "rotate(-0.5deg)" : "rotate(0.4deg)"}}>
+              {/* tape strip */}
+              <span aria-hidden className="absolute -top-3 right-10 h-5 w-24 -rotate-[6deg] opacity-85"
+                    style={{background:`repeating-linear-gradient(135deg, ${w.accent} 0 8px, #fbe9a5 8px 16px)`,boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="eyebrow text-brand-rust">{t.badge}</span>
-                <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest">{t.dur}</span>
+                <span className="eyebrow text-brand-rust">Toolkit · 2-hour workshop</span>
+                <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest">N° {String(i+1).padStart(2,'0')}</span>
               </div>
-              <h3 className="font-display text-[28px] text-ink-900 mt-2 leading-tight">{t.name}</h3>
+              <h3 className="font-display text-[clamp(1.8rem,3vw,2.4rem)] text-ink-900 mt-3 leading-tight">{w.name}</h3>
+              <p className="hand text-[20px] text-ink-700 mt-2 leading-snug">{w.subhead}</p>
 
-              {/* session dots */}
-              <div className="mt-3 flex items-center gap-1.5">
-                {Array.from({length:t.sessions}).map((_,k)=>(
-                  <span key={k} aria-hidden className={`h-2 w-2 rounded-full ${k<Math.ceil(t.sessions/2)?'bg-ink-900':'bg-ink-900/30'}`}/>
-                ))}
-                <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest ml-1">{t.sessionLabel}</span>
-              </div>
+              <p className="mt-5 text-[15px] leading-[1.7] text-ink-900/85">{w.body}</p>
 
-              <p className="mt-4 text-[14px] leading-[1.65] text-ink-900/85">{t.tagline}</p>
-
-              <div className="mt-5 flex items-end gap-2 border-t border-ink-900/15 pt-4">
-                <span className="font-display text-[48px] leading-none text-ink-900">{t.price}</span>
-                <span className="text-[13px] text-ink-700 pb-1">/ {t.cadence}</span>
-                <span className="ml-auto font-mono text-[10px] text-ink-700 uppercase tracking-widest pb-1">incl. VAT</span>
-              </div>
-
-              <ul className="mt-5 flex-1 space-y-2.5 text-[14px] text-ink-900">
-                {t.bullets.map(b=>(
-                  <li key={b} className="flex items-start gap-2.5">
-                    <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cream-50">
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1f1f1f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                    </span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* seats meter */}
-              <div className="mt-6 pt-4 border-t border-dashed border-ink-900/20">
-                <div className="flex items-baseline justify-between text-[11px] font-mono uppercase tracking-widest text-ink-700">
-                  <span>{t.nextDate}</span>
-                  <span className="text-brand-rust">{t.seats}</span>
-                </div>
-                <div className="mt-1.5 h-1 w-full rounded-full bg-cream-50/70 overflow-hidden">
-                  <div className="h-full bg-brand-rust/80" style={{width:`${100-pct}%`}}/>
-                </div>
-                <p className="hand text-[14px] text-ink-700 mt-2 leading-snug">{t.bestFor}</p>
+              <div className="mt-6 pt-4 border-t border-ink-900/15">
+                <p className="eyebrow text-ink-700 mb-3">What's included</p>
+                <ul className="space-y-2.5 text-[14px] text-ink-900">
+                  {w.bullets.map(b=>(
+                    <li key={b} className="flex items-start gap-2.5">
+                      <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cream-50">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1f1f1f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      </span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <a href={WAITLIST_FORM} target="_blank" rel="noreferrer"
-                 className={`mt-5 ${t.featured?'btn-ink':'btn-ghost'} justify-center w-full`}>
-                Join the waiting list <I.arrow/>
+                 className="btn-ink justify-center w-full mt-7">
+                Reserve your seat <I.arrow/>
               </a>
             </article>
-            );
-          })}
-        </div>
-        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">Prices in EUR · includes VAT · scholarship seats every cohort</p>
-      </div>
-    </section>
-  );
-}
-
-/* ── ACADEMY CURRICULUM ──────────────────────────────────────────── */
-function HowAcademyWorks(){
-  const WEEKS = [
-    { w:"01–02", title:"Foundations", kind:"Live · 90 min", body:"Cognitive load, attention, the science of how learning actually happens.",
-      reads:["Make It Stick · ch. 1–3","Lecture notes · template A"], deliver:"You leave with: your attention map" },
-    { w:"03–04", title:"Method", kind:"Live · 90 min", body:"Spaced repetition, retrieval practice, the right way to take notes.",
-      reads:["Build your card deck","Cornell notes · live drill"], deliver:"You leave with: a working flashcard deck" },
-    { w:"05–06", title:"Rhythm", kind:"Live + 1-on-1", body:"Time blocking, energy management, sleep, breaks.",
-      reads:["Weekly review · template","Sleep audit"], deliver:"You leave with: your weekly schedule, drafted" },
-    { w:"07–08", title:"Integration", kind:"Live + 1-on-1", body:"Apply it to your real coursework. We check in weekly until you've made it stick.",
-      reads:["1-on-1 checkup","Plan for next term"], deliver:"You leave with: a plan for next term" }
-  ];
-  return (
-    <section className="spread relative pt-0">
-      <div className="mx-auto max-w-[1300px] px-6 lg:px-12">
-        <div className="mb-10 flex items-end justify-between gap-6 flex-wrap">
-          <div>
-            <p className="eyebrow text-ink-700 mb-3">Academy · 8-week structure</p>
-            <h2 className="display text-[clamp(2rem,4vw,3rem)] text-ink-900">A semester of study, <em>distilled.</em></h2>
-          </div>
-          <p className="max-w-md text-[15px] leading-relaxed text-ink-700">
-            Four 90-minute live sessions, four 1-on-1 checkups in between. Recordings stay yours for life.
-          </p>
-        </div>
-
-        {/* horizontal timeline track */}
-        <div className="relative hidden md:block mt-6 mb-2">
-          <div className="h-px bg-ink-900/20 w-full"/>
-          <div className="absolute inset-x-0 -top-1.5 grid grid-cols-4">
-            {WEEKS.map((s,i)=>(
-              <div key={i} className="flex justify-start pl-6 first:pl-0">
-                <span className="h-3 w-3 rounded-full bg-brand-rust border-2 border-cream-100 shadow-[0_0_0_1px_rgba(31,31,31,.2)]"/>
-              </div>
-            ))}
-          </div>
-          {/* tick labels */}
-          <div className="absolute inset-x-0 top-3 grid grid-cols-4 text-[10px] font-mono uppercase tracking-widest text-ink-700">
-            <span className="pl-6">Start</span>
-            <span className="pl-6">Mid</span>
-            <span className="pl-6">Rhythm</span>
-            <span className="pl-6 flex items-center gap-1">Finish <span aria-hidden>→</span></span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 gap-x-0 gap-y-10 pt-12 md:pt-10">
-          {WEEKS.map((s,i)=>(
-            <div key={s.w} className={`col-span-12 md:col-span-3 relative px-0 md:px-6 ${i>0?"md:border-l md:border-ink-900/15":""}`}>
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="font-display text-[40px] leading-none text-brand-rust">{s.w}</p>
-                <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest">N° {String(i+1).padStart(2,'0')}</span>
-              </div>
-              <p className="eyebrow text-ink-700 mt-2">Weeks</p>
-              <p className="font-display text-[22px] leading-tight text-ink-900 mt-3">{s.title}</p>
-              <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-cream-50 border border-ink-900/15 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest text-ink-900">
-                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-rust"/>
-                {s.kind}
-              </span>
-              <p className="mt-3 text-[14px] leading-[1.7] text-ink-700">{s.body}</p>
-              <ul className="mt-4 space-y-1.5 text-[12px] text-ink-700">
-                {s.reads.map(r=>(
-                  <li key={r} className="flex items-start gap-1.5">
-                    <span aria-hidden className="mt-1.5 inline-block h-1 w-1 rounded-full bg-brand-rust shrink-0"/>
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-5 hand text-[15px] text-brand-rust leading-snug">{s.deliver}</p>
-              <svg className="mt-3" width="42" height="8" viewBox="0 0 42 8" fill="none" aria-hidden>
-                <path d="M1 5 Q 10 1 20 4 T 41 4" stroke="#c97f72" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-            </div>
           ))}
         </div>
+        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">Includes VAT · scholarship seats every cohort</p>
       </div>
     </section>
   );
@@ -467,8 +376,8 @@ function WorkshopsPage(){
     <div className="paper-grain relative">
       <Header/>
       <WorkshopsHero/>
-      <Tiers/>
-      <HowAcademyWorks/>
+      <Intro/>
+      <Workshops/>
       <Outcomes/>
       <AlumniVoices/>
       <WorkshopsFAQ/>
