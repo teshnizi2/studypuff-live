@@ -1,10 +1,12 @@
 function Header() {
   const [open,setOpen] = React.useState(false);
+  // Workshops intentionally omitted from the nav per the spec — the
+  // page is only reachable from the "StudyPuff Toolkit" CTA on the
+  // home hero (and the Learn column of the footer as a fallback).
   const NAV = [
     { label:"Home",            href:"/" },
     { label:"Study with us",   href:"/study" },
     { label:"StudyPuff App",   href:"/dashboard" },
-    { label:"Workshops",       href:"/workshops" },
     { label:"Free Resources",  href:"/resources" },
     { label:"Store",           href:"/store" },
     { label:"About",           href:"/about" },
