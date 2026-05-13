@@ -1,7 +1,9 @@
 // Workshops — StudyPuff Toolkit hero + intro + two workshop cards + outcomes + testimonials + scholarship CTA.
 
 const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
-const WAITLIST_FORM    = "https://forms.gle/YPYHPUwiwY8esmK39";
+const SIGNUP_FORM      = "https://forms.gle/TGCDTSKsyyGGaiy16";
+const SOLO_PRICE       = "€10";
+const BUNDLE_PRICE     = "€15";
 
 const WORKSHOPS = [
   {
@@ -167,6 +169,28 @@ function Workshops(){
   return (
     <section id="workshops" className="spread relative pt-0">
       <div className="mx-auto max-w-[1200px] px-6 lg:px-12">
+
+        {/* Bundle banner — visible above both workshop cards. Each workshop
+            costs €10 on its own; both together is €15. */}
+        <div className="relative mx-auto mb-8 max-w-[820px] -rotate-[0.6deg]">
+          <div className="relative bg-brand-mint/70 border border-ink-900/15 rounded-[2px] px-6 py-4 md:py-5 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.3)] flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <span aria-hidden className="absolute -top-3 left-10 h-5 w-28 -rotate-[6deg] opacity-90"
+                  style={{background:"repeating-linear-gradient(135deg, #f3c6c2 0 8px, #fbe9a5 8px 16px)",boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
+            <div>
+              <p className="eyebrow text-brand-rust">Bundle deal</p>
+              <p className="font-display text-[clamp(1.3rem,2.2vw,1.7rem)] text-ink-900 mt-1 leading-tight">
+                Take both workshops · <em>{BUNDLE_PRICE}</em>
+                <span className="text-ink-700/70 text-[0.7em] ml-2 line-through">{SOLO_PRICE} + {SOLO_PRICE}</span>
+              </p>
+              <p className="hand text-[18px] text-ink-700 mt-1">save €5 when you sign up for both</p>
+            </div>
+            <a href={SIGNUP_FORM} target="_blank" rel="noreferrer"
+               className="btn-ink justify-center !py-2.5 !px-4 !text-[13px] shrink-0 whitespace-nowrap">
+              Secure your spot <I.arrow/>
+            </a>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {WORKSHOPS.map((w,i)=>(
             <article key={w.name}
@@ -175,6 +199,12 @@ function Workshops(){
               {/* tape strip */}
               <span aria-hidden className="absolute -top-3 right-10 h-5 w-24 -rotate-[6deg] opacity-85"
                     style={{background:`repeating-linear-gradient(135deg, ${w.accent} 0 8px, #fbe9a5 8px 16px)`,boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
+
+              {/* Price stamp — rotated like a hand-stamped tag */}
+              <span aria-hidden className="absolute -top-4 -right-2 rotate-[8deg] rounded-full border-2 border-brand-rust/80 bg-cream-50 px-3 py-1.5 text-center leading-none shadow-[0_4px_10px_rgba(0,0,0,.18)]">
+                <span className="block font-mono text-[8px] uppercase tracking-widest text-brand-rust">price</span>
+                <span className="block font-display text-[20px] text-ink-900 mt-0.5">{SOLO_PRICE}</span>
+              </span>
 
               <div className="flex items-center justify-between gap-2">
                 <span className="eyebrow text-brand-rust">Toolkit · 2-hour workshop</span>
@@ -199,14 +229,14 @@ function Workshops(){
                 </ul>
               </div>
 
-              <a href={WAITLIST_FORM} target="_blank" rel="noreferrer"
+              <a href={SIGNUP_FORM} target="_blank" rel="noreferrer"
                  className="btn-ink justify-center w-full mt-7">
-                Reserve your seat <I.arrow/>
+                Secure your spot <I.arrow/>
               </a>
             </article>
           ))}
         </div>
-        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">Includes VAT · scholarship seats every cohort</p>
+        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">{SOLO_PRICE} per workshop · {BUNDLE_PRICE} for both · includes VAT · scholarship seats available</p>
       </div>
     </section>
   );

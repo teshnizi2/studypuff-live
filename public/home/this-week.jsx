@@ -10,13 +10,11 @@ function ThisWeek() {
   "Regular cozy game streams",
   "Free, forever"];
 
-  // Weekly schedule — Tuesday + Friday livestreams. Other days marked as quiet so
-  // the grid still reads as a full week without inventing sessions we won't run.
+  // Weekly schedule — Tuesday + Friday livestreams, NEXT WEEK. We don't
+  // run anything this week, so the grid only shows the upcoming slots.
   const SCHEDULE = [
-  { day: "Fri", date: "16", title: "Co-study · Friday livestream", time: "14:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-mint", live: true, rsvp: 96, dur: "3h", note: "this week · 14:00 start" },
-  { day: "Tue", date: "20", title: "Co-study · Tuesday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-sky", live: true, rsvp: 64, dur: "5h", note: "next week onward" },
-  { day: "Fri", date: "23", title: "Co-study · Friday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-pink", live: true, rsvp: 88, dur: "5h", note: "next week onward" },
-  { day: "Tue", date: "27", title: "Co-study · Tuesday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-butter", live: false, rsvp: 0, dur: "5h" }];
+  { day: "Tue", date: "20", title: "Co-study · Tuesday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-sky", live: true, rsvp: 64, dur: "5h", note: "next week" },
+  { day: "Fri", date: "23", title: "Co-study · Friday livestream", time: "12:00 CET", end: "17:00", kind: "Live", platform: "yt", host: "w/ the team", tone: "bg-brand-pink", live: true, rsvp: 88, dur: "5h", note: "next week" }];
 
 
   const PlatformDot = ({ p }) =>
@@ -37,7 +35,7 @@ function ThisWeek() {
                 <span className="absolute inset-0 animate-ping rounded-full bg-red-500 opacity-60"></span>
                 <span className="relative inline-block h-2 w-2 rounded-full bg-red-500"></span>
               </span>
-              Live this week · Friday →
+              Live next week · Tue + Fri →
             </a>
 
             <h2 className="display text-[clamp(2rem,3.5vw,3rem)] text-ink-900">
@@ -149,7 +147,7 @@ function ThisWeek() {
                   </span>
                 </div>
                 <div className="mt-3 px-1 flex items-center justify-between">
-                  <p className="hand text-[18px] text-ink-700">tonight, 19:00 CET</p>
+                  <p className="hand text-[18px] text-ink-700">Tue + Fri · 12–17 CET</p>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-ink-700">YT · 50/10 pomodoro</p>
                 </div>
                 {/* progress bar */}
@@ -186,11 +184,11 @@ function ThisWeek() {
           {/* short masthead */}
           <div className="border-t-2 border-b border-ink-900/80 py-3 mb-6 flex items-end justify-between flex-wrap gap-3">
             <div className="flex items-baseline gap-3">
-              <p className="eyebrow text-brand-rust">On the air this week</p>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-ink-700">Nov 12 — 18 · CET</span>
+              <p className="eyebrow text-brand-rust">On the air · next week</p>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-ink-700">Tue + Fri · CET</span>
             </div>
             <a href="/study#schedule" className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-ink-900 underline underline-offset-4 decoration-brand-rust hover:text-brand-rust">
-              See the full week ({SCHEDULE.length} streams) →
+              See the full schedule ({SCHEDULE.length} streams) →
             </a>
           </div>
 
@@ -207,8 +205,8 @@ function ThisWeek() {
                   style={{ background: "repeating-linear-gradient(135deg, #f3c6c2 0 8px, #fbe9a5 8px 16px)", boxShadow: "0 2px 6px rgba(0,0,0,.08)" }} />
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="eyebrow text-brand-rust">Tonight</p>
-                      <p className="hand text-[18px] text-ink-700 mt-0.5">{tonight.day} · {tonight.date} Nov</p>
+                      <p className="eyebrow text-brand-rust">Up next</p>
+                      <p className="hand text-[18px] text-ink-700 mt-0.5">{tonight.day} · next week</p>
                     </div>
                     {tonight.live ?
                     <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1 text-cream-50 text-[10px] font-mono uppercase tracking-widest">
