@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getUserDetail } from "@/lib/admin/queries";
 import {
+  adminAdjustCoinsAction,
+  adminResetPasswordAction,
   deleteUserAction,
   updateUserRoleAction,
   updateUserSuspensionAction
@@ -117,6 +119,45 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
               </button>
             </form>
           )}
+        </div>
+
+        {/* Service-role-only ops: reset password + adjust coins. */}
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <form action={adminResetPasswordAction} className="flex flex-wrap gap-2">
+            <input type="hidden" name="user_id" value={profile.id} />
+            <input
+              type="password"
+              name="new_password"
+              required
+              minLength={6}
+              placeholder="New password (min 6 chars)"
+              className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-[#221f1b] px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!canHardDelete}
+              className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Reset password
+            </button>
+          </form>
+          <form action={adminAdjustCoinsAction} className="flex flex-wrap gap-2">
+            <input type="hidden" name="user_id" value={profile.id} />
+            <input
+              type="number"
+              name="delta"
+              required
+              placeholder="±coins (e.g. 100 or -50)"
+              className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-[#221f1b] px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!canHardDelete}
+              className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Adjust coins
+            </button>
+          </form>
         </div>
       </section>
 

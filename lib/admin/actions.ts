@@ -136,6 +136,87 @@ export async function adminEndRoomAction(formData: FormData) {
 }
 
 /**
+ * Admin sets a new password for any user. Requires service-role env.
+ * Useful when a user is locked out.
+ */
+export async function adminResetPasswordAction(formData: FormData) {
+  const { user: actor } = await requireAdmin();
+  const targetUserId = stringValue(formData, "user_id");
+  const newPassword = stringValue(formData, "new_password");
+  if (!targetUserId || !newPassword) return;
+  if (newPassword.length < 6) {
+    throw new Error("Password must be at least 6 characters.");
+  }
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is not configured. Add it in Vercel to enable password reset."
+    );
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(targetUserId, { password: newPassword });
+  if (error) throw new Error(`Reset failed: ${error.message}`);
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("admin_audit_logs").insert({
+    actor_id: actor.id,
+    target_user_id: targetUserId,
+    action: "user.password_reset",
+    metadata: {}
+  });
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/users/${targetUserId}`);
+}
+
+/**
+ * Adjust a user's coin balance up or down. Uses the service-role client
+ * to bypass the user_settings owner-only RLS.
+ */
+export async function adminAdjustCoinsAction(formData: FormData) {
+  const { user: actor } = await requireAdmin();
+  const targetUserId = stringValue(formData, "user_id");
+  const delta = Number(stringValue(formData, "delta"));
+  if (!targetUserId || !Number.isFinite(delta) || delta === 0) return;
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is not configured. Add it in Vercel to enable coin adjustment."
+    );
+  }
+
+  // Fetch current balance, write back with clamp at 0.
+  const { data: settings, error: readError } = await admin
+    .from("user_settings")
+    .select("coins")
+    .eq("user_id", targetUserId)
+    .maybeSingle();
+  if (readError) throw new Error(`Read failed: ${readError.message}`);
+
+  const current = settings?.coins ?? 0;
+  const next = Math.max(0, current + delta);
+
+  const { error: writeError } = await admin
+    .from("user_settings")
+    .update({ coins: next })
+    .eq("user_id", targetUserId);
+  if (writeError) throw new Error(`Write failed: ${writeError.message}`);
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("admin_audit_logs").insert({
+    actor_id: actor.id,
+    target_user_id: targetUserId,
+    action: "user.coins_adjusted",
+    metadata: { delta, before: current, after: next }
+  });
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/users/${targetUserId}`);
+}
+
+/**
  * Admin can soft-delete any chat message (sets deleted_at). The UPDATE
  * policy on room_messages already allows admins.
  */

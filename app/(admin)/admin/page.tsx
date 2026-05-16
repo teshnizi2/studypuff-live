@@ -29,6 +29,15 @@ export default async function AdminPage() {
         <AdminStat label="Task completion" value={`${taskCompletion}%`} />
       </div>
 
+      {/* 30-day activity chart — three stacked rows: signups, minutes,
+          sessions per day. Quick eyeball for trends. */}
+      <section className="mt-8 rounded-[28px] border border-white/10 bg-white/5 p-6">
+        <h2 className="font-display text-3xl">Last 30 days</h2>
+        <ActivityChart label="New signups" data={overview.daily.map((d) => ({ x: d.date, y: d.signups }))} />
+        <ActivityChart label="Focus minutes" data={overview.daily.map((d) => ({ x: d.date, y: d.minutes }))} />
+        <ActivityChart label="Focus sessions" data={overview.daily.map((d) => ({ x: d.date, y: d.sessions }))} />
+      </section>
+
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
           <div className="flex items-center justify-between gap-4">
@@ -68,7 +77,15 @@ export default async function AdminPage() {
               <article key={log.id} className="rounded-2xl bg-white/5 p-4 text-sm">
                 <p className="font-semibold">{log.action}</p>
                 <p className="mt-1 text-cream-200">
-                  {new Date(log.created_at).toLocaleString()} · target {log.target_user_id || "—"}
+                  {new Date(log.created_at).toLocaleString()}
+                  {" · by "}
+                  <span className="text-cream-50">{log.actorLabel}</span>
+                  {log.targetLabel && (
+                    <>
+                      {" · target "}
+                      <span className="text-cream-50">{log.targetLabel}</span>
+                    </>
+                  )}
                 </p>
               </article>
             ))}
@@ -115,5 +132,42 @@ function AdminStat({ label, value }: { label: string; value: number | string }) 
       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-butter">{label}</p>
       <p className="mt-2 font-display text-3xl tabular-nums">{value}</p>
     </article>
+  );
+}
+
+function ActivityChart({ label, data }: { label: string; data: { x: string; y: number }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.y));
+  const total = data.reduce((t, d) => t + d.y, 0);
+  return (
+    <div className="mt-5 first:mt-3">
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="font-semibold uppercase tracking-[0.18em] text-brand-butter">{label}</span>
+        <span className="tabular-nums text-cream-200">{total} total · max {max}</span>
+      </div>
+      <div className="mt-2 flex h-16 items-end gap-[3px]">
+        {data.map((d) => {
+          const h = d.y === 0 ? 2 : Math.max(4, (d.y / max) * 60);
+          const isToday = d.x === data[data.length - 1]?.x;
+          return (
+            <div
+              key={d.x}
+              title={`${d.x}: ${d.y}`}
+              className={`flex-1 rounded-sm ${
+                isToday
+                  ? "bg-brand-butter"
+                  : d.y > 0
+                    ? "bg-brand-butter/40"
+                    : "bg-white/10"
+              }`}
+              style={{ height: `${h}px` }}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-cream-300 tabular-nums">
+        <span>{data[0]?.x}</span>
+        <span>{data[data.length - 1]?.x}</span>
+      </div>
+    </div>
   );
 }

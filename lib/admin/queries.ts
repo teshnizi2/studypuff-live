@@ -60,6 +60,30 @@ export async function getAdminOverview() {
   const dau = profiles.filter((p) => p.last_seen_at && p.last_seen_at >= sevenDaysAgo).length;
   const mau = profiles.filter((p) => p.last_seen_at && p.last_seen_at >= thirtyDaysAgo).length;
 
+  // 30-day daily rollup — used by the overview activity chart.
+  const isoDay = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const dailyMap = new Map<string, { signups: number; minutes: number; sessions: number }>();
+  const today = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dailyMap.set(isoDay(d), { signups: 0, minutes: 0, sessions: 0 });
+  }
+  for (const p of profiles) {
+    const day = p.created_at.slice(0, 10);
+    if (dailyMap.has(day)) dailyMap.get(day)!.signups++;
+  }
+  for (const s of focusSessions) {
+    const day = (s.studied_on as string | null) || s.created_at.slice(0, 10);
+    if (dailyMap.has(day)) {
+      const row = dailyMap.get(day)!;
+      row.minutes += s.minutes;
+      row.sessions++;
+    }
+  }
+  const daily = Array.from(dailyMap.entries()).map(([date, v]) => ({ date, ...v }));
+
   // Top 10 users by lifetime focus minutes, joined with profile names.
   const minutesByUser = new Map<string, number>();
   for (const s of focusSessions) {
@@ -78,12 +102,26 @@ export async function getAdminOverview() {
       };
     });
 
+  // Enrich audit logs with the actor's display name (and the target's,
+  // when present), since the raw rows only carry uuids.
+  const profilesById = new Map(profiles.map((p) => [p.id, p]));
+  const auditLogs = ((auditResult.data || []) as AuditLog[]).map((log) => {
+    const actor = profilesById.get(log.actor_id || "");
+    const target = profilesById.get(log.target_user_id || "");
+    return {
+      ...log,
+      actorLabel: actor?.display_name || actor?.email || log.actor_id || "—",
+      targetLabel: target?.display_name || target?.email || log.target_user_id || null
+    };
+  });
+
   return {
     profiles,
     sessions,
     tasks,
     rooms,
-    auditLogs: (auditResult.data || []) as AuditLog[],
+    auditLogs,
+    daily,
     topUsers,
     stats: {
       totalUsers: profiles.length,
@@ -201,6 +239,43 @@ export async function getUserDetail(userId: string) {
     ownedRooms,
     joinedRooms: joinedRooms.filter((r) => r.owner_id !== userId)
   };
+}
+
+// Recent chat messages across every room, joined with author display name
+// and the room name — for the moderation page.
+export async function getRecentChatMessages(limit = 100) {
+  const supabase = createSupabaseServerClient();
+  const { data: messages } = await supabase
+    .from("room_messages")
+    .select("id, room_id, user_id, body, created_at, deleted_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  const list = messages || [];
+  const userIds = Array.from(new Set(list.map((m) => m.user_id).filter(Boolean) as string[]));
+  const roomIds = Array.from(new Set(list.map((m) => m.room_id)));
+
+  const [profilesResult, roomsResult] = await Promise.all([
+    userIds.length
+      ? supabase.from("profiles").select("id, display_name, email").in("id", userIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string | null; email: string }[] }),
+    roomIds.length
+      ? supabase.from("study_rooms").select("id, name, code").in("id", roomIds)
+      : Promise.resolve({ data: [] as { id: string; name: string; code: string }[] })
+  ]);
+
+  const profileMap = new Map((profilesResult.data || []).map((p) => [p.id, p]));
+  const roomMap = new Map((roomsResult.data || []).map((r) => [r.id, r]));
+
+  return list.map((m) => ({
+    ...m,
+    authorLabel:
+      (m.user_id && (profileMap.get(m.user_id)?.display_name || profileMap.get(m.user_id)?.email)) ||
+      "—",
+    authorId: m.user_id,
+    roomLabel: roomMap.get(m.room_id)?.name || "(deleted room)",
+    roomCode: roomMap.get(m.room_id)?.code || ""
+  }));
 }
 
 // All rooms for the rooms admin page, with member counts.

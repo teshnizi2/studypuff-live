@@ -363,6 +363,10 @@ export interface Database {
         Args: { p_item_id: string; p_price: number };
         Returns: boolean;
       };
+      email_for_username: {
+        Args: { p_username: string };
+        Returns: string | null;
+      };
     };
     Enums: {
       user_role: UserRole;

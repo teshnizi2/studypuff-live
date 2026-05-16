@@ -35,6 +35,9 @@ export function AdminShell({
             <Link href="/admin/rooms" className="nav-link text-cream-100">
               Rooms
             </Link>
+            <Link href="/admin/messages" className="nav-link text-cream-100">
+              Messages
+            </Link>
             <Link href="/dashboard" className="nav-link text-cream-100">
               User dashboard
             </Link>

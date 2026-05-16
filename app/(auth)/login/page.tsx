@@ -41,20 +41,21 @@ export default function LoginPage({
               <div className="w-full border-t border-ink-900/10" />
             </div>
             <div className="relative flex justify-center text-xs uppercase tracking-[0.2em] text-ink-700">
-              <span className="bg-cream-50 px-3">or use email</span>
+              <span className="bg-cream-50 px-3">or use email / username</span>
             </div>
           </div>
 
           <form action={loginAction} className="space-y-4">
             <input type="hidden" name="next" value={next} />
             <label className="block text-sm font-semibold text-ink-900">
-              Email
+              Email or username
               <input
                 required
-                type="email"
+                type="text"
                 name="email"
+                autoComplete="username"
                 className="mt-2 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-3 font-serif"
-                placeholder="you@example.com"
+                placeholder="you@example.com  or  @username"
               />
             </label>
             <label className="block text-sm font-semibold text-ink-900">

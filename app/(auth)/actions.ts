@@ -33,15 +33,33 @@ function safeNextPath(next: string): string {
 }
 
 export async function loginAction(formData: FormData) {
-  const email = formValue(formData, "email");
+  const rawIdentifier = formValue(formData, "email");
   const password = formValue(formData, "password");
   const next = formValue(formData, "next") || "/dashboard";
 
-  if (!email || !password) {
-    authRedirect("/login", "Email and password are required.");
+  if (!rawIdentifier || !password) {
+    authRedirect("/login", "Username or email and password are required.");
   }
 
   const supabase = createSupabaseServerClient();
+
+  // If the field contains "@" anywhere except as a leading char, treat it
+  // as an email. Otherwise look it up as a username via the SECURITY
+  // DEFINER RPC. We strip a leading "@" so "@dmin" and "dmin" both work.
+  const looksLikeEmail = /@/.test(rawIdentifier) && !rawIdentifier.startsWith("@");
+
+  let email = rawIdentifier;
+  if (!looksLikeEmail) {
+    const username = rawIdentifier.replace(/^@+/, "").toLowerCase();
+    const { data: resolved } = await supabase.rpc("email_for_username", {
+      p_username: username
+    });
+    if (!resolved) {
+      authRedirect("/login", "No account with that username.");
+    }
+    email = resolved as string;
+  }
+
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
