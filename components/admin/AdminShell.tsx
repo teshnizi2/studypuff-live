@@ -38,6 +38,9 @@ export function AdminShell({
             <Link href="/admin/messages" className="nav-link text-cream-100">
               Messages
             </Link>
+            <Link href="/admin/schedule" className="nav-link text-cream-100">
+              Schedule
+            </Link>
             <Link href="/dashboard" className="nav-link text-cream-100">
               User dashboard
             </Link>

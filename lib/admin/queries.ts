@@ -278,6 +278,30 @@ export async function getRecentChatMessages(limit = 100) {
   }));
 }
 
+// Public-facing — used by /study and the home page count pill.
+// RLS lets anon read only is_active rows.
+export async function getPublishedLivestreams() {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("livestream_sessions")
+    .select("id, day_label, time_label, platform_label, topic, sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  return data || [];
+}
+
+// Admin-facing — includes inactive rows so the admin panel can show / unhide them.
+export async function getAllLivestreams() {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("livestream_sessions")
+    .select("id, day_label, time_label, platform_label, topic, sort_order, is_active, updated_at")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  return data || [];
+}
+
 // All rooms for the rooms admin page, with member counts.
 export async function getAdminRooms() {
   const supabase = createSupabaseServerClient();

@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import AppPreview from "@/components/AppPreview";
 import SectionDivider from "@/components/SectionDivider";
+import { getPublishedLivestreams } from "@/lib/admin/queries";
 
 const COSTUDY_BULLETS: string[] = [
   "50/10 Pomodoros",
@@ -20,9 +21,8 @@ const COSTUDY_BULLETS: string[] = [
   "Regular cozy game streams"
 ];
 
-const LIVE_SESSIONS_THIS_WEEK: number = 3;
-
-export default function Page() {
+export default async function Page() {
+  const LIVE_SESSIONS_THIS_WEEK = (await getPublishedLivestreams()).length;
   return (
     <main className="gradient-surface relative grain">
       <Header />

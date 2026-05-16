@@ -228,6 +228,39 @@ export interface Database {
         };
         Update: never;
       };
+      livestream_sessions: {
+        Row: {
+          id: string;
+          day_label: string;
+          time_label: string;
+          platform_label: string;
+          topic: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          day_label: string;
+          time_label: string;
+          platform_label?: string;
+          topic: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          day_label?: string;
+          time_label?: string;
+          platform_label?: string;
+          topic?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+      };
       study_rooms: {
         Row: {
           id: string;

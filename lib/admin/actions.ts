@@ -216,6 +216,103 @@ export async function adminAdjustCoinsAction(formData: FormData) {
   revalidatePath(`/admin/users/${targetUserId}`);
 }
 
+// ───── Livestream schedule CRUD ───────────────────────────────────────────────
+
+function nz(formData: FormData, key: string, fallback = 0) {
+  const raw = stringValue(formData, key);
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function trunc(s: string, max: number) {
+  return s.length > max ? s.slice(0, max) : s;
+}
+
+export async function createLivestreamAction(formData: FormData) {
+  const { user: actor } = await requireAdmin();
+  const day_label = trunc(stringValue(formData, "day_label"), 40);
+  const time_label = trunc(stringValue(formData, "time_label"), 40);
+  const platform_label = trunc(stringValue(formData, "platform_label") || "YouTube · Twitch", 60);
+  const topic = trunc(stringValue(formData, "topic"), 120);
+  const sort_order = nz(formData, "sort_order", 0);
+  const is_active = stringValue(formData, "is_active") !== "false";
+
+  if (!day_label || !time_label || !topic) {
+    throw new Error("Day, time, and topic are required.");
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase
+    .from("livestream_sessions")
+    .insert({ day_label, time_label, platform_label, topic, sort_order, is_active });
+  if (error) throw error;
+
+  await supabase.from("admin_audit_logs").insert({
+    actor_id: actor.id,
+    target_user_id: null,
+    action: "livestream.created",
+    metadata: { day_label, time_label, topic }
+  });
+
+  revalidatePath("/admin/schedule");
+  revalidatePath("/study");
+  revalidatePath("/");
+}
+
+export async function updateLivestreamAction(formData: FormData) {
+  const { user: actor } = await requireAdmin();
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const updates: Record<string, unknown> = {};
+  if (formData.has("day_label"))      updates.day_label      = trunc(stringValue(formData, "day_label"), 40);
+  if (formData.has("time_label"))     updates.time_label     = trunc(stringValue(formData, "time_label"), 40);
+  if (formData.has("platform_label")) updates.platform_label = trunc(stringValue(formData, "platform_label"), 60);
+  if (formData.has("topic"))          updates.topic          = trunc(stringValue(formData, "topic"), 120);
+  if (formData.has("sort_order"))     updates.sort_order     = nz(formData, "sort_order", 0);
+  if (formData.has("is_active"))      updates.is_active      = stringValue(formData, "is_active") === "true";
+
+  if (Object.keys(updates).length === 0) return;
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("livestream_sessions").update(updates).eq("id", id);
+  if (error) throw error;
+
+  await supabase.from("admin_audit_logs").insert({
+    actor_id: actor.id,
+    target_user_id: null,
+    action: "livestream.updated",
+    metadata: { id, ...updates }
+  });
+
+  revalidatePath("/admin/schedule");
+  revalidatePath("/study");
+  revalidatePath("/");
+}
+
+export async function deleteLivestreamAction(formData: FormData) {
+  const { user: actor } = await requireAdmin();
+  const id = stringValue(formData, "id");
+  if (!id) return;
+
+  const supabase = createSupabaseServerClient();
+  const { error } = await supabase.from("livestream_sessions").delete().eq("id", id);
+  if (error) throw error;
+
+  await supabase.from("admin_audit_logs").insert({
+    actor_id: actor.id,
+    target_user_id: null,
+    action: "livestream.deleted",
+    metadata: { id }
+  });
+
+  revalidatePath("/admin/schedule");
+  revalidatePath("/study");
+  revalidatePath("/");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Admin can soft-delete any chat message (sets deleted_at). The UPDATE
  * policy on room_messages already allows admins.

@@ -11,15 +11,10 @@ import {
 import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 import Reveal from "@/components/Reveal";
+import { getPublishedLivestreams } from "@/lib/admin/queries";
 
 const GOOGLE_CALENDAR =
   "https://calendar.google.com/calendar/u/1?cid=Y19lOWVkYmFjOGQ3ODljNzllMWVlYmZhNDZiYmUyMDgwMzlkYjhiMmE2ZDQwNjcyZWNlMjY3NDZiMmQ1NzY1ZmEyQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20";
-
-const SCHEDULE = [
-  { day: "Monday", time: "8:00 AM CET", platform: "YouTube · Twitch", topic: "Cozy morning focus" },
-  { day: "Tuesday", time: "12:00 PM CET", platform: "YouTube · Twitch", topic: "Deep work" },
-  { day: "Friday", time: "12:00 PM CET", platform: "YouTube · Twitch", topic: "Last focus sprint" }
-];
 
 const STEPS = [
   {
@@ -44,7 +39,13 @@ const STEPS = [
   }
 ];
 
-export default function StudyPage() {
+export default async function StudyPage() {
+  const SCHEDULE = (await getPublishedLivestreams()).map((row) => ({
+    day: row.day_label,
+    time: row.time_label,
+    platform: row.platform_label,
+    topic: row.topic
+  }));
   return (
     <PageShell>
       <PageHero
