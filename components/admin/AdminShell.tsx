@@ -32,6 +32,9 @@ export function AdminShell({
             <Link href="/admin/users" className="nav-link text-cream-100">
               Users
             </Link>
+            <Link href="/admin/rooms" className="nav-link text-cream-100">
+              Rooms
+            </Link>
             <Link href="/dashboard" className="nav-link text-cream-100">
               User dashboard
             </Link>
