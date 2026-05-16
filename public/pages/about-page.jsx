@@ -24,7 +24,7 @@ function AboutHero(){
     <section className="spread relative">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12 grid grid-cols-12 gap-x-8 gap-y-10 items-end">
         <div className="col-span-12 lg:col-span-7">
-          <p className="eyebrow text-ink-700 mb-4">About · est. 2021</p>
+          <p className="eyebrow text-ink-700 mb-4">About · est. 2022</p>
           <h1 className="display text-[clamp(2.6rem,7vw,6rem)] text-ink-900">
             Studying better<br/>
             <span className="relative inline-block">
@@ -142,7 +142,7 @@ function Team(){
     { label:"Leiden, NL",        kicker:"based in" },
     { label:"3 humans",          kicker:"team size" },
     { label:"a lot of tea",      kicker:"fuel" },
-    { label:"est. 2021",         kicker:"since" }
+    { label:"est. 2022",         kicker:"since" }
   ];
   const FAVS = [
     { who:"Elaine", chip:"☕ flat white",  tone:"bg-brand-pink" },
