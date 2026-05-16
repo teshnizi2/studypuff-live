@@ -27,9 +27,7 @@ function Hero() {
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              {/* Only entry point to /workshops from the home page —
-                  per spec, the workshops listing isn't in the top nav. */}
-              <a href="/workshops" className="btn-ink">Explore the StudyPuff Toolkit <I.arrow/></a>
+              <a href="/workshops" className="btn-ink">Join the next workshop <I.arrow/></a>
               <a href="/study"     className="btn-ghost">Study with us for free</a>
             </div>
 

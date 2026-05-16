@@ -18,7 +18,7 @@ function FAQPage(){
         { q:"What if I miss a session?",
           a:"Every session is recorded and uploaded within 24h. You keep the recordings — they don't expire." },
         { q:"Can I switch tiers mid-cohort?",
-          a:"Yes — once. We'll credit what you've paid against the new tier. Just email hello@studypuff.com." },
+          a:"Yes — once. We'll credit what you've paid against the new tier. Just email info@studypuff.com." },
         { q:"Do you offer refunds?",
           a:"Full refund up to 7 days before the cohort starts. After that, we offer transfers to the next cohort." },
         { q:"What if I can't afford a paid workshop?",
@@ -50,7 +50,7 @@ function FAQPage(){
         { q:"What time zone?",
           a:"Times are in CET (Central European Time, UTC+1). The schedule auto-converts on Google Calendar — link's on the Study page." },
         { q:"Can I host a session?",
-          a:"Eventually, yes. We rotate guest hosts every few months. Email hello@studypuff.com with what you'd want to host and we'll be in touch." },
+          a:"Eventually, yes. We rotate guest hosts every few months. Email info@studypuff.com with what you'd want to host and we'll be in touch." },
         { q:"What's the Pomodoro structure?",
           a:"Usually 50 minutes of focus, 10 minutes of break — repeated for 2 to 4 hours. Some sessions use 25/5. The host says at the top." },
         { q:"Is there a Discord?",
@@ -102,11 +102,11 @@ function FAQPage(){
       tone:"bg-brand-lilac",
       faqs:[
         { q:"How do I contact you?",
-          a:"Easiest: open the contact form on /contact, or email hello@studypuff.com. We reply within three workdays — usually faster, from an actual human." },
+          a:"Easiest: open the contact form on /contact, or email info@studypuff.com. We reply within three workdays — usually faster, from an actual human." },
         { q:"Do you take sponsors?",
-          a:"Only from organizations we'd genuinely recommend to a student we love. Most weeks the answer is no. If you'd like to discuss it, write to hello@studypuff.com with what you have in mind." },
+          a:"Only from organizations we'd genuinely recommend to a student we love. Most weeks the answer is no. If you'd like to discuss it, write to info@studypuff.com with what you have in mind." },
         { q:"Press / podcast / interview?",
-          a:"Yes — we'd love to. Email hello@studypuff.com with your outlet and a rough idea, and Elaine will reply." },
+          a:"Yes — we'd love to. Email info@studypuff.com with your outlet and a rough idea, and Elaine will reply." },
         { q:"Are you hiring?",
           a:"Not right now. We do work with guest hosts and scholarship students though — see the Workshops page." },
         { q:"Where are you based?",
@@ -282,7 +282,7 @@ function FAQPage(){
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
               <a href="/contact" className="btn-ink">Open the contact form <I.arrow/></a>
-              <a href="mailto:hello@studypuff.com" className="btn-ghost">hello@studypuff.com</a>
+              <a href="mailto:info@studypuff.com" className="btn-ghost">info@studypuff.com</a>
             </div>
           </div>
         </div>

@@ -426,12 +426,12 @@ function Schedule(){
 /* ── HOSTS ───────────────────────────────────────────────────────── */
 function Hosts(){
   const TEAM = [
-    { name:"Hera",   role:"Lead host · Deep Work",  photo:"/assets/hera.jpg",   tone:"bg-brand-mint",   rot:"-2deg",
-      bio:"PhD candidate. Loves the quiet kind of focus. Hosts the Monday rounds and the Sunday reset." },
-    { name:"Reza",   role:"Workshops · Spaced repetition", photo:"/assets/reza.jpg",   tone:"bg-brand-butter", rot:"1.5deg",
-      bio:"Cognitive science nerd. Runs the workshops and the early morning quiet room. Drinks too much tea." },
-    { name:"Elaine", role:"Twitch host · Cozy game nights", photo:"/assets/elaine.jpg", tone:"bg-brand-lilac",  rot:"-1deg",
-      bio:"Streamer & student. Lights the candles, picks the music, and hosts the Saturday game-study crossovers." }
+    { name:"Hera",   role:"Co-founder · Research & Development", photo:"/assets/hera.jpg",   tone:"bg-brand-mint",   rot:"-2deg",
+      bio:"Loves the quiet kind of focus. Hosts the Monday rounds and the Sunday reset." },
+    { name:"Reza",   role:"Co-founder · Engineering & Automation", photo:"/assets/reza.jpg",   tone:"bg-brand-butter", rot:"1.5deg",
+      bio:"Runs the workshops and the early morning quiet room. Drinks too much tea." },
+    { name:"Elaine", role:"Founder · CEO", photo:"/assets/elaine.jpg", tone:"bg-brand-lilac",  rot:"-1deg",
+      bio:"Lights the candles, picks the music, and hosts the Saturday game-study crossovers." }
   ];
   return (
     <section id="hosts" className="spread relative">

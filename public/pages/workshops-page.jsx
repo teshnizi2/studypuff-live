@@ -70,21 +70,21 @@ function WorkshopsHero(){
             <span className="hand text-[16px] text-brand-rust normal-case tracking-normal">— since 2022</span>
           </p>
           <h1 className="display text-[clamp(2.6rem,7vw,6rem)] text-ink-900 leading-[1.02]">
-            StudyPuff{" "}
+            Workshops that{" "}
             <span className="relative inline-block">
-              <em>Toolkit</em>
+              <em>change how you study.</em>
               <svg aria-hidden viewBox="0 0 260 30" className="absolute left-0 right-0 -bottom-3 w-full h-4" preserveAspectRatio="none">
                 <path d="M4 22 C 40 8, 90 30, 140 16 S 220 4, 252 18 C 258 21, 256 26, 250 25 C 246 24, 248 19, 252 19" stroke="#c97f72" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
           </h1>
           <p className="mt-8 max-w-[56ch] text-[18px] leading-relaxed text-ink-700">
-            One two-hour workshop built around you. Not just advice, but a personalised plan and real tools you can use straight away.
+            Choose the amount of support you need: one focused workshop, a foundation session, or our structured StudyPuff Academy series.
           </p>
           <div className="mt-7 flex flex-wrap gap-3 items-center">
             <a href="#workshops" className="btn-ink">Explore workshops <I.arrow/></a>
             <a href={SCHOLARSHIP_FORM} target="_blank" rel="noreferrer" className="btn-ghost">Apply for a scholarship seat</a>
-            <span className="hand text-[17px] text-ink-700">— 2 scholarship seats / cohort</span>
+            <span className="hand text-[17px] text-ink-700">— scholarship seats every cohort</span>
           </div>
 
           {/* proof strip — receipt style */}
@@ -404,7 +404,7 @@ function CozyNotBootcamp(){
             A cozy community, <em>not a bootcamp.</em>
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-[16px] leading-relaxed text-ink-700">
-            Two scholarship seats every cohort. Just write to us — no judgement, no essay, no proof of need.
+            Every cohort has scholarship seats. If the price is a problem, just write to us via the contact form — no judgement, no application essay.
           </p>
           <div className="mt-7 flex justify-center gap-3 flex-wrap">
             <a href={SCHOLARSHIP_FORM} target="_blank" rel="noreferrer" className="btn-ink">Apply for a scholarship seat <I.arrow/></a>

@@ -7,7 +7,7 @@ function Voices() {
   const FEATURED = {
     quote: "It feels like discovering an underrated library full of like-minded people from around the world.",
     who: "Anonymous",
-    where: "via Discord · 1y studying"
+    where: "via Discord"
   };
   const QUOTES = [
     { quote: "StudyPuff helped me realize I'm not bad at studying. I just needed the right motivation.",
