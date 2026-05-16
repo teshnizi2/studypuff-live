@@ -61,7 +61,7 @@ function StudyHero(){
             <div className="mt-12 grid grid-cols-3 gap-6 max-w-[520px] border-t border-ink-900/15 pt-5">
               <div><p className="font-display text-[28px] leading-none text-ink-900">2,400+</p><p className="eyebrow text-ink-700 mt-1">hours streamed</p></div>
               <div><p className="font-display text-[28px] leading-none text-ink-900">180+</p><p className="eyebrow text-ink-700 mt-1">sessions hosted</p></div>
-              <div><p className="font-display text-[28px] leading-none text-ink-900">38</p><p className="eyebrow text-ink-700 mt-1">countries tuning in</p></div>
+              <div><p className="font-display text-[28px] leading-none text-ink-900">46+</p><p className="eyebrow text-ink-700 mt-1">countries tuning in</p></div>
             </div>
           </div>
 
