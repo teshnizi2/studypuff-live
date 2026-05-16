@@ -1,37 +1,57 @@
-// Workshops — StudyPuff Toolkit hero + intro + two workshop cards + outcomes + testimonials + scholarship CTA.
+// Workshops — three tiers (from the live site) + outcomes + testimonials + scholarship CTA.
 
 const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
-const SIGNUP_FORM      = "https://forms.gle/TGCDTSKsyyGGaiy16";
-const SOLO_PRICE       = "€10";
-const BUNDLE_PRICE     = "€15";
+const WAITLIST_FORM    = "https://forms.gle/YPYHPUwiwY8esmK39";
 
 const WORKSHOPS = [
   {
-    name: "Time Management Toolkit",
-    subhead: "Take back control of your days, and actually feel on top of things.",
-    body: "Feeling like there's never enough time is one of the most common struggles students face. This workshop helps you figure out exactly where your time is going, and gives you a system to change it. You'll leave with a clear, personalised 30-day plan you can start using immediately.",
+    name: "Focus Foundation",
+    badge: "Advanced",
+    price: "€20",
+    cadence: "1 long session",
+    subhead: "Build the foundation of effective studying in one long session.",
+    body: "Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
     bullets: [
-      "Your personal workbook to use during and after the session",
-      "Discover what's actually getting in the way of your time",
-      "Try proven time management methods hands-on",
-      "Walk away with a personalised 30-day plan, ready to use and test from day one",
-      "30 days of post-workshop support so you stay on track"
+      "1 session",
+      "Personalized advice",
+      "Workbook",
+      "Personal Discord/WhatsApp Group"
+    ],
+    tone: "bg-brand-pink",
+    accent: "#f3c6c2"
+  },
+  {
+    name: "StudyPuff Academy",
+    badge: "Most popular · 8-week series",
+    price: "€40",
+    cadence: "8-week series",
+    subhead: "The full programme — turn the science of studying into habit.",
+    body: "Our structured, 8-week series to help you build the foundation you need to improve your academic performance. Built on the science of studying.",
+    bullets: [
+      "4 sessions and 4 checkups",
+      "Workbook",
+      "Personal Discord/WhatsApp Group",
+      "Lifetime support"
+    ],
+    tone: "bg-brand-butter",
+    accent: "#fbe9a5",
+    featured: true
+  },
+  {
+    name: "Time Management Toolkit",
+    badge: "Starter · single session",
+    price: "€10",
+    cadence: "2-hour workshop",
+    subhead: "Take back control of your days, and actually feel on top of things.",
+    body: "One two-hour workshop to help you manage your time. Not just about the science of time management, but to help you plan your upcoming period.",
+    bullets: [
+      "1 session",
+      "Personalized advice",
+      "Workbook",
+      "Personal Discord/WhatsApp Group"
     ],
     tone: "bg-brand-sky",
     accent: "#c6dceb"
-  },
-  {
-    name: "Effective Studying Toolkit",
-    subhead: "Study less, retain more and finally stop dreading revision.",
-    body: "Most students study hard. Not many study smart. This workshop helps you understand how you personally learn best, then gives you a toolkit of evidence-based techniques to match. Less time at your desk, better results and a lot less stress.",
-    bullets: [
-      "Understand how you learn best and what's been holding you back",
-      "Try evidence-based study techniques hands-on during the session",
-      "Walk away with a personalised study toolkit built around your needs",
-      "30 days of support so the results actually stick"
-    ],
-    tone: "bg-brand-butter",
-    accent: "#fbe9a5"
   }
 ];
 
@@ -168,54 +188,48 @@ function Intro(){
 function Workshops(){
   return (
     <section id="workshops" className="spread relative pt-0">
-      <div className="mx-auto max-w-[1200px] px-6 lg:px-12">
+      <div className="mx-auto max-w-[1300px] px-6 lg:px-12">
 
-        {/* Bundle banner — visible above both workshop cards. Each workshop
-            costs €10 on its own; both together is €15. */}
-        <div className="relative mx-auto mb-8 max-w-[820px] -rotate-[0.6deg]">
-          <div className="relative bg-brand-mint/70 border border-ink-900/15 rounded-[2px] px-6 py-4 md:py-5 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.3)] flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <span aria-hidden className="absolute -top-3 left-10 h-5 w-28 -rotate-[6deg] opacity-90"
-                  style={{background:"repeating-linear-gradient(135deg, #f3c6c2 0 8px, #fbe9a5 8px 16px)",boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
-            <div>
-              <p className="eyebrow text-brand-rust">Bundle deal</p>
-              <p className="font-display text-[clamp(1.3rem,2.2vw,1.7rem)] text-ink-900 mt-1 leading-tight">
-                Take both workshops · <em>{BUNDLE_PRICE}</em>
-                <span className="text-ink-700/70 text-[0.7em] ml-2 line-through">{SOLO_PRICE} + {SOLO_PRICE}</span>
-              </p>
-              <p className="hand text-[18px] text-ink-700 mt-1">save €5 when you sign up for both</p>
-            </div>
-            <a href={SIGNUP_FORM} target="_blank" rel="noreferrer"
-               className="btn-ink justify-center !py-2.5 !px-4 !text-[13px] shrink-0 whitespace-nowrap">
-              Secure your spot <I.arrow/>
-            </a>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-          {WORKSHOPS.map((w,i)=>(
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          {WORKSHOPS.map((w,i)=>{
+            const rot = i === 0 ? "-0.6deg" : i === 1 ? "0deg" : "0.6deg";
+            return (
             <article key={w.name}
-                     className={`relative flex flex-col ${w.tone} p-8 lg:p-10 border border-ink-900/10 shadow-[0_22px_50px_-22px_rgba(0,0,0,0.32)]`}
-                     style={{transform: i===0 ? "rotate(-0.5deg)" : "rotate(0.4deg)"}}>
-              {/* tape strip */}
+                     className={`relative flex flex-col ${w.tone} p-7 lg:p-8 border border-ink-900/10 shadow-[0_22px_50px_-22px_rgba(0,0,0,0.32)] ${w.featured ? "lg:-mt-6 lg:mb-2 lg:scale-[1.02]" : ""}`}
+                     style={{transform: `rotate(${rot})`}}>
+              {/* tape strip on top */}
               <span aria-hidden className="absolute -top-3 right-10 h-5 w-24 -rotate-[6deg] opacity-85"
                     style={{background:`repeating-linear-gradient(135deg, ${w.accent} 0 8px, #fbe9a5 8px 16px)`,boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
 
-              {/* Price stamp — rotated like a hand-stamped tag */}
+              {/* Featured chip */}
+              {w.featured && (
+                <span className="absolute -top-3 left-6 bg-ink-900 text-cream-50 px-3 py-1 text-[10px] font-mono uppercase tracking-widest -rotate-[3deg] shadow-[0_4px_10px_rgba(0,0,0,.25)]">
+                  ★ Most popular
+                </span>
+              )}
+
+              {/* Per-card price stamp */}
               <span aria-hidden className="absolute -top-4 -right-2 rotate-[8deg] rounded-full border-2 border-brand-rust/80 bg-cream-50 px-3 py-1.5 text-center leading-none shadow-[0_4px_10px_rgba(0,0,0,.18)]">
                 <span className="block font-mono text-[8px] uppercase tracking-widest text-brand-rust">price</span>
-                <span className="block font-display text-[20px] text-ink-900 mt-0.5">{SOLO_PRICE}</span>
+                <span className="block font-display text-[20px] text-ink-900 mt-0.5">{w.price}</span>
               </span>
 
               <div className="flex items-center justify-between gap-2">
-                <span className="eyebrow text-brand-rust">Toolkit · 2-hour workshop</span>
+                <span className="eyebrow text-brand-rust">{w.badge}</span>
                 <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest">N° {String(i+1).padStart(2,'0')}</span>
               </div>
-              <h3 className="font-display text-[clamp(1.8rem,3vw,2.4rem)] text-ink-900 mt-3 leading-tight">{w.name}</h3>
-              <p className="hand text-[20px] text-ink-700 mt-2 leading-snug">{w.subhead}</p>
+              <h3 className="font-display text-[clamp(1.6rem,2.6vw,2.1rem)] text-ink-900 mt-3 leading-tight">{w.name}</h3>
+              <p className="hand text-[18px] text-ink-700 mt-2 leading-snug">{w.subhead}</p>
 
-              <p className="mt-5 text-[15px] leading-[1.7] text-ink-900/85">{w.body}</p>
+              <p className="mt-5 text-[14px] leading-[1.65] text-ink-900/85">{w.body}</p>
 
-              <div className="mt-6 pt-4 border-t border-ink-900/15">
+              <div className="mt-5 flex items-baseline gap-2 border-t border-ink-900/15 pt-4">
+                <span className="font-display text-[40px] leading-none text-ink-900">{w.price}</span>
+                <span className="text-[13px] text-ink-700 pb-1">/ {w.cadence}</span>
+                <span className="ml-auto font-mono text-[10px] text-ink-700 uppercase tracking-widest pb-1">incl. VAT</span>
+              </div>
+
+              <div className="mt-5 flex-1">
                 <p className="eyebrow text-ink-700 mb-3">What's included</p>
                 <ul className="space-y-2.5 text-[14px] text-ink-900">
                   {w.bullets.map(b=>(
@@ -229,14 +243,15 @@ function Workshops(){
                 </ul>
               </div>
 
-              <a href={SIGNUP_FORM} target="_blank" rel="noreferrer"
-                 className="btn-ink justify-center w-full mt-7">
-                Secure your spot <I.arrow/>
+              <a href={WAITLIST_FORM} target="_blank" rel="noreferrer"
+                 className={`${w.featured ? "btn-ink" : "btn-ghost"} justify-center w-full mt-7`}>
+                Join the waiting list <I.arrow/>
               </a>
             </article>
-          ))}
+            );
+          })}
         </div>
-        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">{SOLO_PRICE} per workshop · {BUNDLE_PRICE} for both · includes VAT · scholarship seats available</p>
+        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">Prices in EUR · includes VAT · scholarship seats every cohort</p>
       </div>
     </section>
   );
