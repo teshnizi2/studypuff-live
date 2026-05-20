@@ -63,8 +63,7 @@ export default function WorkshopsExplorePage() {
                   Bundle deal
                 </p>
                 <p className="mt-1 font-display text-2xl text-ink-900">
-                  Take both workshops · <span className="italic">€15</span>{" "}
-                  <span className="align-middle text-base text-ink-700 line-through">€10 + €10</span>
+                  Take both workshops · <span className="italic">€15</span>
                 </p>
                 <p className="mt-1 text-sm text-ink-700">Save €5 when you sign up for both.</p>
               </div>
