@@ -1,59 +1,9 @@
-// Workshops — three tiers (from the live site) + outcomes + testimonials + scholarship CTA.
+// Workshops — StudyPuff Toolkit teaser. The two workshop cards live on the
+// /workshops/explore sub-page (workshops-explore-page.jsx); this page is the
+// teaser that links to it via "Explore workshops".
 
 const SCHOLARSHIP_FORM = "https://forms.gle/12W2jhcPdtPEbt4X8";
-const WAITLIST_FORM    = "https://forms.gle/YPYHPUwiwY8esmK39";
-
-const WORKSHOPS = [
-  {
-    name: "Focus Foundation",
-    badge: "Advanced",
-    price: "€20",
-    cadence: "1 long session",
-    subhead: "Build the foundation of effective studying in one long session.",
-    body: "Supporting you to build the foundation of effective studying in 1 long session. Covering the building blocks of academic success.",
-    bullets: [
-      "1 session",
-      "Personalized advice",
-      "Workbook",
-      "Personal Discord/WhatsApp Group"
-    ],
-    tone: "bg-brand-pink",
-    accent: "#f3c6c2"
-  },
-  {
-    name: "StudyPuff Academy",
-    badge: "Most popular · 8-week series",
-    price: "€40",
-    cadence: "8-week series",
-    subhead: "The full programme — turn the science of studying into habit.",
-    body: "Our structured, 8-week series to help you build the foundation you need to improve your academic performance. Built on the science of studying.",
-    bullets: [
-      "4 sessions and 4 checkups",
-      "Workbook",
-      "Personal Discord/WhatsApp Group",
-      "Lifetime support"
-    ],
-    tone: "bg-brand-butter",
-    accent: "#fbe9a5",
-    featured: true
-  },
-  {
-    name: "Time Management Toolkit",
-    badge: "Starter · single session",
-    price: "€10",
-    cadence: "2-hour workshop",
-    subhead: "Take back control of your days, and actually feel on top of things.",
-    body: "One two-hour workshop to help you manage your time. Not just about the science of time management, but to help you plan your upcoming period.",
-    bullets: [
-      "1 session",
-      "Personalized advice",
-      "Workbook",
-      "Personal Discord/WhatsApp Group"
-    ],
-    tone: "bg-brand-sky",
-    accent: "#c6dceb"
-  }
-];
+const EXPLORE_URL      = "/workshops/explore";
 
 /* ── HERO ────────────────────────────────────────────────────────── */
 function WorkshopsHero(){
@@ -70,19 +20,19 @@ function WorkshopsHero(){
             <span className="hand text-[16px] text-brand-rust normal-case tracking-normal">— since 2022</span>
           </p>
           <h1 className="display text-[clamp(2.6rem,7vw,6rem)] text-ink-900 leading-[1.02]">
-            Workshops that{" "}
+            StudyPuff{" "}
             <span className="relative inline-block">
-              <em>change how you study.</em>
+              <em>Toolkit</em>
               <svg aria-hidden viewBox="0 0 260 30" className="absolute left-0 right-0 -bottom-3 w-full h-4" preserveAspectRatio="none">
                 <path d="M4 22 C 40 8, 90 30, 140 16 S 220 4, 252 18 C 258 21, 256 26, 250 25 C 246 24, 248 19, 252 19" stroke="#c97f72" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
           </h1>
           <p className="mt-8 max-w-[56ch] text-[18px] leading-relaxed text-ink-700">
-            Choose the amount of support you need: one focused workshop, a foundation session, or our structured StudyPuff Academy series.
+            One two-hour workshop built around you. Not just advice, but a personalised plan and real tools you can use straight away.
           </p>
           <div className="mt-7 flex flex-wrap gap-3 items-center">
-            <a href="#workshops" className="btn-ink">Explore workshops <I.arrow/></a>
+            <a href={EXPLORE_URL} className="btn-ink">Explore workshops <I.arrow/></a>
             <a href={SCHOLARSHIP_FORM} target="_blank" rel="noreferrer" className="btn-ghost">Apply for a scholarship seat</a>
             <span className="hand text-[17px] text-ink-700">— scholarship seats every cohort</span>
           </div>
@@ -159,99 +109,6 @@ function WorkshopsHero(){
           </div>
         </div>
 
-      </div>
-    </section>
-  );
-}
-
-/* ── INTRO ───────────────────────────────────────────────────────── */
-function Intro(){
-  return (
-    <section className="spread relative pt-0">
-      <div className="mx-auto max-w-[1100px] px-6 lg:px-12">
-        <div className="border-t-2 border-ink-900/80 pt-3 mb-2 flex items-baseline justify-between gap-4 flex-wrap">
-          <p className="eyebrow text-ink-900">What you'll get</p>
-          <p className="hand text-[18px] text-brand-rust">two hours · built around you</p>
-        </div>
-        <p className="display text-[clamp(1.5rem,2.6vw,2.2rem)] text-ink-900 leading-[1.25] max-w-[42ch]">
-          Knowing what you should do is one thing. Actually doing it consistently, <em>without the stress,</em> is another.
-        </p>
-        <p className="mt-6 max-w-[64ch] text-[17px] leading-relaxed text-ink-700">
-          Our workshops skip the theory overload and get straight to what works for you. In two hours, you'll walk away with a personalised plan, hands-on experience with proven methods, and the support to keep it going.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-/* ── WORKSHOPS ───────────────────────────────────────────────────── */
-function Workshops(){
-  return (
-    <section id="workshops" className="spread relative pt-0">
-      <div className="mx-auto max-w-[1300px] px-6 lg:px-12">
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          {WORKSHOPS.map((w,i)=>{
-            const rot = i === 0 ? "-0.6deg" : i === 1 ? "0deg" : "0.6deg";
-            return (
-            <article key={w.name}
-                     className={`relative flex flex-col ${w.tone} p-7 lg:p-8 border border-ink-900/10 shadow-[0_22px_50px_-22px_rgba(0,0,0,0.32)] ${w.featured ? "lg:-mt-6 lg:mb-2 lg:scale-[1.02]" : ""}`}
-                     style={{transform: `rotate(${rot})`}}>
-              {/* tape strip on top */}
-              <span aria-hidden className="absolute -top-3 right-10 h-5 w-24 -rotate-[6deg] opacity-85"
-                    style={{background:`repeating-linear-gradient(135deg, ${w.accent} 0 8px, #fbe9a5 8px 16px)`,boxShadow:"0 2px 6px rgba(0,0,0,.08)"}}/>
-
-              {/* Featured chip */}
-              {w.featured && (
-                <span className="absolute -top-3 left-6 bg-ink-900 text-cream-50 px-3 py-1 text-[10px] font-mono uppercase tracking-widest -rotate-[3deg] shadow-[0_4px_10px_rgba(0,0,0,.25)]">
-                  ★ Most popular
-                </span>
-              )}
-
-              {/* Per-card price stamp */}
-              <span aria-hidden className="absolute -top-4 -right-2 rotate-[8deg] rounded-full border-2 border-brand-rust/80 bg-cream-50 px-3 py-1.5 text-center leading-none shadow-[0_4px_10px_rgba(0,0,0,.18)]">
-                <span className="block font-mono text-[8px] uppercase tracking-widest text-brand-rust">price</span>
-                <span className="block font-display text-[20px] text-ink-900 mt-0.5">{w.price}</span>
-              </span>
-
-              <div className="flex items-center justify-between gap-2">
-                <span className="eyebrow text-brand-rust">{w.badge}</span>
-                <span className="font-mono text-[10px] text-ink-700 uppercase tracking-widest">N° {String(i+1).padStart(2,'0')}</span>
-              </div>
-              <h3 className="font-display text-[clamp(1.6rem,2.6vw,2.1rem)] text-ink-900 mt-3 leading-tight">{w.name}</h3>
-              <p className="hand text-[18px] text-ink-700 mt-2 leading-snug">{w.subhead}</p>
-
-              <p className="mt-5 text-[14px] leading-[1.65] text-ink-900/85">{w.body}</p>
-
-              <div className="mt-5 flex items-baseline gap-2 border-t border-ink-900/15 pt-4">
-                <span className="font-display text-[40px] leading-none text-ink-900">{w.price}</span>
-                <span className="text-[13px] text-ink-700 pb-1">/ {w.cadence}</span>
-                <span className="ml-auto font-mono text-[10px] text-ink-700 uppercase tracking-widest pb-1">incl. VAT</span>
-              </div>
-
-              <div className="mt-5 flex-1">
-                <p className="eyebrow text-ink-700 mb-3">What's included</p>
-                <ul className="space-y-2.5 text-[14px] text-ink-900">
-                  {w.bullets.map(b=>(
-                    <li key={b} className="flex items-start gap-2.5">
-                      <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cream-50">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1f1f1f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                      </span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <a href={WAITLIST_FORM} target="_blank" rel="noreferrer"
-                 className={`${w.featured ? "btn-ink" : "btn-ghost"} justify-center w-full mt-7`}>
-                Join the waiting list <I.arrow/>
-              </a>
-            </article>
-            );
-          })}
-        </div>
-        <p className="text-center text-[12px] text-ink-700 mt-8 font-mono">Prices in EUR · includes VAT · scholarship seats every cohort</p>
       </div>
     </section>
   );
@@ -421,8 +278,6 @@ function WorkshopsPage(){
     <div className="paper-grain relative">
       <Header/>
       <WorkshopsHero/>
-      <Intro/>
-      <Workshops/>
       <Outcomes/>
       <AlumniVoices/>
       <WorkshopsFAQ/>

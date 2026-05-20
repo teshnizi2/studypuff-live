@@ -11,9 +11,10 @@ const nextConfig = {
         { source: '/faq',         destination: '/faq.html' },
         { source: '/resources',   destination: '/resources.html' },
         { source: '/store',       destination: '/store.html' },
-        { source: '/study',       destination: '/study.html' },
-        { source: '/workshops',   destination: '/workshops.html' },
-        { source: '/coming-soon', destination: '/coming-soon.html' }
+        { source: '/study',             destination: '/study.html' },
+        { source: '/workshops',         destination: '/workshops.html' },
+        { source: '/workshops/explore', destination: '/workshops-explore.html' },
+        { source: '/coming-soon',       destination: '/coming-soon.html' }
       ]
     };
   }
