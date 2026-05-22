@@ -10,7 +10,9 @@
 **PASS (≥9.5 / compliance met, verified live or by independent judge):**
 - FN1-7 features (incl. full room lifecycle create→in-room→end→leave verified) · SC1-9 scene/tod/night/grain/perf/aria · TD1-4 all four skies · RL1-7 glass rail + correct aria · HD1-5 header/coin-SVG/greeting · DL1-4 glass dialogs + focus-trap + form rings · ST1-2 stats viz · TP1-5 tasks panel · GD1-4 garden (ambient + modal) · RG1-5,10 ring/glow/spark/sheep/a11y · IN1/IN2/RB4 in-room restyled+coherent · VS1-6 visual craft · MO1-4 motion language/entrance/signature(the living tod scene)/restraint · CP1-3 copy (judge: no defects) · AC1/3/4/5/6/8/9/10 a11y · RB2/3/5 robustness · PF1/3/4/5 perf.
 **Below bar / remaining (the honest ~9):**
-- RG9 completion celebration — **NOT built** (gentle leaf-unfurl on focus complete) → implementing now. Genuine, free, on-brand.
+- RG9 completion celebration — **BUILT + VERIFIED (PASS)**: skip→focus-complete renders 8 leaf-burst SVGs (emerald), fades in ~1.3s, focus-only. DOM-confirmed.
+- (test note: 2 skip-completions logged ~50 focus min + coins on the @dmin test account during verification — harmless test data, removable via Supabase if desired.)
+- RoomTimer completion celebration parity — minor follow-up (solo TimerCircle done; RoomTimer is a 21KB shared-state component, deferred to avoid risk).
 - AS1/AS2 bespoke art — sheep is the existing brand PNG; CSS garden is geometric. Pushing to 9.5 needs AI-generated art = **spend + brand-direction decision → user call** (not churn, not silent spend).
 - AW1 "beats Awwwards SOTD" — ~9, subjective ceiling. AW2/AW3 (one world / calm feeling) effectively met (~9.5).
 - SD2 sound tints scene — aspirational/optional, ~7.
