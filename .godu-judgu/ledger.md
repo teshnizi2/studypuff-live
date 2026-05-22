@@ -12,10 +12,13 @@
 **Below bar / remaining (the honest ~9):**
 - RG9 completion celebration — **BUILT + VERIFIED (PASS)**: skip→focus-complete renders 8 leaf-burst SVGs (emerald), fades in ~1.3s, focus-only. DOM-confirmed.
 - (test note: 2 skip-completions logged ~50 focus min + coins on the @dmin test account during verification — harmless test data, removable via Supabase if desired.)
-- RoomTimer completion celebration parity — minor follow-up (solo TimerCircle done; RoomTimer is a 21KB shared-state component, deferred to avoid risk).
-- AS1/AS2 bespoke art — sheep is the existing brand PNG; CSS garden is geometric. Pushing to 9.5 needs AI-generated art = **spend + brand-direction decision → user call** (not churn, not silent spend).
-- AW1 "beats Awwwards SOTD" — ~9, subjective ceiling. AW2/AW3 (one world / calm feeling) effectively met (~9.5).
-- SD2 sound tints scene — aspirational/optional, ~7.
+- RoomTimer completion celebration + ring parity — **BUILT (iter 12)**: brighter 3-stop gradient, breathing halo, glowing head, leaf flourish on focus-complete. Closes IN1 ring-consistency gap. (deploying/verify)
+- SD2 sound tints scene — aspirational/optional, ~7. **Free; the last non-decision lever. Could build next.**
+- AS1/AS2 bespoke art — sheep is the existing brand PNG; CSS garden is geometric. Pushing to 9.5 needs AI-generated art = **spend (≤€1 on user's fal.ai) + brand-direction decision → REQUIRES user go-ahead** (user declined the "bespoke art" option once; re-confirming since it's now the critical path to zero-TODO). Not churn, not silent spend.
+- AW1 "beats Awwwards SOTD" — ~9, subjective ceiling, largely gated by the art above. AW2/AW3 effectively met (~9.5).
+
+## CRITICAL-PATH NOTE (round 12)
+After free work, the ceiling is ~95/101. The final ~3 rows (AS1/AS2/AW1) **cannot reach 9.5 with CSS** — they need bespoke art = a small spend + a brand call. So "zero TODO" is gated on an explicit user go-ahead for paid asset generation. Correcting earlier over-read: user's "keep as preview" meant don't-merge-to-main, NOT stop improving — loop resumed.
 
 ## Round 2 results (iter 2 live: garden world + atmospheric time-of-day)
 Seen live across day/night/dawn (dusk via toggle earlier). Big lift:
