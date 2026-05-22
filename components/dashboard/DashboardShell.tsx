@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { HeaderAvatarButton } from "@/components/dashboard/HeaderAvatarButton";
+import { Greeting } from "@/components/dashboard/Greeting";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -23,7 +24,7 @@ export async function DashboardShell({
   title?: string;
   subtitle?: string;
   profile?: Profile | null;
-  bg?: "cream" | "green";
+  bg?: "cream" | "green" | "scene";
   /** When true, content area takes the full viewport width with no max-w cap.
       The dashboard home uses this so the side rails can stick to the edges. */
   fullBleed?: boolean;
@@ -42,14 +43,19 @@ export async function DashboardShell({
   const isAdmin = profile?.role === "admin";
   const initial = (profile?.display_name || profile?.email || "?").charAt(0).toUpperCase();
 
+  const layoutBase = "lg:flex lg:h-screen lg:min-h-0 lg:flex-col lg:overflow-hidden";
   const mainBg =
-    bg === "green"
-      ? "min-h-screen bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] lg:flex lg:h-screen lg:min-h-0 lg:flex-col lg:overflow-hidden"
-      : "min-h-screen bg-cream-100 lg:flex lg:h-screen lg:min-h-0 lg:flex-col lg:overflow-hidden";
+    bg === "scene"
+      ? `min-h-screen bg-transparent ${layoutBase}`
+      : bg === "green"
+        ? `min-h-screen bg-gradient-to-b from-[#dfead2] via-[#cfe0c2] to-[#bbd3ad] ${layoutBase}`
+        : `min-h-screen bg-cream-100 ${layoutBase}`;
   const headerBg =
-    bg === "green"
-      ? "border-b border-ink-900/10 bg-[#dfead2]/85 backdrop-blur lg:flex-shrink-0"
-      : "border-b border-ink-900/10 bg-cream-50/90 backdrop-blur lg:flex-shrink-0";
+    bg === "scene"
+      ? "border-b border-white/40 bg-cream-50/55 backdrop-blur-md lg:flex-shrink-0"
+      : bg === "green"
+        ? "border-b border-ink-900/10 bg-[#dfead2]/85 backdrop-blur lg:flex-shrink-0"
+        : "border-b border-ink-900/10 bg-cream-50/90 backdrop-blur lg:flex-shrink-0";
 
   return (
     <main className={mainBg}>
@@ -76,10 +82,11 @@ export async function DashboardShell({
               {coins}
             </Link>
           </div>
-          {/* Center column intentionally empty — the dashboard's panels are
-              reached from the slim FocusRail on the left edge now, so the
-              header stays calm (just wordmark, coins, avatar, logout). */}
-          <div className="hidden lg:block" />
+          {/* Center column — a quiet, time-aware greeting. The dashboard's
+              panels are reached from the slim FocusRail on the left edge. */}
+          <div className="hidden lg:flex lg:items-center lg:justify-center">
+            <Greeting name={profile?.display_name ?? null} />
+          </div>
           <nav className="flex flex-wrap items-center justify-self-end gap-3 text-sm">
             {isAdmin && (
               <Link href="/admin" className="nav-link text-ink-700">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ListChecks, Sprout, BarChart3, DoorOpen, Coins, Settings as SettingsIcon } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { FocusRail, type RailItem } from "./FocusRail";
+import { AmbientScene } from "./AmbientScene";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
@@ -327,7 +328,10 @@ export function DashboardActions(props: Props) {
           Mobile:
             Stacks naturally — sidebar above, then timer, then garden — since
             the rails fall back to inline rendering below the lg breakpoint. */}
-      <div className="bg-paper-grain relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
+      {/* Living time-of-day backdrop — fixed, behind everything. */}
+      <AmbientScene />
+
+      <div className="relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />
 
         {/* Slim focus rail — the single access point for every panel. */}
@@ -337,8 +341,8 @@ export function DashboardActions(props: Props) {
             default so the timer owns a calm, near-empty space. */}
         <aside
           aria-label="Topics & tasks"
-          className={`fixed left-[68px] top-[100px] z-20 hidden h-[calc(100vh-100px)] w-[320px] overflow-y-auto border-r border-ink-900/10 bg-cream-50/80 px-5 pb-10 pt-4 backdrop-blur-md transition-transform duration-300 ease-out lg:block ${
-            sidebarHidden ? "-translate-x-[400px]" : "translate-x-0"
+          className={`glass-panel fixed left-[92px] top-[92px] z-20 hidden h-[calc(100vh-116px)] w-[330px] overflow-y-auto rounded-[26px] px-5 pb-10 pt-4 transition-all duration-300 ease-[cubic-bezier(0.2,0.7,0,1)] lg:block ${
+            sidebarHidden ? "pointer-events-none -translate-x-[460px] opacity-0" : "translate-x-0 opacity-100"
           }`}
         >
           <TaskPanel
@@ -398,7 +402,7 @@ export function DashboardActions(props: Props) {
             if the timer + gauge + sparkline + chooser stack exceeds the
             available height, it scrolls internally. The page itself
             never scrolls. */}
-        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pl-[68px] lg:pt-10 lg:pb-8">
+        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pl-[100px] lg:pt-10 lg:pb-8">
           <div className="journal-rise jrise-2">
             {props.activeRoomTimer ? (
               <RoomTimer

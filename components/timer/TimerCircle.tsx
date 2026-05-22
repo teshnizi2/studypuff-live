@@ -156,17 +156,31 @@ export function TimerCircle({
     <div className="relative flex flex-col items-center text-ink-900">
       {/* Sheep ring — floating, no card */}
       <div className="relative">
+        {/* Always-on soft halo for depth; a second breathing layer blooms
+            when the timer runs (doubles as a calm breathing cue). */}
+        <div aria-hidden className="absolute inset-0 -z-10 rounded-full halo-sage blur-2xl" />
         <div
           aria-hidden
-          className={`absolute inset-0 -z-10 rounded-full halo-sage blur-2xl ${running ? "animate-halo" : ""}`}
+          className={`absolute inset-[-6%] -z-10 rounded-full halo-sage blur-3xl transition-opacity duration-700 ${
+            running ? "animate-halo opacity-100" : "opacity-0"
+          }`}
         />
         <div className="relative h-[240px] w-[240px] sm:h-[260px] sm:w-[260px]">
           <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor="#3a8a4c" />
+                <stop offset="0%"   stopColor="#5fbf6f" />
+                <stop offset="55%"  stopColor="#3a8a4c" />
                 <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
+              {/* Soft glow for the progress head spark. */}
+              <filter id="head-glow" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <circle cx={160} cy={160} r={radius} fill="none"
               stroke="rgba(31,77,44,0.10)" strokeWidth={12} />
@@ -175,7 +189,13 @@ export function TimerCircle({
               strokeDasharray={circumference} strokeDashoffset={dashOffset}
               transform="rotate(-90 160 160)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }} />
-            <circle cx={dotX} cy={dotY} r={9} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
+            {/* Glowing progress head — a soft bloom under a crisp dot. */}
+            {progress > 0.001 && (
+              <g filter="url(#head-glow)">
+                <circle cx={dotX} cy={dotY} r={7} fill="#a8e6b0" opacity={0.9} />
+                <circle cx={dotX} cy={dotY} r={5.5} fill="#fff" stroke="#1a4d2a" strokeWidth={2} />
+              </g>
+            )}
           </svg>
           <div className="absolute inset-[18%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_14px_rgba(0,0,0,0.20)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}

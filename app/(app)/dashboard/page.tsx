@@ -135,7 +135,7 @@ export default async function DashboardPage() {
   const goalPct = Math.min(100, Math.round((todayMinutesStat / dailyGoal) * 100));
 
   return (
-    <DashboardShell profile={profile} bg="green" fullBleed>
+    <DashboardShell profile={profile} bg="scene" fullBleed>
       <div className="w-full">
         <DashboardActions
           inRoom={!!activeRoom}
