@@ -350,7 +350,7 @@ export function DashboardActions(props: Props) {
             default so the timer owns a calm, near-empty space. */}
         <aside
           aria-label="Topics & tasks"
-          className={`glass-panel fixed left-[92px] top-[92px] z-20 hidden h-[calc(100vh-116px)] w-[330px] overflow-y-auto rounded-[26px] px-5 pb-10 pt-4 transition-all duration-300 ease-[cubic-bezier(0.2,0.7,0,1)] lg:block ${
+          className={`glass-panel fixed left-[92px] top-[108px] z-20 hidden h-[calc(100vh-128px)] w-[330px] overflow-y-auto rounded-[26px] px-5 pb-10 pt-4 transition-all duration-300 ease-[cubic-bezier(0.2,0.7,0,1)] lg:block ${
             sidebarHidden ? "pointer-events-none -translate-x-[460px] opacity-0" : "translate-x-0 opacity-100"
           }`}
         >

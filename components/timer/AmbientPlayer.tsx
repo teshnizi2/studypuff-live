@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 type Props = { sound: string | null; playing: boolean };
 
-const MASTER_GAIN = 0.10;
+const MASTER_GAIN = 0.085;
 
 export function AmbientPlayer({ sound, playing }: Props) {
   const ctxRef = useRef<AudioContext | null>(null);
@@ -163,9 +163,6 @@ function startRain(ctx: AudioContext, master: GainNode): () => void {
   lfo.start();
   cleanups.push(() => { try { lfo.stop(); } catch { /* noop */ } });
 
-  // Occasional droplets.
-  cleanups.push(scheduleDroplets(ctx, master, [180, 700], 0.05, 1500, 5500));
-
   return () => cleanups.forEach((c) => c());
 }
 
@@ -219,8 +216,6 @@ function startForest(ctx: AudioContext, master: GainNode): () => void {
   lfo.start();
   cleanups.push(() => { try { lfo.stop(); } catch { /* noop */ } });
 
-  cleanups.push(scheduleBirds(ctx, master));
-
   return () => cleanups.forEach((c) => c());
 }
 
@@ -239,9 +234,6 @@ function startCafe(ctx: AudioContext, master: GainNode): () => void {
   noise.start();
   cleanups.push(() => { try { noise.stop(); } catch { /* noop */ } });
 
-  // Subtle "clatter" droplets at varied pitches.
-  cleanups.push(scheduleDroplets(ctx, master, [180, 380], 0.04, 3500, 11_000));
-
   return () => cleanups.forEach((c) => c());
 }
 
@@ -257,9 +249,6 @@ function startFire(ctx: AudioContext, master: GainNode): () => void {
   noise.connect(lp).connect(gain).connect(master);
   noise.start();
   cleanups.push(() => { try { noise.stop(); } catch { /* noop */ } });
-
-  // Crackles — short, brighter pops.
-  cleanups.push(scheduleDroplets(ctx, master, [400, 1200], 0.06, 600, 2400));
 
   return () => cleanups.forEach((c) => c());
 }
@@ -278,64 +267,6 @@ function startLibrary(ctx: AudioContext, master: GainNode): () => void {
   noise.start();
   cleanups.push(() => { try { noise.stop(); } catch { /* noop */ } });
 
-  // Far-off page turns / footsteps — sparse droplets.
-  cleanups.push(scheduleDroplets(ctx, master, [220, 480], 0.025, 14_000, 32_000));
-
   return () => cleanups.forEach((c) => c());
 }
 
-// ── Helpers ──────────────────────────────────────────────────────
-
-function scheduleDroplets(
-  ctx: AudioContext,
-  master: GainNode,
-  freqRange: [number, number],
-  amp: number,
-  minDelay: number,
-  maxDelay: number
-): () => void {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  let stopped = false;
-  const tick = () => {
-    if (stopped) return;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 1500;
-    o.type = "sine";
-    o.frequency.value = freqRange[0] + Math.random() * (freqRange[1] - freqRange[0]);
-    g.gain.setValueAtTime(0, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(amp, ctx.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
-    o.connect(lp).connect(g).connect(master);
-    o.start();
-    o.stop(ctx.currentTime + 0.3);
-    timer = setTimeout(tick, minDelay + Math.random() * (maxDelay - minDelay));
-  };
-  timer = setTimeout(tick, minDelay);
-  return () => { stopped = true; if (timer) clearTimeout(timer); };
-}
-
-function scheduleBirds(ctx: AudioContext, master: GainNode): () => void {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  let stopped = false;
-  const tick = () => {
-    if (stopped) return;
-    const base = 1500 + Math.random() * 1000;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(base, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(base * 1.25, ctx.currentTime + 0.12);
-    g.gain.setValueAtTime(0, ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
-    o.connect(g).connect(master);
-    o.start();
-    o.stop(ctx.currentTime + 0.32);
-    timer = setTimeout(tick, 7000 + Math.random() * 16_000);
-  };
-  timer = setTimeout(tick, 4000);
-  return () => { stopped = true; if (timer) clearTimeout(timer); };
-}

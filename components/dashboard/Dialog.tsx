@@ -110,7 +110,7 @@ export function Dialog({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className={`relative m-0 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/60 bg-cream-50/95 shadow-[0_40px_90px_-30px_rgba(31,77,44,0.55)] outline-none backdrop-blur-xl sm:m-4 sm:rounded-[28px] ${SIZE[size]} animate-[panelIn_240ms_cubic-bezier(0.34,1.5,0.64,1)]`}
+        className={`relative m-0 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/60 bg-cream-50 shadow-[0_40px_90px_-30px_rgba(31,77,44,0.55)] outline-none sm:m-4 sm:rounded-[28px] ${SIZE[size]} animate-[panelIn_240ms_cubic-bezier(0.34,1.5,0.64,1)]`}
       >
         {/* Hairline top sheen. */}
         <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />

@@ -68,7 +68,7 @@ export function InlineSoundChooser({ sound, playing, onTogglePlay, onSelect }: P
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-20 mt-2 w-[220px] rounded-2xl bg-cream-50/95 p-2 ring-1 ring-ink-900/10 shadow-[0_18px_50px_-15px_rgba(31,77,44,0.35)] backdrop-blur-md">
+        <div className="absolute bottom-full left-0 z-30 mb-2 max-h-[60vh] w-[220px] overflow-y-auto rounded-2xl bg-cream-50 p-2 ring-1 ring-ink-900/10 shadow-[0_-18px_50px_-15px_rgba(31,77,44,0.35)]">
           <button
             type="button"
             onClick={() => { onSelect(null); setOpen(false); }}

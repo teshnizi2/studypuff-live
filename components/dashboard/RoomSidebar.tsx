@@ -96,7 +96,7 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
       aria-label="Study room"
       className="
         relative mx-auto mt-6 flex w-full max-w-[420px] flex-col gap-3 px-4 pb-10
-        lg:fixed lg:right-3 lg:top-[92px] lg:z-30 lg:m-0 lg:h-[calc(100vh-116px)]
+        lg:fixed lg:right-3 lg:top-[108px] lg:z-30 lg:m-0 lg:h-[calc(100vh-128px)]
         lg:w-[360px] lg:max-w-none lg:px-0 lg:pt-0 lg:pb-0
         xl:w-[400px]
       "
