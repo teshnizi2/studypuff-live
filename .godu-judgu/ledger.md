@@ -16,7 +16,22 @@ Seen live across day/night/dawn (dusk via toggle earlier). Big lift:
 - RS1/RS2 mobile — trees (230px) dominate a 390px screen. → iter 3: responsive shrink + pull off-edge + shorter meadow. (True 390px render NOT verifiable in this preview harness — flagged for manual check.)
 Still below bar to revisit: ring/rail/header polish (~8.5), motes faint, flowers small (bumped 10→13px in iter 3), dialogs/stats/rooms not yet restyled, MO/CP/AC sweeps pending.
 
-## Round 3 (iter 3 built, deploying): contrast clearing + lighter night/dusk hills + responsive trees + bigger flowers
+## Round 3 results (iter 3 live + verified)
+- AC1 night contrast — **FIXED → PASS**: night/dusk hills lightened + light clearing; "today/this week" labels now clearly legible (analytic floor ~4.7:1, higher with clearing; visually confirmed on the night screenshot).
+- Clearing reads as a soft sunlit/moonlit pool behind the timer — improves VS1 focal pull, not milky at day. Flowers more visible (13px).
+- RS mobile responsive rules shipped (trees shrink + off-edge, shorter meadow) — **flagged: true 390px render not verifiable in this preview harness; needs manual phone check.**
+
+### State of play — BACKDROP phase ~9/10 (very good, a few notches under 9.5)
+Backdrop world (scene/tod/garden/clearing) is strong. Honest: most craft rows sit ~9 (below the 9.5 bar) — e.g. motes still faint, tree silhouettes a touch flat. PASS (≥9.5/compliance): FN1 timer, AC1 night-contrast. Everything else TODO.
+
+### NEXT PHASE — FOREGROUND polish (not yet started; the bulk of remaining TODO)
+1. Timer ring numerals presence (RG6), bigger head spark (RG3), start-settle (RG8).
+2. Restyle dialogs to glass system (DL1-4): rooms/settings/profile/stats/rewards/garden.
+3. Stats viz polish (ST1-2), tasks empty-state warmth (TP2-3), rooms verify+restyle (FN4/IN2).
+4. Rail active polish (RL2), coin pill jewel (HD2).
+5. Sweeps: motion language (MO1-4), copy/AI-tells (CP1-3), full a11y keyboard/focus/sr (AC2-7), perf measure (PF1-4).
+6. Cold INDEPENDENT judge (3d-v) near convergence + gap-hunt.
+Resume from here next round; drive off the TODO rows above.
 
 ## Round 1 results (iter 1 live: scene + glass rail + ring glow + greeting)
 Verified live on preview, day/dusk/night previewed via data-tod toggle, timer started (countdown + head spark + sound confirmed working).
