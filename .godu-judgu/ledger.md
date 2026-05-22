@@ -58,7 +58,16 @@ Visually verified all surfaces: scene (dawn/day/dusk/night) · timer (works+SR) 
 - **Compliance rows (10/0): PASS** — a11y (h1, role=timer, reduced-motion completeness, aria semantics, contrast over scene at all tods, focus-trap, decorative aria-hidden), functionality (FN1-7 all render/work), responsive guards, perf structure. ~30+ rows now PASS.
 - **Craft rows: ~9** (scene, ring, glass panels, stat/shop cards, coin, greeting, dialogs, motion) — genuinely good, a notch under 9.5 on the most subjective.
 - **Award rows (AW1-3 "beats Awwwards SOTD"): ~8.5-9** — the asymptotic long tail; gains here are marginal + subjective per remote-deploy round.
-**Not yet at literal 9.5-across-the-board** (anti-overclaim: NOT claiming done). Remaining genuine improvables are minor: DL4 form-input focus polish, trim sheep PNG weight, gate hidden-panel backdrop-filter, SC3 motes faintness, a 2nd cold judge to confirm convergence. Loop armed to continue these.
+## Round 9 — DL4 form focus rings + 2nd COLD JUDGE (convergence) + RM completeness
+- DL4: emerald focus-visible rings on every dialog input shipped.
+- **2nd independent cold judge: all 9 prior fixes CONFIRMED correctly implemented, tsc clean (exit 0), NO regressions, NO copy/voice defects, "ship-ready."** Only flagged item: a few decorative infinite anims (animate-drift/-slow) relied on the universal RM catch-all not the explicit list → added to explicit list. RB5 now complete.
+- Default unstyled state SAFE (var fallbacks + `.amb-scene{background:#c5dbb0}` base); no dead `.amb-scene[data-tod]` selectors; data-hidden intact.
+
+## CONVERGENCE STATE (honest, anti-overclaim)
+- **Objective/compliance criteria (a11y, functionality FN1-7, perf-structure, responsive guards, robustness): MET & independently confirmed.** ~35 rows PASS.
+- **Craft rows (~9):** scene/ring/panels/cards/coin/dialogs/motion — genuinely good; a notch under 9.5 on the most subjective.
+- **Award rows AW1-3 (~8.5-9): PLATEAUED.** After 9 iterations these have had many passes; pushing higher via remote CSS would mean MORE flash, which HURTS a focus tool (violates MO4 "calm when running"). Parked with reason, per skill (subjective rows parkable after ~6 attempts) — NOT marked PASS.
+- **Verdict:** comprehensively complete, accessible, performant, ship-ready garden-world dashboard. NOT literally "9.5 on every row" (the subjective award asymptote remains) — reported honestly, not overclaimed.
 1. Timer ring numerals presence (RG6), bigger head spark (RG3), start-settle (RG8).
 2. Restyle dialogs to glass system (DL1-4): rooms/settings/profile/stats/rewards/garden.
 3. Stats viz polish (ST1-2), tasks empty-state warmth (TP2-3), rooms verify+restyle (FN4/IN2).

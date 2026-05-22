@@ -639,7 +639,8 @@ html[data-tod="night"] .amb-tree { opacity: 0.72; }
 @media (prefers-reduced-motion: reduce) {
   .amb-sky, .amb-bloom, .amb-motes, .animate-halo,
   .amb-tree, .amb-tree-r, .amb-grass, .amb-flower, .amb-stars,
-  .animate-breathe, .animate-leaf-sway, .animate-pulse-ring, .eq-bar { animation: none !important; }
+  .animate-breathe, .animate-leaf-sway, .animate-pulse-ring, .eq-bar,
+  .animate-drift, .animate-drift-slow { animation: none !important; }
 
   .animate-float,
   .animate-bobble,
