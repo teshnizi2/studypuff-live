@@ -412,26 +412,14 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 
 /* ── AmbientScene — living garden world ───────────────────────── */
 
-/* Per-time-of-day palette tokens. The SKY is bespoke per tod (set below);
-   the meadow/tree/bloom tokens tint the garden to match the hour. The lower
+/* Per-time-of-day bloom tints. The SKY is bespoke per tod (set below); the
+   bloom tokens tint the drifting light blooms to match the hour. The lower
    half of every sky stays LIGHT so dark ink content keeps ≥4.5:1 contrast. */
 .amb-scene { background: #c5dbb0; }
-html[data-tod="dawn"] {
-  --hill-1: #cde0b6; --hill-2: #b6d29c; --hill-3: #9cc086;
-  --tree: #4f7a4d; --bloomc: rgba(255,221,189,0.6); --bloomc2: rgba(243,180,160,0.30);
-}
-html[data-tod="day"] {
-  --hill-1: #c6dcab; --hill-2: #aecf90; --hill-3: #8fbd78;
-  --tree: #3f6f3d; --bloomc: rgba(255,255,255,0.6); --bloomc2: rgba(124,170,120,0.30);
-}
-html[data-tod="dusk"] {
-  --hill-1: #c8d6a6; --hill-2: #aec58a; --hill-3: #93ab74;
-  --tree: #3c5d3a; --bloomc: rgba(255,200,150,0.55); --bloomc2: rgba(214,120,90,0.28);
-}
-html[data-tod="night"] {
-  --hill-1: #b8c6b3; --hill-2: #a8b8a4; --hill-3: #9aab97;
-  --tree: #33493a; --bloomc: rgba(206,220,255,0.5); --bloomc2: rgba(90,120,150,0.30);
-}
+html[data-tod="dawn"]  { --bloomc: rgba(255,221,189,0.6);  --bloomc2: rgba(243,180,160,0.30); }
+html[data-tod="day"]   { --bloomc: rgba(255,255,255,0.6);  --bloomc2: rgba(124,170,120,0.30); }
+html[data-tod="dusk"]  { --bloomc: rgba(255,200,150,0.55); --bloomc2: rgba(214,120,90,0.28); }
+html[data-tod="night"] { --bloomc: rgba(206,220,255,0.5);  --bloomc2: rgba(90,120,150,0.30); }
 
 .amb-sky {
   position: absolute;
@@ -555,41 +543,6 @@ html[data-tod="dawn"]  .amb-meadow-img::after { background: rgba(255, 196, 158, 
 html[data-tod="day"]   .amb-meadow-img::after { background: transparent; }
 html[data-tod="dusk"]  .amb-meadow-img::after { background: rgba(240, 158, 92, 0.40); mix-blend-mode: overlay; }
 html[data-tod="night"] .amb-meadow-img::after { background: rgba(120, 150, 200, 0.45); mix-blend-mode: soft-light; }
-.amb-hills { position: absolute; inset: 0; width: 100%; height: 100%; }
-.amb-hill-back  { fill: var(--hill-1, #c6dcab); opacity: 0.9; }
-.amb-hill-mid   { fill: var(--hill-2, #aecf90); opacity: 0.92; }
-.amb-hill-front { fill: var(--hill-3, #8fbd78); opacity: 0.96; }
-
-/* Trees framing the empty left/right edges of wide screens. */
-.amb-tree {
-  position: absolute; bottom: 4%;
-  width: 230px; height: 320px;
-  background: var(--tree, #3f6f3d);
-  -webkit-mask: var(--tree-mask) bottom center / contain no-repeat;
-  mask: var(--tree-mask) bottom center / contain no-repeat;
-  --tree-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 300'%3E%3Crect x='91' y='168' width='18' height='134' rx='7' fill='black'/%3E%3Ccircle cx='100' cy='112' r='74' fill='black'/%3E%3Ccircle cx='56' cy='150' r='50' fill='black'/%3E%3Ccircle cx='146' cy='150' r='50' fill='black'/%3E%3Ccircle cx='100' cy='176' r='46' fill='black'/%3E%3C/svg%3E");
-  opacity: 0.55;
-  transform-origin: bottom center;
-  animation: amb-sway 9s ease-in-out infinite;
-}
-.amb-tree-l { left: -56px; }
-.amb-tree-r { right: -56px; transform: scaleX(-1); animation-duration: 11s; }
-html[data-tod="night"] .amb-tree { opacity: 0.72; }
-@keyframes amb-sway { 0%,100%{transform:rotate(-1deg);} 50%{transform:rotate(1.2deg);} }
-.amb-tree-r { animation-name: amb-sway-r; }
-@keyframes amb-sway-r { 0%,100%{transform:scaleX(-1) rotate(-1deg);} 50%{transform:scaleX(-1) rotate(1.2deg);} }
-
-/* Swaying grass tufts along the very bottom. */
-.amb-grass {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 46px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 46'%3E%3Cg fill='%23234a2e'%3E%3Cpath d='M6 46 C4 30 10 22 8 8 C14 24 12 34 14 46Z'/%3E%3Cpath d='M22 46 C20 28 26 18 30 6 C28 22 30 34 30 46Z'/%3E%3Cpath d='M44 46 C42 32 46 24 44 12 C52 26 50 36 52 46Z'/%3E%3Cpath d='M64 46 C62 30 68 20 72 10 C70 26 72 36 72 46Z'/%3E%3Cpath d='M86 46 C84 32 88 22 86 10 C94 24 92 36 94 46Z'/%3E%3Cpath d='M106 46 C104 28 110 18 114 8 C112 24 114 34 114 46Z'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat-x;
-  background-size: 120px 46px;
-  opacity: 0.6;
-  transform-origin: bottom;
-  animation: amb-grass-sway 7s ease-in-out infinite;
-}
-@keyframes amb-grass-sway { 0%,100%{transform:skewX(-2deg);} 50%{transform:skewX(2deg);} }
 
 /* Generative flowers — bob gently; count grows with focus minutes. */
 .amb-flower {
@@ -646,10 +599,7 @@ html[data-tod="night"] .amb-tree { opacity: 0.72; }
 /* Responsive meadow — on phones the framing trees would dominate, so shrink
    them and pull them mostly off-edge, and lower the meadow band. */
 @media (max-width: 767px) {
-  .amb-meadow { height: 30vh; }
-  .amb-tree { width: 150px; height: 210px; opacity: 0.5; }
-  .amb-tree-l { left: -78px; }
-  .amb-tree-r { right: -78px; }
+  .amb-meadow { height: 34vh; }
   .amb-clearing { width: 96vw; height: 70vh; }
 }
 
@@ -665,7 +615,7 @@ html[data-tod="night"] .amb-tree { opacity: 0.72; }
 /* Honour user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   .amb-sky, .amb-bloom, .amb-motes, .animate-halo,
-  .amb-tree, .amb-tree-r, .amb-grass, .amb-flower, .amb-stars,
+  .amb-flower, .amb-stars,
   .animate-breathe, .animate-leaf-sway, .animate-pulse-ring, .eq-bar,
   .animate-drift, .animate-drift-slow { animation: none !important; }
 
