@@ -48,6 +48,7 @@ export function AmbientScene({
   lifetimeMinutes?: number;
 }) {
   const [tod, setTod] = useState<TimeOfDay>(todProp ?? "day");
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     if (todProp) return;
@@ -56,6 +57,14 @@ export function AmbientScene({
     const id = window.setInterval(apply, 5 * 60 * 1000);
     return () => window.clearInterval(id);
   }, [todProp]);
+
+  // Pause scene animations when the tab is backgrounded (battery / calm).
+  useEffect(() => {
+    const onVis = () => setHidden(document.visibilityState === "hidden");
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   // Garden density: a few flowers from lifetime progress (so the meadow is
   // never barren), plus more as today's minutes climb. Capped so it stays calm.
@@ -81,6 +90,7 @@ export function AmbientScene({
     <div
       aria-hidden
       data-tod={tod}
+      data-hidden={hidden || undefined}
       className="amb-scene pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
       {/* Bespoke time-of-day sky. */}

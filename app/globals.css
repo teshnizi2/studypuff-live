@@ -440,6 +440,11 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
   will-change: transform;
   transition: background 1.8s ease;
 }
+
+/* Pause every scene animation while the tab is hidden — CSS animations are
+   NOT throttled in background tabs, so this saves battery during a focus
+   session the user has tabbed away from. */
+.amb-scene[data-hidden="true"] * { animation-play-state: paused !important; }
 /* Bespoke skies — top carries the hour's mood, lower half lightens to seat
    the (dark-ink) content with comfortable contrast at every time of day. */
 .amb-scene[data-tod="dawn"] .amb-sky {
@@ -633,7 +638,8 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 /* Honour user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   .amb-sky, .amb-bloom, .amb-motes, .animate-halo,
-  .amb-tree, .amb-tree-r, .amb-grass, .amb-flower, .amb-stars { animation: none !important; }
+  .amb-tree, .amb-tree-r, .amb-grass, .amb-flower, .amb-stars,
+  .animate-breathe, .animate-leaf-sway, .animate-pulse-ring, .eq-bar { animation: none !important; }
 
   .animate-float,
   .animate-bobble,

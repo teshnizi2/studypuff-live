@@ -103,7 +103,7 @@ export function Dialog({
         aria-label="Close dialog"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 bg-ink-900/45 backdrop-blur-[3px] animate-[fadeIn_200ms_ease-out]"
+        className="absolute inset-0 bg-ink-900/50 animate-[fadeIn_200ms_ease-out]"
       />
 
       {/* Panel — frosted, part of the dashboard's glass system. */}

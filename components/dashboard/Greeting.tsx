@@ -25,9 +25,8 @@ export function Greeting({ name }: { name: string | null }) {
 
   return (
     <p
-      className="select-none text-center font-display text-base italic text-ink-900/85 transition-opacity duration-700"
+      className="max-w-[42ch] select-none truncate text-center font-display text-base italic text-ink-900/85 transition-opacity duration-700"
       style={{ opacity: greeting ? 1 : 0 }}
-      aria-live="off"
     >
       {greeting}
       {first ? <>, {first}</> : null}

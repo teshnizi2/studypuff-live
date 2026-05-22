@@ -87,7 +87,7 @@ export async function DashboardShell({
                 <circle cx="12" cy="12" r="6.5" fill="none" stroke="#f4d685" strokeWidth="1.5" />
                 <path d="M12 8.2v7.6M9.6 9.6c0-1 1-1.6 2.4-1.6s2.4.6 2.4 1.6-1 1.4-2.4 1.4-2.4.5-2.4 1.5 1 1.6 2.4 1.6 2.4-.6 2.4-1.6" fill="none" stroke="#8a5e12" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
-              <span className="tabular-nums">{coins}</span>
+              <span className="tabular-nums" aria-live="polite">{coins}</span>
             </Link>
           </div>
           {/* Center column — a quiet, time-aware greeting. The dashboard's
@@ -119,6 +119,7 @@ export async function DashboardShell({
             : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
         }
       >
+        {!title && <h1 className="sr-only">StudyPuff dashboard</h1>}
         {title || subtitle ? (
           <div className="mb-8">
             {title && (

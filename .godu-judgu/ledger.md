@@ -32,7 +32,25 @@ Backdrop world (scene/tod/garden/clearing) is strong. Honest: most craft rows si
 - Note: preview cold-start can wedge a tab on document_idle; workaround = fresh tab. Logins are per-deploy-subdomain.
 **Still below bar:** StatsContent cards flat/plain (ST1/ST2), RewardsContent unstyled, TaskPanel empty-state + glass cohesion (TP1-3), rooms verify+restyle (FN4/IN2), profile/settings form polish (DL4), motion/copy/a11y/perf sweeps, cold judge.
 
-### NEXT PHASE — FOREGROUND polish (in progress)
+## Round 5-6 results (verified live)
+- Stat cards → gradient depth + hierarchy (~9). Coin → crisp SVG everywhere (header + rewards balance + price tags) — emoji glyph issue resolved. Shop item cards → gradient + hover, cohesive with stats. FN7 shop renders, FN5 stats renders. Dialogs all share glass shell.
+- Foreground panels (stats/rewards/dialogs) now cohesive with the scene system (~9).
+
+## Round 7 — COLD INDEPENDENT JUDGE ran (general-purpose, blind, code audit) + fixes applied
+Judge found 9 real below-bar issues I missed. Fixed this iter (#1-7, #9):
+- **#1 AC6 BLOCKER**: no `<h1>` on dashboard → added `sr-only` h1 in DashboardShell when no title. **FIXED**
+- **#2 AC4/RB5**: reduced-motion missed `animate-breathe/eq-bar/animate-pulse-ring/animate-leaf-sway` → added to explicit RM block. **FIXED**
+- **#3 AC9**: timer silent to SR → added `role="timer"` aria-live (per-minute cadence); coin span aria-live. **FIXED**
+- **#4 AC10**: rail used aria-pressed for dialog-openers → now aria-haspopup="dialog"+aria-expanded for dialogs, aria-pressed only for Tasks toggle. **FIXED**
+- **#5 PF5**: CSS anims don't pause on hidden tab → visibilitychange → data-hidden → animation-play-state:paused. **FIXED**
+- **#6 PF (paint)**: dropped redundant dialog-backdrop blur (panel already blurs). **FIXED**
+- **#7 RB3**: greeting first-name + rooms name now truncate. **FIXED**
+- **#9 CP2**: rail "Setup"→"Settings" (matches dialog title). **FIXED**
+- **#8 RB2 (deferred → iter 8)**: night→day flash for one paint (tod set post-mount). Needs inline pre-paint script setting data-tod on <html>.
+New criteria added: AC9 (timer live-region), AC10 (dialog trigger semantics), PF5 (pause-on-hidden), RB5 (RM completeness), RB6 (double body-scroll-lock — judged low-risk, both want hidden, no stale bug). Judge praised: Dialog focus-trap, scene aria-hidden, deterministic flower seeding.
+
+### NEXT — remaining TODO (iter 8+)
+- #8 theme-flash inline script. Load-motion entrance choreography (MO2). Verify iter-7 a11y live (h1 in DOM, reduced-motion). Rooms create/join live verify (FN4). Profile/settings form input polish (DL4). Garden modal (GrowthTree) polish. Final whole-ledger re-score + 2nd cold judge.
 1. Timer ring numerals presence (RG6), bigger head spark (RG3), start-settle (RG8).
 2. Restyle dialogs to glass system (DL1-4): rooms/settings/profile/stats/rewards/garden.
 3. Stats viz polish (ST1-2), tasks empty-state warmth (TP2-3), rooms verify+restyle (FN4/IN2).

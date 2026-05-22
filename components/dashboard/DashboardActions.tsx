@@ -282,7 +282,8 @@ export function DashboardActions(props: Props) {
       label: "Garden",
       icon: <Sprout className={railIcon} strokeWidth={1.75} aria-hidden />,
       active: open === "garden",
-      onClick: () => togglePanel("garden")
+      onClick: () => togglePanel("garden"),
+      haspopup: true
     },
     {
       key: "rooms",
@@ -290,7 +291,8 @@ export function DashboardActions(props: Props) {
       icon: <DoorOpen className={railIcon} strokeWidth={1.75} aria-hidden />,
       active: open === "rooms",
       onClick: () => togglePanel("rooms"),
-      badge: !!props.activeRoomTimer
+      badge: !!props.activeRoomTimer,
+      haspopup: true
     },
     ...(props.stats
       ? [{
@@ -298,7 +300,8 @@ export function DashboardActions(props: Props) {
           label: "Stats",
           icon: <BarChart3 className={railIcon} strokeWidth={1.75} aria-hidden />,
           active: open === "stats",
-          onClick: () => togglePanel("stats")
+          onClick: () => togglePanel("stats"),
+          haspopup: true
         } as RailItem]
       : []),
     ...(props.rewards
@@ -307,15 +310,17 @@ export function DashboardActions(props: Props) {
           label: "Shop",
           icon: <Coins className={railIcon} strokeWidth={1.75} aria-hidden />,
           active: open === "rewards",
-          onClick: () => togglePanel("rewards")
+          onClick: () => togglePanel("rewards"),
+          haspopup: true
         } as RailItem]
       : []),
     {
       key: "settings",
-      label: "Setup",
+      label: "Settings",
       icon: <SettingsIcon className={railIcon} strokeWidth={1.75} aria-hidden />,
       active: open === "settings",
-      onClick: () => togglePanel("settings")
+      onClick: () => togglePanel("settings"),
+      haspopup: true
     }
   ];
 
@@ -547,9 +552,9 @@ export function DashboardActions(props: Props) {
                     key={r.id}
                     className="flex items-center justify-between gap-3 rounded-2xl bg-cream-100 px-4 py-2.5 text-sm"
                   >
-                    <span className="flex flex-1 items-center gap-3 text-ink-900">
-                      <span className="font-semibold">{r.name}</span>
-                      <span className="font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
+                    <span className="flex min-w-0 flex-1 items-center gap-3 text-ink-900">
+                      <span className="truncate font-semibold">{r.name}</span>
+                      <span className="shrink-0 font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
                     </span>
                     {r.owner_id !== props.userId && (
                       <form action={leaveRoomAction}>

@@ -10,6 +10,9 @@ export type RailItem = {
   onClick: () => void;
   /** Small dot badge (e.g. an active room). */
   badge?: boolean;
+  /** True when this item opens a modal dialog (uses haspopup/expanded
+      semantics) rather than toggling an in-place panel (uses pressed). */
+  haspopup?: boolean;
 };
 
 // Slim vertical icon rail pinned to the left edge of the dashboard.
@@ -27,7 +30,9 @@ export function FocusRail({ items }: { items: RailItem[] }) {
           key={item.key}
           type="button"
           onClick={item.onClick}
-          aria-pressed={item.active}
+          {...(item.haspopup
+            ? { "aria-haspopup": "dialog" as const, "aria-expanded": item.active }
+            : { "aria-pressed": item.active })}
           title={item.label}
           className={`group relative flex h-[52px] w-[52px] flex-col items-center justify-center gap-0.5 rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/50 focus-visible:ring-offset-1 focus-visible:ring-offset-cream-50 ${
             item.active

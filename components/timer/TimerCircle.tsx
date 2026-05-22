@@ -154,6 +154,14 @@ export function TimerCircle({
 
   return (
     <div className="relative flex flex-col items-center text-ink-900">
+      {/* Screen-reader timer announcement. Text only changes per minute (and
+          on play/pause), so aria-live fires at a sane cadence, not per-second. */}
+      <p className="sr-only" role="timer" aria-live="polite">
+        {running
+          ? `${mode} session, ${mm} minute${mm === 1 ? "" : "s"} remaining`
+          : `${mode} timer ready, ${mm} minute${mm === 1 ? "" : "s"}`}
+      </p>
+
       {/* Sheep ring — floating, no card */}
       <div className="relative">
         {/* Always-on soft halo for depth; a second breathing layer blooms
