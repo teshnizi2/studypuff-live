@@ -416,19 +416,19 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
    the meadow/tree/bloom tokens tint the garden to match the hour. The lower
    half of every sky stays LIGHT so dark ink content keeps ≥4.5:1 contrast. */
 .amb-scene { background: #c5dbb0; }
-.amb-scene[data-tod="dawn"] {
+html[data-tod="dawn"] {
   --hill-1: #cde0b6; --hill-2: #b6d29c; --hill-3: #9cc086;
   --tree: #4f7a4d; --bloomc: rgba(255,221,189,0.6); --bloomc2: rgba(243,180,160,0.30);
 }
-.amb-scene[data-tod="day"] {
+html[data-tod="day"] {
   --hill-1: #c6dcab; --hill-2: #aecf90; --hill-3: #8fbd78;
   --tree: #3f6f3d; --bloomc: rgba(255,255,255,0.6); --bloomc2: rgba(124,170,120,0.30);
 }
-.amb-scene[data-tod="dusk"] {
+html[data-tod="dusk"] {
   --hill-1: #c8d6a6; --hill-2: #aec58a; --hill-3: #93ab74;
   --tree: #3c5d3a; --bloomc: rgba(255,200,150,0.55); --bloomc2: rgba(214,120,90,0.28);
 }
-.amb-scene[data-tod="night"] {
+html[data-tod="night"] {
   --hill-1: #b8c6b3; --hill-2: #a8b8a4; --hill-3: #9aab97;
   --tree: #33493a; --bloomc: rgba(206,220,255,0.5); --bloomc2: rgba(90,120,150,0.30);
 }
@@ -447,22 +447,22 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 .amb-scene[data-hidden="true"] * { animation-play-state: paused !important; }
 /* Bespoke skies — top carries the hour's mood, lower half lightens to seat
    the (dark-ink) content with comfortable contrast at every time of day. */
-.amb-scene[data-tod="dawn"] .amb-sky {
+html[data-tod="dawn"] .amb-sky {
   background:
     radial-gradient(60% 45% at 26% 14%, rgba(255,224,196,0.85), transparent 70%),
     linear-gradient(180deg, #f7d3b6 0%, #f3dcc9 20%, #ece3cf 42%, #dde6c4 70%, #cfe0b6 100%);
 }
-.amb-scene[data-tod="day"] .amb-sky {
+html[data-tod="day"] .amb-sky {
   background:
     radial-gradient(55% 42% at 78% 16%, rgba(255,255,255,0.7), transparent 70%),
     linear-gradient(180deg, #cfe7ea 0%, #dceee2 28%, #dbeacd 58%, #c8ddb2 100%);
 }
-.amb-scene[data-tod="dusk"] .amb-sky {
+html[data-tod="dusk"] .amb-sky {
   background:
     radial-gradient(64% 48% at 24% 16%, rgba(255,200,150,0.8), transparent 72%),
     linear-gradient(180deg, #f3c79c 0%, #f0d3b0 20%, #e8dcc2 44%, #d4dcb0 74%, #c6d6a4 100%);
 }
-.amb-scene[data-tod="night"] .amb-sky {
+html[data-tod="night"] .amb-sky {
   background:
     radial-gradient(40% 30% at 80% 12%, rgba(206,220,255,0.45), transparent 70%),
     linear-gradient(180deg, #2b3d56 0%, #46606e 12%, #84998f 30%, #b6c7b2 50%, #bdccb4 100%);
@@ -475,7 +475,7 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 
 /* Celestial layer — moon + stars, night only. */
 .amb-celestial { position: absolute; inset: 0; opacity: 0; transition: opacity 1.8s ease; }
-.amb-scene[data-tod="night"] .amb-celestial { opacity: 1; }
+html[data-tod="night"] .amb-celestial { opacity: 1; }
 .amb-moon {
   position: absolute; top: 7%; right: 13%;
   width: 64px; height: 64px; border-radius: 50%;
@@ -547,7 +547,7 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 }
 .amb-tree-l { left: -56px; }
 .amb-tree-r { right: -56px; transform: scaleX(-1); animation-duration: 11s; }
-.amb-scene[data-tod="night"] .amb-tree { opacity: 0.72; }
+html[data-tod="night"] .amb-tree { opacity: 0.72; }
 @keyframes amb-sway { 0%,100%{transform:rotate(-1deg);} 50%{transform:rotate(1.2deg);} }
 .amb-tree-r { animation-name: amb-sway-r; }
 @keyframes amb-sway-r { 0%,100%{transform:scaleX(-1) rotate(-1deg);} 50%{transform:scaleX(-1) rotate(1.2deg);} }

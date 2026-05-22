@@ -47,13 +47,18 @@ export function AmbientScene({
   todayMinutes?: number;
   lifetimeMinutes?: number;
 }) {
-  const [tod, setTod] = useState<TimeOfDay>(todProp ?? "day");
   const [hidden, setHidden] = useState(false);
 
+  // Drive the palette via <html data-tod>. A pre-paint inline script in the
+  // dashboard layout sets it first (no flash); here we re-affirm on mount and
+  // roll it over when a session crosses dawn/day/dusk/night.
   useEffect(() => {
-    if (todProp) return;
-    const apply = () => setTod(timeOfDayFor(new Date().getHours()));
+    const apply = () => {
+      const t = todProp ?? timeOfDayFor(new Date().getHours());
+      document.documentElement.dataset.tod = t;
+    };
     apply();
+    if (todProp) return;
     const id = window.setInterval(apply, 5 * 60 * 1000);
     return () => window.clearInterval(id);
   }, [todProp]);
@@ -89,7 +94,6 @@ export function AmbientScene({
   return (
     <div
       aria-hidden
-      data-tod={tod}
       data-hidden={hidden || undefined}
       className="amb-scene pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >

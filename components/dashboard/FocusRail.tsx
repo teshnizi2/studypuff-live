@@ -23,7 +23,7 @@ export function FocusRail({ items }: { items: RailItem[] }) {
   return (
     <nav
       aria-label="Dashboard panels"
-      className="glass-panel fixed left-3 top-[92px] z-30 hidden h-[calc(100vh-116px)] w-[72px] flex-col items-center gap-1.5 rounded-[26px] py-4 lg:flex"
+      className="glass-panel journal-rise jrise-1 fixed left-3 top-[92px] z-30 hidden h-[calc(100vh-116px)] w-[72px] flex-col items-center gap-1.5 rounded-[26px] py-4 lg:flex"
     >
       {items.map((item) => (
         <button
