@@ -144,6 +144,7 @@ export function RoomTimer({
 }: RoomTimerProps) {
   const [state, setState] = useState<TimerColumns>(initial);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [celebrate, setCelebrate] = useState(false);
   const advancingRef = useRef(false);
   // The broadcast channel — owner sends after each timer write, every member
   // receives. Falls back to postgres_changes if the channel is silent.
@@ -211,6 +212,10 @@ export function RoomTimer({
         if (t) fd.set("task_name", t.text);
       }
       addStudySessionAction(fd).catch(() => {});
+      // Same quiet leaf flourish as the solo timer — every member sees their
+      // own when the shared focus block lands.
+      setCelebrate(true);
+      window.setTimeout(() => setCelebrate(false), 1300);
     }
   }, [state.timer_mode, state.focus_minutes, currentTaskId, currentTopicId, tasks, topics]);
 
@@ -330,19 +335,31 @@ export function RoomTimer({
         </p>
       </div>
 
-      {/* Sheep ring — identical to solo */}
+      {/* Sheep ring — at parity with the solo timer */}
       <div className="relative">
+        {celebrate && <Celebration />}
+        <div aria-hidden className="absolute inset-0 -z-10 rounded-full halo-sage blur-2xl" />
         <div
           aria-hidden
-          className={`absolute inset-0 -z-10 rounded-full halo-sage blur-2xl ${display.isRunning ? "animate-halo" : ""}`}
+          className={`absolute inset-[-6%] -z-10 rounded-full halo-sage blur-3xl transition-opacity duration-700 ${
+            display.isRunning ? "animate-halo opacity-100" : "opacity-0"
+          }`}
         />
         <div className="relative h-[240px] w-[240px] sm:h-[260px] sm:w-[260px]">
           <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="room-ring-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor="#3a8a4c" />
+                <stop offset="0%"   stopColor="#5fbf6f" />
+                <stop offset="55%"  stopColor="#3a8a4c" />
                 <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
+              <filter id="room-head-glow" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <circle cx={160} cy={160} r={radius} fill="none"
               stroke="rgba(31,77,44,0.10)" strokeWidth={12} />
@@ -351,7 +368,12 @@ export function RoomTimer({
               strokeDasharray={circumference} strokeDashoffset={dashOffset}
               transform="rotate(-90 160 160)"
               style={{ transition: display.isRunning ? "none" : "stroke-dashoffset 0.5s ease" }} />
-            <circle cx={dotX} cy={dotY} r={9} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
+            {state.timer_mode !== "idle" && (
+              <g filter="url(#room-head-glow)">
+                <circle cx={dotX} cy={dotY} r={10} fill="#a8e6b0" opacity={0.95} />
+                <circle cx={dotX} cy={dotY} r={6.5} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
+              </g>
+            )}
           </svg>
           <div className="absolute inset-[18%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_14px_rgba(0,0,0,0.20)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -527,6 +549,45 @@ function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// A brief leaf flourish around the ring when a focus block completes —
+// matches the solo TimerCircle. Reduced-motion-safe via the global override.
+function Celebration() {
+  const leaves = Array.from({ length: 8 }, (_, i) => {
+    const ang = ((-110 + i * 30) * Math.PI) / 180;
+    const dist = 78 + (i % 3) * 20;
+    return {
+      lx: Math.round(Math.cos(ang) * dist),
+      ly: Math.round(Math.sin(ang) * dist - 24),
+      lr: (i * 53) % 360,
+      delay: i * 35,
+      hue: i % 2 ? "#3a8a4c" : "#5fbf6f"
+    };
+  });
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      {leaves.map((l, i) => (
+        <span
+          key={i}
+          className="animate-leaf-burst absolute"
+          style={{
+            ["--lx" as string]: `${l.lx}px`,
+            ["--ly" as string]: `${l.ly}px`,
+            ["--lr" as string]: `${l.lr}deg`,
+            animationDelay: `${l.delay}ms`
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5 drop-shadow-[0_2px_3px_rgba(26,77,42,0.25)]">
+            <path
+              d="M12 2C7 6 4.5 10.5 4.5 15.5c0 3.3 2.2 5.8 7.5 5.8 0-5.5-1.8-9.5-1.8-9.5s3.6 2.8 5.6 7.6c2.3-3.9 2.4-11.6-3.8-17.4Z"
+              fill={l.hue}
+            />
+          </svg>
+        </span>
+      ))}
     </div>
   );
 }
