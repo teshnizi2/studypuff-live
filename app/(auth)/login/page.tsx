@@ -68,6 +68,14 @@ export default function LoginPage({
                 placeholder="At least 12 characters"
               />
             </label>
+            <div className="text-right">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-semibold text-ink-700 underline underline-offset-4"
+              >
+                Forgot your password?
+              </Link>
+            </div>
             <SubmitButton>Log in</SubmitButton>
           </form>
 
