@@ -24,7 +24,15 @@ Still below bar to revisit: ring/rail/header polish (~8.5), motes faint, flowers
 ### State of play — BACKDROP phase ~9/10 (very good, a few notches under 9.5)
 Backdrop world (scene/tod/garden/clearing) is strong. Honest: most craft rows sit ~9 (below the 9.5 bar) — e.g. motes still faint, tree silhouettes a touch flat. PASS (≥9.5/compliance): FN1 timer, AC1 night-contrast. Everything else TODO.
 
-### NEXT PHASE — FOREGROUND polish (not yet started; the bulk of remaining TODO)
+## Round 4 results (iter 4 live + verified) — foreground core
+- DL1/DL2 dialog glass + motion → **~9** (verified: Stats panel frosted, meadow visible through it, top sheen, blurred backdrop, springy entrance). DL3 focus-trap/restore coded (keyboard not verifiable in preview — flagged).
+- HD2 coin pill jewel gradient shipped — BUT the 🪙 emoji renders as a dark glyph on this system → **iter 5: replace with inline SVG coin.**
+- RG3 spark enlarged (idle not shown).
+- Bonus: real **dusk** render confirmed gorgeous (warm peach sky, "Good evening", trees both sides).
+- Note: preview cold-start can wedge a tab on document_idle; workaround = fresh tab. Logins are per-deploy-subdomain.
+**Still below bar:** StatsContent cards flat/plain (ST1/ST2), RewardsContent unstyled, TaskPanel empty-state + glass cohesion (TP1-3), rooms verify+restyle (FN4/IN2), profile/settings form polish (DL4), motion/copy/a11y/perf sweeps, cold judge.
+
+### NEXT PHASE — FOREGROUND polish (in progress)
 1. Timer ring numerals presence (RG6), bigger head spark (RG3), start-settle (RG8).
 2. Restyle dialogs to glass system (DL1-4): rooms/settings/profile/stats/rewards/garden.
 3. Stats viz polish (ST1-2), tasks empty-state warmth (TP2-3), rooms verify+restyle (FN4/IN2).

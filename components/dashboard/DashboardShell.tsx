@@ -78,7 +78,15 @@ export async function DashboardShell({
               className="group hidden items-center gap-1.5 rounded-full border border-amber-300/60 bg-gradient-to-b from-brand-butter to-[#f1d585] px-3.5 py-1.5 text-sm font-semibold text-ink-900 shadow-[0_6px_16px_-8px_rgba(176,134,38,0.65),inset_0_1px_0_rgba(255,255,255,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_11px_22px_-8px_rgba(176,134,38,0.8),inset_0_1px_0_rgba(255,255,255,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 sm:inline-flex"
               aria-label={`${coins} coins — open rewards`}
             >
-              <span aria-hidden className="transition-transform duration-300 group-hover:rotate-[18deg]">🪙</span>
+              <svg
+                aria-hidden
+                viewBox="0 0 24 24"
+                className="h-4 w-4 transition-transform duration-300 group-hover:rotate-[18deg]"
+              >
+                <circle cx="12" cy="12" r="10" fill="#e9b84a" stroke="#c79126" strokeWidth="1.5" />
+                <circle cx="12" cy="12" r="6.5" fill="none" stroke="#f4d685" strokeWidth="1.5" />
+                <path d="M12 8.2v7.6M9.6 9.6c0-1 1-1.6 2.4-1.6s2.4.6 2.4 1.6-1 1.4-2.4 1.4-2.4.5-2.4 1.5 1 1.6 2.4 1.6 2.4-.6 2.4-1.6" fill="none" stroke="#8a5e12" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
               <span className="tabular-nums">{coins}</span>
             </Link>
           </div>

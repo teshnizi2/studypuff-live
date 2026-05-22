@@ -39,10 +39,10 @@ export function StatsContent(p: StatsContentProps) {
     <div>
       {/* Top stat cards */}
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Today" value={`${p.todayMinutes} min`} hint={`${p.goalPct}% of goal`} tone="bg-brand-mint" />
-        <StatCard label="This week" value={`${p.weekMinutes} min`} hint="last 7 days" tone="bg-brand-butter" />
-        <StatCard label="Streak" value={`${p.streak} day${p.streak === 1 ? "" : "s"}`} hint={p.streak > 0 ? "Keep it going" : "Start today"} tone="bg-brand-pink" />
-        <StatCard label="Lifetime" value={`${p.lifetimeMinutes} min`} hint="all focus time" tone="bg-brand-sky" />
+        <StatCard label="Today" value={`${p.todayMinutes} min`} hint={`${p.goalPct}% of goal`} tone="from-[#d8eccb] to-[#bcdebf]" />
+        <StatCard label="This week" value={`${p.weekMinutes} min`} hint="last 7 days" tone="from-[#fbeeb8] to-[#f2db8e]" />
+        <StatCard label="Streak" value={`${p.streak} day${p.streak === 1 ? "" : "s"}`} hint={p.streak > 0 ? "Keep it going" : "Start today"} tone="from-[#f7d6d2] to-[#efbeb8]" />
+        <StatCard label="Lifetime" value={`${p.lifetimeMinutes} min`} hint="all focus time" tone="from-[#d6e7f1] to-[#c0dae9]" />
       </section>
 
       {/* Daily goal progress */}
@@ -161,10 +161,10 @@ function StatCard({
   label: string; value: string; hint: string; tone: string;
 }) {
   return (
-    <div className={`rounded-3xl border border-ink-900/10 ${tone} p-4 shadow-soft`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink-700">{label}</p>
-      <p className="mt-2 font-display text-2xl text-ink-900">{value}</p>
-      <p className="mt-1 text-xs text-ink-700">{hint}</p>
+    <div className={`group rounded-3xl border border-white/60 bg-gradient-to-br ${tone} p-4 shadow-[0_12px_30px_-20px_rgba(31,77,44,0.5),inset_0_1px_0_rgba(255,255,255,0.5)] transition duration-200 hover:-translate-y-0.5`}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700/80">{label}</p>
+      <p className="mt-1.5 font-display text-3xl leading-none text-ink-900">{value}</p>
+      <p className="mt-1.5 text-xs text-ink-700/80">{hint}</p>
     </div>
   );
 }
