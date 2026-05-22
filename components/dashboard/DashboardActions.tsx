@@ -328,8 +328,12 @@ export function DashboardActions(props: Props) {
           Mobile:
             Stacks naturally — sidebar above, then timer, then garden — since
             the rails fall back to inline rendering below the lg breakpoint. */}
-      {/* Living time-of-day backdrop — fixed, behind everything. */}
-      <AmbientScene />
+      {/* Living time-of-day garden — fixed, behind everything. The garden
+          grows with focus minutes (persistent, never punitive). */}
+      <AmbientScene
+        todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+        lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+      />
 
       <div className="relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />

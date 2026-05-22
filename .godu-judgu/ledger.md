@@ -4,7 +4,26 @@
 - **Artifact:** `/dashboard` (auth-gated). Branch `dashboard-redesign`. Preview: https://studypuff-live-…vercel.app/dashboard (sign in as @dmin)
 - **Concept:** "A study garden through the day" — living pastoral scene, time-of-day sky, breathing timer ring, persistent generative garden.
 - **External spend:** €0.00 / €5.00 cap
-- **Totals:** seeded 96 · PASS 0 · below-bar 96 · BLOCKED 0 · last-updated 2026-05-22 (round 0, pre-build)
+- **Totals (round 1, deployed + seen):** 99 criteria · PASS 1 (FN1 timer verified) · below-bar 98 · BLOCKED 0 · last-updated 2026-05-22
+
+## Round 1 results (iter 1 live: scene + glass rail + ring glow + greeting)
+Verified live on preview, day/dusk/night previewed via data-tod toggle, timer started (countdown + head spark + sound confirmed working).
+**Biggest defects (highest impact, fix in iter 2):**
+- VS7 (NEW) composition fills canvas — **5/10**: timer is a centered column in a vast empty field at ≥1280; the "world" doesn't reach the edges. #1 dial-10 gap.
+- SC9 (NEW) night reads as night — **5/10**: night palette is just a cooler day, not atmospheric.
+- SC2 time-of-day shift legible — **5.5/10**: dawn/day/dusk/night differences barely perceptible.
+- SC1 living-not-flat — **7/10**: reads close to the old flat green; blooms/motes too faint.
+- SC3 drifting layers alive — **6/10**: motes invisible at current opacity.
+- AW1/AW2/AW3 award/cohesion/emotion — **6–7/10**: tasteful but not yet "wow / one designed world."
+- GD4 ambient garden in-scene — **6/10**: garden still hidden in a modal; the empty field begs for a living meadow.
+Decent-but-below-bar: SC4 grain 8, SC5 vignette 7, RG1 ring 8.5, RG2 breathing glow 8.5, RG3 head spark 8 (too small), RL1 glass rail 8.5, HD1 header 8.5, HD5 greeting 9, VS1 hierarchy 8.
+**Iter-2 plan:** build an ambient garden/meadow that fills the bottom of the scene and grows with focus; make the four time-of-day palettes distinct + atmospheric (real night); strengthen blooms + head spark. This lifts SC1-5, SC9, VS1, VS7, GD4, AW1-3 together.
+
+| extra | unit | category | criterion | target | score | status | evidence/flaw |
+|----|------|----------|-----------|--------|-------|--------|---------------|
+| VS7 | scene | composition | World fills the canvas; no vast dead space ≥1280 | ≥9.5 | 5 | TODO | centered column in empty field |
+| SC9 | scene | tod | Night genuinely reads as night, not cooler day | ≥9.5 | 5 | TODO | |
+| FN1✓ | global | feature-locked | Timer countdown/pause/head-spark/sound verified live | works | 10 | PASS | 25:00→24:57, running:true |
 
 Status legend: TODO · PASS (≥9.5) · BLOCKED · LOCKED (never auto-edit)
 
