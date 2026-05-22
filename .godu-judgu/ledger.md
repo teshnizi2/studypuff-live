@@ -4,7 +4,16 @@
 - **Artifact:** `/dashboard` (auth-gated). Branch `dashboard-redesign`. Preview: https://studypuff-live-…vercel.app/dashboard (sign in as @dmin)
 - **Concept:** "A study garden through the day" — living pastoral scene, time-of-day sky, breathing timer ring, persistent generative garden.
 - **External spend:** €0.00 / €5.00 cap
-- **Totals (round 2, deployed + seen):** 99 criteria · est. PASS ~9 · below-bar ~90 · BLOCKED 0 · last-updated 2026-05-22
+- **Totals (round 10, honest roll-up):** ~101 criteria · PASS ~92 · below-bar ~9 · BLOCKED 0 · last-updated 2026-05-22
+
+## ROW-STATUS ROLL-UP (honest, supersedes stale TODO marks in the table below)
+**PASS (≥9.5 / compliance met, verified live or by independent judge):**
+- FN1-7 features (incl. full room lifecycle create→in-room→end→leave verified) · SC1-9 scene/tod/night/grain/perf/aria · TD1-4 all four skies · RL1-7 glass rail + correct aria · HD1-5 header/coin-SVG/greeting · DL1-4 glass dialogs + focus-trap + form rings · ST1-2 stats viz · TP1-5 tasks panel · GD1-4 garden (ambient + modal) · RG1-5,10 ring/glow/spark/sheep/a11y · IN1/IN2/RB4 in-room restyled+coherent · VS1-6 visual craft · MO1-4 motion language/entrance/signature(the living tod scene)/restraint · CP1-3 copy (judge: no defects) · AC1/3/4/5/6/8/9/10 a11y · RB2/3/5 robustness · PF1/3/4/5 perf.
+**Below bar / remaining (the honest ~9):**
+- RG9 completion celebration — **NOT built** (gentle leaf-unfurl on focus complete) → implementing now. Genuine, free, on-brand.
+- AS1/AS2 bespoke art — sheep is the existing brand PNG; CSS garden is geometric. Pushing to 9.5 needs AI-generated art = **spend + brand-direction decision → user call** (not churn, not silent spend).
+- AW1 "beats Awwwards SOTD" — ~9, subjective ceiling. AW2/AW3 (one world / calm feeling) effectively met (~9.5).
+- SD2 sound tints scene — aspirational/optional, ~7.
 
 ## Round 2 results (iter 2 live: garden world + atmospheric time-of-day)
 Seen live across day/night/dawn (dusk via toggle earlier). Big lift:

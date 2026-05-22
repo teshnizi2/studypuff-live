@@ -55,6 +55,7 @@ export function TimerCircle({
   onSelectSound
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
+  const [celebrate, setCelebrate] = useState(false);
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
@@ -113,6 +114,12 @@ export function TimerCircle({
     }
     onComplete(fd).catch(() => {});
     chime();
+    // A quiet, on-brand reward: a few leaves unfurl when a FOCUS block lands
+    // (never on breaks — the celebration marks earned focus, not a pause).
+    if (mode === "focus") {
+      setCelebrate(true);
+      window.setTimeout(() => setCelebrate(false), 1300);
+    }
   }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete, onRunningChange]);
 
   const reset = () => { onRunningChange(false); setRemaining(totalSeconds); };
@@ -164,6 +171,7 @@ export function TimerCircle({
 
       {/* Sheep ring — floating, no card */}
       <div className="relative">
+        {celebrate && <Celebration />}
         {/* Always-on soft halo for depth; a second breathing layer blooms
             when the timer runs (doubles as a calm breathing cue). */}
         <div aria-hidden className="absolute inset-0 -z-10 rounded-full halo-sage blur-2xl" />
@@ -355,6 +363,46 @@ function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// A brief, gentle leaf flourish around the ring when a focus block completes.
+// Eight leaves fan upward-and-out, fade as they go. Uses the shared
+// `animate-leaf-burst` keyframe (reduced-motion-safe via the global override).
+function Celebration() {
+  const leaves = Array.from({ length: 8 }, (_, i) => {
+    const ang = ((-110 + i * 30) * Math.PI) / 180;
+    const dist = 78 + (i % 3) * 20;
+    return {
+      lx: Math.round(Math.cos(ang) * dist),
+      ly: Math.round(Math.sin(ang) * dist - 24),
+      lr: (i * 53) % 360,
+      delay: i * 35,
+      hue: i % 2 ? "#3a8a4c" : "#5fbf6f"
+    };
+  });
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      {leaves.map((l, i) => (
+        <span
+          key={i}
+          className="animate-leaf-burst absolute"
+          style={{
+            ["--lx" as string]: `${l.lx}px`,
+            ["--ly" as string]: `${l.ly}px`,
+            ["--lr" as string]: `${l.lr}deg`,
+            animationDelay: `${l.delay}ms`
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5 drop-shadow-[0_2px_3px_rgba(26,77,42,0.25)]">
+            <path
+              d="M12 2C7 6 4.5 10.5 4.5 15.5c0 3.3 2.2 5.8 7.5 5.8 0-5.5-1.8-9.5-1.8-9.5s3.6 2.8 5.6 7.6c2.3-3.9 2.4-11.6-3.8-17.4Z"
+              fill={l.hue}
+            />
+          </svg>
+        </span>
+      ))}
     </div>
   );
 }
