@@ -14,10 +14,20 @@ const CATEGORY_LABEL: Record<RewardCategory, string> = {
 };
 
 const CATEGORY_TONE: Record<RewardCategory, string> = {
-  sound: "bg-brand-sky",
-  theme: "bg-brand-lilac",
-  accessory: "bg-brand-pink"
+  sound: "from-brand-sky/70 to-brand-sky/30",
+  theme: "from-brand-lilac/70 to-brand-lilac/30",
+  accessory: "from-brand-pink/70 to-brand-pink/30"
 };
+
+function CoinGlyph({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className={className}>
+      <circle cx="12" cy="12" r="10" fill="#e9b84a" stroke="#c79126" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="6.5" fill="none" stroke="#f4d685" strokeWidth="1.5" />
+      <path d="M12 8.2v7.6M9.6 9.6c0-1 1-1.6 2.4-1.6s2.4.6 2.4 1.6-1 1.4-2.4 1.4-2.4.5-2.4 1.5 1 1.6 2.4 1.6 2.4-.6 2.4-1.6" fill="none" stroke="#8a5e12" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 const CATEGORY_HINT: Record<RewardCategory, string> = {
   sound: "Plays in the background while a focus session runs.",
@@ -56,8 +66,8 @@ export function RewardsContent(p: RewardsContentProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
               Your balance
             </p>
-            <p className="mt-1 flex items-baseline gap-2 font-display text-4xl text-ink-900">
-              <span aria-hidden>🪙</span>
+            <p className="mt-1 flex items-center gap-2 font-display text-4xl text-ink-900">
+              <CoinGlyph className="h-8 w-8 drop-shadow-[0_2px_3px_rgba(140,94,18,0.35)]" />
               {p.coins}
             </p>
           </div>
@@ -90,12 +100,12 @@ export function RewardsContent(p: RewardsContentProps) {
                 return (
                   <article
                     key={r.id}
-                    className={`flex flex-col rounded-2xl border ${equipped ? "border-ink-900" : "border-ink-900/10"} ${CATEGORY_TONE[cat]}/40 p-4 shadow-soft transition`}
+                    className={`flex flex-col rounded-2xl border bg-gradient-to-br ${equipped ? "border-ink-900/70 ring-1 ring-ink-900/30" : "border-white/50"} ${CATEGORY_TONE[cat]} p-4 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-200 hover:-translate-y-0.5`}
                   >
                     <div className="flex items-start justify-between">
                       <span className="text-3xl" aria-hidden>{r.emoji}</span>
-                      <span className="rounded-full bg-cream-50/80 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
-                        🪙 {r.price}
+                      <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
+                        <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
                       </span>
                     </div>
                     <h4 className="mt-3 font-display text-lg text-ink-900">{r.name}</h4>
