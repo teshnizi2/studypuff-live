@@ -27,6 +27,17 @@ After free work, the ceiling is ~95/101. The final ~3 rows (AS1/AS2/AW1) **canno
 - Removed the now-dead CSS (hills/trees/grass rules + keyframes + RM/responsive/token references). Build clean.
 - **External spend: ~$0.05 / €5 cap.**
 
+## Round 15 — USER REVIEW (6 issues) → SKILL upgraded first, then artifact fixed
+**Skill upgrade (root cause: over-verified the hero, rubber-stamped the rest):** added to SKILL.md Phase 3a a SURFACE & STATE INVENTORY + "consume the substance, not the chrome" mandate; added criteria-library rows: spacing-between-fixed-elements, every-menu-opens-in-viewport, every-scroll-region-60fps, CONTENT & MEDIA SUBSTANCE block (listen to audio etc.), EVERY-SURFACE-EQUALLY block; made the RUN REPORT mandatory with a criteria×score table.
+**Artifact fixes (verified live):**
+- #1 header↔rail gap ~3px → **29px** (rails moved to top-108). VERIFIED (getBoundingClientRect).
+- #2 garden modal: amateur SVG → **bespoke flat-illustration tree** (fal.ai, 10KB) + stage/leaves/streak/+today + progress-to-next-leaf bar. VERIFIED (screenshot).
+- #3 rewards scroll lag: Dialog panel `backdrop-filter` → **none** (opaque); was re-rasterizing the scroll area every frame. VERIFIED (computed style none).
+- #4 sounds: removed synthetic sine droplet/bird blips + softened gain; smooth noise beds only. **FLAGGED — cannot verify audio by listening; needs user ear** (or real recorded loops if still unsatisfactory).
+- #5 sound dropdown opened off-screen bottom → **opens upward, fully on-screen**. VERIFIED (screenshot).
+- #6 report: now emitting the mandatory structured RUN REPORT with criteria×score table.
+**Spend: ~$0.10 / €5** ($0.05 meadow + $0.05 trees).
+
 ## FINAL STATE (honest)
 - **~99/101 effectively at the ≥9.5 bar.** Objective/compliance + the bespoke art all met & verified.
 - **SD2 (sound tints the scene)** — the lone remaining below-bar row. **Deliberately OUT OF SCOPE / declined**: it would fight the time-of-day tint system and add motion that works against the calm-focus intent (MO4). Parked with reasoning, not a failure.
