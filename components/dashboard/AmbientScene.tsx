@@ -113,22 +113,13 @@ export function AmbientScene({
       {/* Faint pollen motes. */}
       <div className="amb-motes" />
 
-      {/* Meadow — parallax hill bands + swaying grass + framing trees. */}
+      {/* Meadow — a bespoke flat-illustration garden (fades into the sky at
+          the top via a CSS mask so the time-of-day gradient shows above it). */}
       <div className="amb-meadow">
-        <svg className="amb-hills" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden>
-          <path className="amb-hill-back" d="M0,170 C240,120 480,150 720,140 C960,130 1200,160 1440,135 L1440,320 L0,320 Z" />
-          <path className="amb-hill-mid" d="M0,215 C300,175 520,205 760,195 C1020,184 1240,210 1440,190 L1440,320 L0,320 Z" />
-          <path className="amb-hill-front" d="M0,260 C260,235 540,258 800,250 C1080,241 1280,262 1440,250 L1440,320 L0,320 Z" />
-        </svg>
+        <div className="amb-meadow-img" />
 
-        {/* Trees framing the wide empty edges. */}
-        <span className="amb-tree amb-tree-l" />
-        <span className="amb-tree amb-tree-r" />
-
-        {/* Swaying grass tufts along the very bottom. */}
-        <div className="amb-grass" />
-
-        {/* Generative flowers — grow with focus minutes. */}
+        {/* Generative flowers — the user's earned garden, growing with focus
+            minutes, layered over the illustrated meadow base. */}
         {flowers.map((f, i) => (
           <span
             key={i}

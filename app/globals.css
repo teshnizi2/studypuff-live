@@ -526,8 +526,35 @@ html[data-tod="night"] .amb-celestial { opacity: 1; }
 }
 @keyframes amb-motes { from{transform:translateY(0);} to{transform:translateY(-25%);} }
 
-/* Meadow — parallax hills + trees + grass + flowers along the bottom. */
-.amb-meadow { position: absolute; left: 0; right: 0; bottom: 0; height: 44vh; }
+/* Meadow — bespoke flat-illustration garden along the bottom. */
+.amb-meadow { position: absolute; left: 0; right: 0; bottom: 0; height: 46vh; }
+
+/* The illustrated garden image, anchored to the bottom and faded into the
+   sky at the top so the time-of-day gradient blends over it seamlessly. */
+.amb-meadow-img {
+  position: absolute;
+  inset: 0;
+  background: url("/garden-meadow.webp") bottom center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 100%);
+}
+/* Gentle per-time-of-day wash so the warm meadow harmonizes with each sky.
+   Kept light (screen/soft blends) so it never darkens the area under the
+   today/week text — contrast stays safe, the clearing scrim does the rest. */
+.amb-meadow-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: inherit;
+  mask-image: inherit;
+  background: transparent;
+  mix-blend-mode: soft-light;
+  transition: background 1.8s ease;
+}
+html[data-tod="dawn"]  .amb-meadow-img::after { background: rgba(255, 196, 158, 0.35); }
+html[data-tod="day"]   .amb-meadow-img::after { background: transparent; }
+html[data-tod="dusk"]  .amb-meadow-img::after { background: rgba(240, 158, 92, 0.40); mix-blend-mode: overlay; }
+html[data-tod="night"] .amb-meadow-img::after { background: rgba(120, 150, 200, 0.45); mix-blend-mode: soft-light; }
 .amb-hills { position: absolute; inset: 0; width: 100%; height: 100%; }
 .amb-hill-back  { fill: var(--hill-1, #c6dcab); opacity: 0.9; }
 .amb-hill-mid   { fill: var(--hill-2, #aecf90); opacity: 0.92; }
