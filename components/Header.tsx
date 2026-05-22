@@ -8,7 +8,7 @@ import { AuthNav } from "./auth/AuthNav";
 const NAV = [
   { label: "Home", href: "/" },
   { label: "Study with us", href: "/study" },
-  { label: "StudyPuff App", href: "/dashboard" },
+  { label: "StudyPuff App", href: "/app" },
   { label: "Workshops", href: "/workshops" },
   { label: "Free Resources", href: "/resources" },
   { label: "Store", href: "/store" },
