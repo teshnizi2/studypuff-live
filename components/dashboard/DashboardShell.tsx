@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { HeaderAvatarButton } from "@/components/dashboard/HeaderAvatarButton";
-import { HeaderActions } from "@/components/dashboard/HeaderActions";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -77,12 +76,10 @@ export async function DashboardShell({
               {coins}
             </Link>
           </div>
-          {/* Center column — Rooms / Stats / Settings entries.
-              Only on the dashboard background (green); the cream sub-pages
-              skip them to keep their headers calm. */}
-          <div className="hidden justify-self-center lg:flex">
-            {bg === "green" && <HeaderActions />}
-          </div>
+          {/* Center column intentionally empty — the dashboard's panels are
+              reached from the slim FocusRail on the left edge now, so the
+              header stays calm (just wordmark, coins, avatar, logout). */}
+          <div className="hidden lg:block" />
           <nav className="flex flex-wrap items-center justify-self-end gap-3 text-sm">
             {isAdmin && (
               <Link href="/admin" className="nav-link text-ink-700">

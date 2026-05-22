@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PanelLeftOpen } from "lucide-react";
+import { ListChecks, Sprout, BarChart3, DoorOpen, Coins, Settings as SettingsIcon } from "lucide-react";
 import { Dialog } from "./Dialog";
+import { FocusRail, type RailItem } from "./FocusRail";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
@@ -127,7 +128,9 @@ export function DashboardActions(props: Props) {
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
-  const [sidebarHidden, setSidebarHidden] = useState(false);
+  // Focus-first: the tasks panel starts hidden so the dashboard opens on a
+  // calm timer-only view. Opened on demand from the FocusRail.
+  const [sidebarHidden, setSidebarHidden] = useState(true);
   // Sound playback is independent from the timer — user can preview a sound
   // even while the timer is paused. Auto-syncs ON when timer starts.
   const [soundPlaying, setSoundPlaying] = useState(false);
@@ -137,12 +140,13 @@ export function DashboardActions(props: Props) {
     else setSoundPlaying(false);
   }, [running]);
 
-  // Restore sidebar hidden state from localStorage so focus mode persists.
+  // Restore the tasks-panel preference. Default is hidden (focus-first); only
+  // an explicit "show" preference overrides it.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (window.localStorage.getItem("studypuff:sidebar-hidden") === "true") {
-        setSidebarHidden(true);
+      if (window.localStorage.getItem("studypuff:sidebar-hidden") === "false") {
+        setSidebarHidden(false);
       }
     } catch { /* ignore */ }
   }, []);
@@ -260,6 +264,60 @@ export function DashboardActions(props: Props) {
     }
   };
 
+  // Toggle a dialog panel: clicking the active one closes it.
+  const togglePanel = (key: ModalKey) => setOpen((cur) => (cur === key ? null : key));
+  const railIcon = "h-5 w-5";
+
+  const railItems: RailItem[] = [
+    {
+      key: "tasks",
+      label: "Tasks",
+      icon: <ListChecks className={railIcon} strokeWidth={1.75} aria-hidden />,
+      active: !sidebarHidden,
+      onClick: () => setSidebarHiddenPersist(!sidebarHidden)
+    },
+    {
+      key: "garden",
+      label: "Garden",
+      icon: <Sprout className={railIcon} strokeWidth={1.75} aria-hidden />,
+      active: open === "garden",
+      onClick: () => togglePanel("garden")
+    },
+    {
+      key: "rooms",
+      label: "Rooms",
+      icon: <DoorOpen className={railIcon} strokeWidth={1.75} aria-hidden />,
+      active: open === "rooms",
+      onClick: () => togglePanel("rooms"),
+      badge: !!props.activeRoomTimer
+    },
+    ...(props.stats
+      ? [{
+          key: "stats",
+          label: "Stats",
+          icon: <BarChart3 className={railIcon} strokeWidth={1.75} aria-hidden />,
+          active: open === "stats",
+          onClick: () => togglePanel("stats")
+        } as RailItem]
+      : []),
+    ...(props.rewards
+      ? [{
+          key: "rewards",
+          label: "Shop",
+          icon: <Coins className={railIcon} strokeWidth={1.75} aria-hidden />,
+          active: open === "rewards",
+          onClick: () => togglePanel("rewards")
+        } as RailItem]
+      : []),
+    {
+      key: "settings",
+      label: "Setup",
+      icon: <SettingsIcon className={railIcon} strokeWidth={1.75} aria-hidden />,
+      active: open === "settings",
+      onClick: () => togglePanel("settings")
+    }
+  ];
+
   return (
     <>
       {/* Layout — desktop:
@@ -272,12 +330,15 @@ export function DashboardActions(props: Props) {
       <div className="bg-paper-grain relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />
 
-        {/* Sidebar — desktop only, fixed flush to the left edge of the viewport.
-            Slides off when hidden; the column the timer occupies never changes. */}
+        {/* Slim focus rail — the single access point for every panel. */}
+        <FocusRail items={railItems} />
+
+        {/* Tasks panel — slides in beside the rail when opened. Hidden by
+            default so the timer owns a calm, near-empty space. */}
         <aside
           aria-label="Topics & tasks"
-          className={`fixed left-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-5 pb-10 pt-2 transition-transform duration-300 ease-out lg:block ${
-            sidebarHidden ? "-translate-x-full" : "translate-x-0"
+          className={`fixed left-[68px] top-[100px] z-20 hidden h-[calc(100vh-100px)] w-[320px] overflow-y-auto border-r border-ink-900/10 bg-cream-50/80 px-5 pb-10 pt-4 backdrop-blur-md transition-transform duration-300 ease-out lg:block ${
+            sidebarHidden ? "-translate-x-[400px]" : "translate-x-0"
           }`}
         >
           <TaskPanel
@@ -337,7 +398,7 @@ export function DashboardActions(props: Props) {
             if the timer + gauge + sparkline + chooser stack exceeds the
             available height, it scrolls internally. The page itself
             never scrolls. */}
-        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pt-10 lg:pb-8">
+        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pl-[68px] lg:pt-10 lg:pb-8">
           <div className="journal-rise jrise-2">
             {props.activeRoomTimer ? (
               <RoomTimer
@@ -393,20 +454,19 @@ export function DashboardActions(props: Props) {
           </div>
         </div>
 
-        {/* Inline mobile garden removed — open via header "Garden" tab. */}
+        {/* Inline mobile garden removed — open via the Garden panel. */}
       </div>
 
-      {/* "Show tasks" tab — only visible when sidebar is hidden, anchored
-          to the left edge so the timer keeps the spotlight during focus. */}
+      {/* Tasks access on mobile (the slim rail is lg-only). */}
       {sidebarHidden && (
         <button
           type="button"
           onClick={() => setSidebarHiddenPersist(false)}
           aria-label="Show tasks"
           title="Show tasks"
-          className="fixed left-4 top-32 z-30 flex items-center gap-2 rounded-full bg-cream-50/85 px-3 py-2 text-xs font-display italic text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur-md transition hover:-translate-y-0.5"
+          className="fixed bottom-4 left-4 z-30 flex items-center gap-2 rounded-full bg-cream-50/90 px-3 py-2 text-xs font-display italic text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur-md transition hover:-translate-y-0.5 lg:hidden"
         >
-          <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+          <ListChecks className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
           Tasks
         </button>
       )}
