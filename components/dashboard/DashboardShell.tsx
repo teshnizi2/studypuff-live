@@ -75,11 +75,11 @@ export async function DashboardShell({
             </div>
             <Link
               href="/dashboard/rewards"
-              className="hidden items-center gap-2 rounded-full border border-ink-900/10 bg-brand-butter px-3 py-1.5 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5 sm:inline-flex"
+              className="group hidden items-center gap-1.5 rounded-full border border-amber-300/60 bg-gradient-to-b from-brand-butter to-[#f1d585] px-3.5 py-1.5 text-sm font-semibold text-ink-900 shadow-[0_6px_16px_-8px_rgba(176,134,38,0.65),inset_0_1px_0_rgba(255,255,255,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_11px_22px_-8px_rgba(176,134,38,0.8),inset_0_1px_0_rgba(255,255,255,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 sm:inline-flex"
               aria-label={`${coins} coins — open rewards`}
             >
-              <span aria-hidden>🪙</span>
-              {coins}
+              <span aria-hidden className="transition-transform duration-300 group-hover:rotate-[18deg]">🪙</span>
+              <span className="tabular-nums">{coins}</span>
             </Link>
           </div>
           {/* Center column — a quiet, time-aware greeting. The dashboard's

@@ -192,8 +192,8 @@ export function TimerCircle({
             {/* Glowing progress head — a soft bloom under a crisp dot. */}
             {progress > 0.001 && (
               <g filter="url(#head-glow)">
-                <circle cx={dotX} cy={dotY} r={7} fill="#a8e6b0" opacity={0.9} />
-                <circle cx={dotX} cy={dotY} r={5.5} fill="#fff" stroke="#1a4d2a" strokeWidth={2} />
+                <circle cx={dotX} cy={dotY} r={10} fill="#a8e6b0" opacity={0.95} />
+                <circle cx={dotX} cy={dotY} r={6.5} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
               </g>
             )}
           </svg>
