@@ -4,7 +4,19 @@
 - **Artifact:** `/dashboard` (auth-gated). Branch `dashboard-redesign`. Preview: https://studypuff-live-…vercel.app/dashboard (sign in as @dmin)
 - **Concept:** "A study garden through the day" — living pastoral scene, time-of-day sky, breathing timer ring, persistent generative garden.
 - **External spend:** €0.00 / €5.00 cap
-- **Totals (round 1, deployed + seen):** 99 criteria · PASS 1 (FN1 timer verified) · below-bar 98 · BLOCKED 0 · last-updated 2026-05-22
+- **Totals (round 2, deployed + seen):** 99 criteria · est. PASS ~9 · below-bar ~90 · BLOCKED 0 · last-updated 2026-05-22
+
+## Round 2 results (iter 2 live: garden world + atmospheric time-of-day)
+Seen live across day/night/dawn (dusk via toggle earlier). Big lift:
+- VS7 composition 5→**9** (trees frame edges, meadow fills the canvas).
+- SC1 living-not-flat 7→**9**; SC2 tod shift 5.5→**9**; SC9 night-is-night 5→**9** (moon+stars+deep sky); GD4 ambient garden 6→**9** (grows with minutes); AW1-3 ~6.5→**~8.5**; TD1-4 ~9/9/8.5/9.
+- SC3 drifting layers 6→**8.5** (grass sway + blooms; motes still faint).
+**NEW defects (fixed in iter 3, pending verify):**
+- AC1 night contrast — **FAIL ~2.9-4.2:1**: ink-700 "today/this week" labels over the night meadow front hill. → iter 3: lightened night+dusk hills + soft light clearing behind content.
+- RS1/RS2 mobile — trees (230px) dominate a 390px screen. → iter 3: responsive shrink + pull off-edge + shorter meadow. (True 390px render NOT verifiable in this preview harness — flagged for manual check.)
+Still below bar to revisit: ring/rail/header polish (~8.5), motes faint, flowers small (bumped 10→13px in iter 3), dialogs/stats/rooms not yet restyled, MO/CP/AC sweeps pending.
+
+## Round 3 (iter 3 built, deploying): contrast clearing + lighter night/dusk hills + responsive trees + bigger flowers
 
 ## Round 1 results (iter 1 live: scene + glass rail + ring glow + greeting)
 Verified live on preview, day/dusk/night previewed via data-tod toggle, timer started (countdown + head spark + sound confirmed working).

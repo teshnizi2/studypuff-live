@@ -425,12 +425,12 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
   --tree: #3f6f3d; --bloomc: rgba(255,255,255,0.6); --bloomc2: rgba(124,170,120,0.30);
 }
 .amb-scene[data-tod="dusk"] {
-  --hill-1: #c4d3a0; --hill-2: #a8c084; --hill-3: #87a468;
+  --hill-1: #c8d6a6; --hill-2: #aec58a; --hill-3: #93ab74;
   --tree: #3c5d3a; --bloomc: rgba(255,200,150,0.55); --bloomc2: rgba(214,120,90,0.28);
 }
 .amb-scene[data-tod="night"] {
-  --hill-1: #aebfac; --hill-2: #8ea38d; --hill-3: #6f876f;
-  --tree: #2c4233; --bloomc: rgba(206,220,255,0.5); --bloomc2: rgba(90,120,150,0.30);
+  --hill-1: #b8c6b3; --hill-2: #a8b8a4; --hill-3: #9aab97;
+  --tree: #33493a; --bloomc: rgba(206,220,255,0.5); --bloomc2: rgba(90,120,150,0.30);
 }
 
 .amb-sky {
@@ -562,7 +562,7 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
 /* Generative flowers — bob gently; count grows with focus minutes. */
 .amb-flower {
   position: absolute;
-  width: calc(10px * var(--fs, 1)); height: calc(10px * var(--fs, 1));
+  width: calc(13px * var(--fs, 1)); height: calc(13px * var(--fs, 1));
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 50%, #fff 0 22%, transparent 24%),
@@ -591,11 +591,34 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
   opacity: 0.5;
 }
 
+/* Soft light "clearing" behind the content column — a sunlit/moonlit pool
+   that seats the timer (depth + focal pull) AND lifts local background
+   luminance so content stays readable over the meadow at every time of day. */
+.amb-clearing {
+  position: absolute;
+  left: 52%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: min(86vw, 880px);
+  height: min(82vh, 800px);
+  background: radial-gradient(closest-side, rgba(253,251,247,0.42), rgba(253,251,247,0.14) 46%, transparent 72%);
+}
+
 /* Centre-weighted vignette to seat the timer. */
 .amb-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(120% 95% at 50% 38%, transparent 42%, rgba(31,45,30,0.12) 100%);
+}
+
+/* Responsive meadow — on phones the framing trees would dominate, so shrink
+   them and pull them mostly off-edge, and lower the meadow band. */
+@media (max-width: 767px) {
+  .amb-meadow { height: 30vh; }
+  .amb-tree { width: 150px; height: 210px; opacity: 0.5; }
+  .amb-tree-l { left: -78px; }
+  .amb-tree-r { right: -78px; }
+  .amb-clearing { width: 96vw; height: 70vh; }
 }
 
 /* Glass surface helper — premium low-blur frosted panel with a light edge. */

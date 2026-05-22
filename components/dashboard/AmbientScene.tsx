@@ -130,6 +130,9 @@ export function AmbientScene({
         ))}
       </div>
 
+      {/* Soft light clearing behind the content (depth + readability). */}
+      <div className="amb-clearing" />
+
       {/* Film grain (paper texture). */}
       <div className="amb-grain" />
 
