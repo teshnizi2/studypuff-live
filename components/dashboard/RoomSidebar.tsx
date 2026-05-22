@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { RoomChat } from "@/components/rooms/RoomChat";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
@@ -78,11 +79,11 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="fixed right-4 bottom-4 z-40 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50 px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-soft transition hover:-translate-y-0.5 lg:right-6 lg:bottom-6"
+        className="fixed right-4 bottom-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/55 bg-cream-50/85 px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-[0_18px_40px_-24px_rgba(31,77,44,0.5)] backdrop-blur-md transition hover:-translate-y-0.5 lg:right-6 lg:bottom-6"
         aria-label={`Open room — ${room.name}`}
       >
-        <span aria-hidden>💬</span>
-        <span className="hidden sm:inline">{room.name}</span>
+        <MessageCircle className="h-4 w-4 text-emerald-700" strokeWidth={1.75} aria-hidden />
+        <span className="hidden truncate sm:inline">{room.name}</span>
         <span className="rounded-md bg-ink-900/5 px-2 py-0.5 font-mono text-[11px] tracking-[0.18em]">
           {room.code}
         </span>
@@ -95,12 +96,12 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
       aria-label="Study room"
       className="
         relative mx-auto mt-6 flex w-full max-w-[420px] flex-col gap-3 px-4 pb-10
-        lg:fixed lg:right-0 lg:top-[100px] lg:z-30 lg:m-0 lg:h-[calc(100vh-120px)]
-        lg:w-[360px] lg:max-w-none lg:px-4 lg:pt-4 lg:pb-4
+        lg:fixed lg:right-3 lg:top-[92px] lg:z-30 lg:m-0 lg:h-[calc(100vh-116px)]
+        lg:w-[360px] lg:max-w-none lg:px-0 lg:pt-0 lg:pb-0
         xl:w-[400px]
       "
     >
-      <header className="flex items-start justify-between gap-3 rounded-[24px] border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
+      <header className="flex items-start justify-between gap-3 rounded-[24px] border border-white/55 bg-cream-50/85 p-4 shadow-[0_18px_40px_-28px_rgba(31,77,44,0.45)] backdrop-blur-md">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
             {room.is_owner ? "Your room" : "Joined"}
@@ -138,7 +139,7 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
       </header>
 
       {room.members.length > 0 && (
-        <div className="rounded-[24px] border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
+        <div className="rounded-[24px] border border-white/55 bg-cream-50/85 p-4 shadow-[0_18px_40px_-28px_rgba(31,77,44,0.45)] backdrop-blur-md">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
             Members · {room.members.length}
           </p>
