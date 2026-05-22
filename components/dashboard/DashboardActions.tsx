@@ -509,7 +509,7 @@ export function DashboardActions(props: Props) {
             required
             maxLength={8}
             placeholder="A1B2C3"
-            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm uppercase tracking-[0.3em]"
+            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm uppercase tracking-[0.3em]"
           />
           <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
             Join
@@ -525,7 +525,7 @@ export function DashboardActions(props: Props) {
             required
             maxLength={80}
             placeholder="Calculus crunch"
-            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm"
           />
           <input
             name="focus_minutes"
@@ -534,7 +534,7 @@ export function DashboardActions(props: Props) {
             max={180}
             defaultValue={25}
             aria-label="Focus minutes"
-            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm"
           />
           <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
             Create
@@ -676,7 +676,7 @@ export function DashboardActions(props: Props) {
               maxLength={500}
               rows={3}
               placeholder="A short blurb about you (max 500 chars)"
-              className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+              className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
             />
           </label>
           <button type="submit" className="btn-primary w-fit text-sm">
@@ -756,7 +756,7 @@ function Field({
         defaultValue={defaultValue}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
       />
     </label>
   );
@@ -779,7 +779,7 @@ function NumField({
         type="number"
         min="1"
         defaultValue={defaultValue}
-        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
       />
     </label>
   );

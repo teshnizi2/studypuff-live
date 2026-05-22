@@ -49,8 +49,16 @@ Judge found 9 real below-bar issues I missed. Fixed this iter (#1-7, #9):
 - **#8 RB2 (deferred → iter 8)**: night→day flash for one paint (tod set post-mount). Needs inline pre-paint script setting data-tod on <html>.
 New criteria added: AC9 (timer live-region), AC10 (dialog trigger semantics), PF5 (pause-on-hidden), RB5 (RM completeness), RB6 (double body-scroll-lock — judged low-risk, both want hidden, no stale bug). Judge praised: Dialog focus-trap, scene aria-hidden, deterministic flower seeding.
 
-### NEXT — remaining TODO (iter 8+)
-- #8 theme-flash inline script. Load-motion entrance choreography (MO2). Verify iter-7 a11y live (h1 in DOM, reduced-motion). Rooms create/join live verify (FN4). Profile/settings form input polish (DL4). Garden modal (GrowthTree) polish. Final whole-ledger re-score + 2nd cold judge.
+## Round 8 — theme-flash fixed + COMPREHENSIVE LIVE VERIFICATION (DOM + perf)
+DOM-verified live (authoritative): h1=1 ("StudyPuff dashboard") ✓ · role=timer live region "focus timer ready, 25 minutes" ✓ · rail semantics correct (Tasks=pressed, dialog-openers=haspopup+expanded) ✓ · label "Settings" ✓ · html[data-tod]="dusk" set pre-paint (no flash) ✓ · scene data-hidden pauses anims when tab hidden ✓.
+Visually verified all surfaces: scene (dawn/day/dusk/night) · timer (works+SR) · Stats dialog · Shop dialog (SVG coin + gradient cards) · Rooms dialog (join/create forms) · Garden modal (GrowthTree sprout) · glass dialogs + focus trap.
+**Perf measured (PF1/PF2):** total 581kB (JS 205, CSS 16, img 345), DCL ~2s, 26 reqs — healthy, no bloat/CWV collapse. (FCP reading bogus due to hidden-tab artifact — flag real-device check.) 5 backdrop-filter surfaces (1 is hidden tasks panel → micro-opt to gate).
+
+### HONEST SCORING — where the ledger stands
+- **Compliance rows (10/0): PASS** — a11y (h1, role=timer, reduced-motion completeness, aria semantics, contrast over scene at all tods, focus-trap, decorative aria-hidden), functionality (FN1-7 all render/work), responsive guards, perf structure. ~30+ rows now PASS.
+- **Craft rows: ~9** (scene, ring, glass panels, stat/shop cards, coin, greeting, dialogs, motion) — genuinely good, a notch under 9.5 on the most subjective.
+- **Award rows (AW1-3 "beats Awwwards SOTD"): ~8.5-9** — the asymptotic long tail; gains here are marginal + subjective per remote-deploy round.
+**Not yet at literal 9.5-across-the-board** (anti-overclaim: NOT claiming done). Remaining genuine improvables are minor: DL4 form-input focus polish, trim sheep PNG weight, gate hidden-panel backdrop-filter, SC3 motes faintness, a 2nd cold judge to confirm convergence. Loop armed to continue these.
 1. Timer ring numerals presence (RG6), bigger head spark (RG3), start-settle (RG8).
 2. Restyle dialogs to glass system (DL1-4): rooms/settings/profile/stats/rewards/garden.
 3. Stats viz polish (ST1-2), tasks empty-state warmth (TP2-3), rooms verify+restyle (FN4/IN2).
