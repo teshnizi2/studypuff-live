@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 type Props = {
   /** Total focus minutes accumulated lifetime. Drives stage + leaf count. */
   lifetimeMinutes: number;
@@ -29,11 +31,27 @@ function stageFor(m: number): { name: string; scale: number; sat: number } {
  * live progress bar toward the next leaf. One leaf per 25 focus minutes.
  */
 export function GrowthTree({ lifetimeMinutes, todayMinutes = 0, tasksDone = 0, streak = 0 }: Props) {
-  const leafCount = Math.min(MAX_LEAVES, Math.floor(lifetimeMinutes / MINUTES_PER_LEAF));
-  const todayLeaves = Math.floor(todayMinutes / MINUTES_PER_LEAF);
-  const intoNext = lifetimeMinutes % MINUTES_PER_LEAF;
+  // DEBUG TEST MODE — visit /dashboard?growthtest=1 to fast-grow the garden:
+  // ticks +5 minutes every second, so a leaf pops every 5 seconds.
+  // Disabled by default; remove this block when no longer needed.
+  const [extraMinutes, setExtraMinutes] = useState(0);
+  const [testMode, setTestMode] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const on = new URLSearchParams(window.location.search).get("growthtest") === "1";
+    if (!on) return;
+    setTestMode(true);
+    const id = window.setInterval(() => setExtraMinutes((m) => m + 5), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const effectiveLifetime = lifetimeMinutes + extraMinutes;
+  const effectiveToday = todayMinutes + extraMinutes;
+
+  const leafCount = Math.min(MAX_LEAVES, Math.floor(effectiveLifetime / MINUTES_PER_LEAF));
+  const todayLeaves = Math.floor(effectiveToday / MINUTES_PER_LEAF);
+  const intoNext = effectiveLifetime % MINUTES_PER_LEAF;
   const pct = Math.round((intoNext / MINUTES_PER_LEAF) * 100);
-  const stage = stageFor(lifetimeMinutes);
+  const stage = stageFor(effectiveLifetime);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -81,6 +99,11 @@ export function GrowthTree({ lifetimeMinutes, todayMinutes = 0, tasksDone = 0, s
           one leaf grows every {MINUTES_PER_LEAF} min of focus
           {tasksDone > 0 && <span> · {tasksDone} tasks done</span>}
         </p>
+        {testMode && (
+          <p className="mt-2 inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-rose-700">
+            test mode · 5s = 25 min
+          </p>
+        )}
       </div>
     </div>
   );
