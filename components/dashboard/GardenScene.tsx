@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { REWARDS, isGardenCategory, type Reward } from "@/lib/app-data/rewards";
 
 type Props = {
@@ -21,30 +21,24 @@ function stageFor(m: number): { name: string; scale: number } {
   return { name: "A grand old tree", scale: 1.16 };
 }
 
-type Placed = Reward & {
-  placement: NonNullable<Reward["placement"]>;
-  art: NonNullable<Reward["art"]>;
-};
-
 type Tod = "dawn" | "day" | "dusk" | "night";
 type Season = "spring" | "summer" | "autumn" | "winter";
 
 /**
- * The garden WORLD — an Animal-Crossing-style cozy scene built up of:
- *   1. Sky band tinted by time of day (dawn / day / dusk / night)
- *   2. Sun OR moon + stars layer (palette-driven)
- *   3. Meadow backdrop image
- *   4. Distant tree silhouettes (SVG, parallax)
- *   5. Drifting clouds (day) — dimmed at night
- *   6. Season weather overlay (petals · sunbeams · leaves · snowflakes — rotates every 22 s)
- *   7. Stone path threaded dynamically through owned items
- *   8. Owned items, rendered in `layer` order with ground shadow and hover/click reactivity
- *   9. Tree + brand sheep, with single-light-source shadows
- *  10. Live animated creatures: rabbit, songbird, bee, butterfly
- *  11. Foreground grass blades + daisies (in front of items)
- *  12. Soft centre vignette
- * The whole stack tilts a few degrees with the cursor for genuine 3D depth.
- * Honors prefers-reduced-motion: animations off, day/night still applies.
+ * Garden v15 — single-painter approach.
+ *
+ * The core insight that got us here: 2D images composited on a background
+ * are *scrapbook*, not *game*. The fix isn't another rendering tweak —
+ * it's avoiding compositing entirely. So now the scene IS the painting.
+ *
+ * As the user buys items, the garden evolves through 5 painted stages
+ * (empty → sprouting → growing → mature → lush). Each stage is a single
+ * FLUX-generated illustration. One artist, one canvas, perfect coherence.
+ * Day/night palette overlay, season weather, sun-arc HUD, and the brand
+ * sheep stay on top — but no per-item composites.
+ *
+ * The 25 individual items live as a beautiful collection gallery
+ * (GardenCollection modal) instead of being pasted into the scene.
  */
 export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemIds }: Props) {
   const leafCount = Math.min(MAX_LEAVES, Math.floor(lifetimeMinutes / MINUTES_PER_LEAF));
@@ -54,38 +48,29 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const stage = stageFor(lifetimeMinutes);
 
   const ownedSet = useMemo(() => new Set(ownedItemIds), [ownedItemIds]);
-  const placedItems: Placed[] = useMemo(
-    () => REWARDS.filter((r): r is Placed =>
-      isGardenCategory(r.category) && !!r.placement && !!r.art && ownedSet.has(r.id)
-    ).sort((a, b) => (a.placement.layer ?? 5) - (b.placement.layer ?? 5)),
+  const ownedGardenCount = useMemo(
+    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id)).length,
     [ownedSet]
   );
 
-  // Convenience flags — power conditional creature spawns.
-  const hasCottage = ownedSet.has("garden-cottage");
-  const hasFlowerbed = ownedSet.has("garden-flowerbed");
-  const hasVegpatch = ownedSet.has("garden-vegpatch");
-  const hasBeehive = ownedSet.has("garden-beehive");
-  const hasPond = ownedSet.has("garden-pond");
+  // Which painted-scene stage to show, based on owned garden-item count.
+  const sceneStage = stageIdFor(ownedGardenCount);
+  const nextThreshold = nextStageThreshold(ownedGardenCount);
+  const sceneSrc = `/garden-stage-${sceneStage}.webp`;
+  const stageLabel = STAGE_LABEL[sceneStage];
 
-  // Read time-of-day from <html data-tod>, which the layout pre-paint script sets.
+  // Time-of-day driven from <html data-tod> (set pre-paint by dashboard layout).
   const [tod, setTod] = useState<Tod>("day");
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const read = () => {
-      const v = (document.documentElement.dataset.tod || "day") as Tod;
-      setTod(v);
-    };
+    const read = () => setTod((document.documentElement.dataset.tod || "day") as Tod);
     read();
-    // Re-read every minute so the scene drifts with the actual hour.
     const id = window.setInterval(read, 60_000);
     return () => clearInterval(id);
   }, []);
   const isNight = tod === "night";
 
-  // Season cycles spring → summer → autumn → winter so the user sees ALL four
-  // weather varieties in one sitting. Each season lasts SEASON_MS.
-  const SEASON_MS = 22_000;
+  // Season cycles every 22 s so user sees all four weather types.
   const seasons: Season[] = ["spring", "summer", "autumn", "winter"];
   const [season, setSeason] = useState<Season>("spring");
   useEffect(() => {
@@ -95,90 +80,50 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     const id = window.setInterval(() => {
       i = (i + 1) % seasons.length;
       setSeason(seasons[i]);
-    }, SEASON_MS);
+    }, 22_000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cursor-driven parallax + perspective tilt.
-  const sceneRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const el = sceneRef.current;
-    if (!el) return;
-    let raf = 0;
-    const onMove = (e: MouseEvent) => {
-      const r = el.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => setTilt({ x: px, y: py }));
-    };
-    const onLeave = () => setTilt({ x: 0, y: 0 });
-    el.addEventListener("mousemove", onMove);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mousemove", onMove);
-      el.removeEventListener("mouseleave", onLeave);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-  const T = (s: number) => ({ transform: `translate3d(${tilt.x * s}px, ${tilt.y * s}px, 0)` });
-
-  // Click-reaction state. Burst lasts ~700ms then clears.
-  const [popped, setPopped] = useState<string | null>(null);
-  function pop(id: string) {
-    setPopped(id);
-    window.setTimeout(() => setPopped((cur) => (cur === id ? null : cur)), 720);
-  }
-
-  // Day/night palette per layer.
-  const sky =
-    tod === "dawn"  ? "linear-gradient(to bottom, #fbcaa3 0%, #fde6cf 35%, #fef4dd 70%, #f8f3dc 100%)" :
-    tod === "day"   ? "linear-gradient(to bottom, #c7e8f3 0%, #dff1f4 38%, #effbf3 75%, #f3f6dd 100%)" :
-    tod === "dusk"  ? "linear-gradient(to bottom, #5b4a8a 0%, #b66b8c 38%, #f0a06b 72%, #f6c98b 100%)" :
-                      "linear-gradient(to bottom, #14163a 0%, #2c2a5c 38%, #3a3b78 75%, #4a4e8a 100%)";
-
-  const meadowTone = isNight ? "saturate(0.55) brightness(0.55) hue-rotate(-10deg)" : "none";
+  const sceneTone = isNight
+    ? "saturate(0.55) brightness(0.55) hue-rotate(-10deg)"
+    : tod === "dusk" ? "saturate(0.95) brightness(0.92) hue-rotate(8deg)"
+    : tod === "dawn" ? "saturate(0.92) brightness(1.02) hue-rotate(-4deg)"
+    : "none";
 
   return (
     <section className="flex flex-col items-center">
       <div
-        ref={sceneRef}
         className="relative w-full overflow-hidden rounded-[28px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
-        style={{ perspective: "1100px" }}
         data-tod={tod}
         data-season={season}
       >
-        <div
-          className="relative aspect-[16/8] w-full transition-transform duration-100 ease-out"
-          style={{ transformStyle: "preserve-3d", transform: `rotateY(${tilt.x * 4}deg) rotateX(${tilt.y * -2.5}deg)` }}
-        >
-          {/* 1 — Sky band, palette-driven by time of day */}
-          <div aria-hidden className="absolute inset-0 transition-[background] duration-1000 ease-in-out" style={{ background: sky }} />
+        <div className="relative aspect-[16/8] w-full">
+          {/* Stage painting — single coherent illustration */}
+          <img
+            src={sceneSrc}
+            alt={`Your garden — ${stageLabel.toLowerCase()}`}
+            className="absolute inset-0 block h-full w-full object-cover transition-[filter,opacity] duration-1000 ease-in-out"
+            style={{ filter: sceneTone }}
+          />
 
-          {/* 2 — Sun (daylight tods) OR Moon + stars (night) */}
-          {!isNight && (
-            <div aria-hidden className="pointer-events-none absolute" style={{ left: "10%", top: "11%", ...T(2) }}>
-              <div
-                className="rounded-full"
-                style={{
-                  width: "84px",
-                  height: "84px",
-                  background:
-                    tod === "dawn" ? "radial-gradient(circle, #ffe19a 0%, #ffc46f 55%, rgba(255,196,111,0) 75%)" :
-                    tod === "dusk" ? "radial-gradient(circle, #ffd3a0 0%, #ff9d6d 55%, rgba(255,157,109,0) 75%)" :
-                                     "radial-gradient(circle, #fff6c4 0%, #ffe077 55%, rgba(255,224,119,0) 75%)",
-                  filter: "blur(0.5px)"
-                }}
-              />
-            </div>
+          {/* Night sky overlay */}
+          {isNight && (
+            <div aria-hidden className="pointer-events-none absolute inset-0"
+              style={{ background: "linear-gradient(to bottom, rgba(20,22,58,0.5) 0%, rgba(40,40,90,0.4) 60%, rgba(28,28,60,0.55) 100%)" }} />
           )}
+          {/* Dawn / dusk warm wash */}
+          {(tod === "dusk" || tod === "dawn") && (
+            <div aria-hidden className="pointer-events-none absolute inset-0"
+              style={{ background: tod === "dusk"
+                ? "linear-gradient(to bottom, rgba(255,140,90,0.18) 0%, rgba(255,170,120,0.08) 50%, rgba(255,200,160,0.04) 100%)"
+                : "linear-gradient(to bottom, rgba(255,200,140,0.16) 0%, rgba(255,220,180,0.06) 50%, rgba(255,240,210,0.02) 100%)" }} />
+          )}
+
+          {/* Stars + moon at night */}
           {isNight && (
             <>
-              <div aria-hidden className="pointer-events-none absolute" style={{ left: "82%", top: "12%", ...T(2) }}>
+              <div aria-hidden className="pointer-events-none absolute" style={{ left: "82%", top: "10%" }}>
                 <div
                   className="garden-moon rounded-full"
                   style={{
@@ -189,9 +134,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   }}
                 />
               </div>
-              {/* Stars — sprinkled across upper sky */}
               <svg aria-hidden viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice"
-                className="pointer-events-none absolute inset-0 h-full w-full" style={T(1)}>
+                className="pointer-events-none absolute inset-0 h-full w-full">
                 {[
                   [120, 90], [220, 60], [360, 110], [480, 70], [600, 120], [720, 60], [840, 130], [960, 80],
                   [1100, 100], [1240, 60], [1340, 120], [1480, 80], [1560, 110],
@@ -205,32 +149,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             </>
           )}
 
-          {/* 3 — Painted garden-courtyard backdrop. The backdrop bakes in the
-              far hills, distant trees, drifting clouds, framing corner trees,
-              and a worn path — so we no longer overlay our own SVG silhouettes,
-              clouds, or dashed dirt path on top. */}
-          <div
-            aria-hidden
-            className="absolute inset-0 transition-[filter] duration-1000 ease-in-out"
-            style={{ backgroundImage: "url(/garden-courtyard.webp)", backgroundSize: "cover", backgroundPosition: "center", filter: meadowTone, ...T(5) }}
-          />
-
-          {/* Night colour overlay — desaturates the painted scene + adds blue tint */}
-          {isNight && (
-            <div aria-hidden className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(to bottom, rgba(20,22,58,0.5) 0%, rgba(40,40,90,0.4) 60%, rgba(28,28,60,0.55) 100%)" }} />
-          )}
-          {/* Dusk / dawn warm wash — gentle peach overlay so the painted scene picks up the sky's mood */}
-          {(tod === "dusk" || tod === "dawn") && (
-            <div aria-hidden className="pointer-events-none absolute inset-0"
-              style={{ background: tod === "dusk"
-                ? "linear-gradient(to bottom, rgba(255,140,90,0.18) 0%, rgba(255,170,120,0.08) 50%, rgba(255,200,160,0.04) 100%)"
-                : "linear-gradient(to bottom, rgba(255,200,140,0.16) 0%, rgba(255,220,180,0.06) 50%, rgba(255,240,210,0.02) 100%)" }} />
-          )}
-
-          {/* 6 — Season weather overlay. Petals (spring), sunbeams (summer),
-              leaves (autumn), snowflakes (winter). Rotates every 22 s. */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden" style={T(6)}>
+          {/* Weather overlay — petals (spring) / rays (summer) / leaves (autumn) / snow (winter) */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
             {season === "spring" && (
               <>
                 {Array.from({ length: 14 }).map((_, i) => (
@@ -238,9 +158,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 ))}
               </>
             )}
-            {season === "summer" && (
-              <div className="garden-rays absolute inset-0" />
-            )}
+            {season === "summer" && <div className="garden-rays absolute inset-0" />}
             {season === "autumn" && (
               <>
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -257,271 +175,44 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             )}
           </div>
 
-          {/* Path is now PAINTED into the courtyard backdrop — no dynamic SVG
-              overlay needed. Items snap to its visible curve via their
-              placement coords. */}
-
-          {/* 8 — Hero focus tree, planted on the painted central plot.
-              Size pulled in a touch so it sits in the painted plot's bowl
-              rather than soaring over the courtyard's framing trees. */}
-          <div className="absolute left-[50%] top-[50%] -translate-x-1/2 transition-transform duration-100 ease-out" style={T(14)}>
+          {/* Brand sheep mascot — small, in the bottom corner, reading a book.
+              Acts as the player character without intruding on the painting. */}
+          <div className="absolute bottom-3 left-4 z-10 sm:bottom-4 sm:left-6" aria-hidden>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/garden-tree.webp"
-                alt={`Your focus tree — ${stage.name.toLowerCase()}`}
-                className="block h-auto w-[clamp(200px,36%,400px)] origin-bottom transition-[transform,filter] duration-700 ease-out"
-                style={{ transform: `scale(${stage.scale})`, filter: isNight ? "brightness(0.7) saturate(0.7)" : "none" }}
+                src="/studypuff-sheep.png"
+                alt=""
+                className="block h-auto w-[clamp(56px,8%,104px)] drop-shadow-[0_8px_12px_rgba(31,77,44,0.35)]"
+                style={{ filter: isNight ? "brightness(0.85)" : "none" }}
               />
-              <div aria-hidden className="absolute left-[55%] bottom-[-3%] h-[12px] w-[55%] -translate-x-1/2 rounded-[50%]"
-                style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.4), transparent 70%)" }} />
             </div>
           </div>
 
-          {/* 9 — Brand sheep — character standing in the courtyard, slightly
-              right of the central tree, near the painted path crossing.
-              Smaller than before so the courtyard's depth reads first. */}
-          <div className="absolute left-[57%] top-[82%] -translate-x-1/2 -translate-y-full transition-transform duration-100 ease-out" style={T(18)} aria-hidden>
-            <div className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/studypuff-sheep.png" alt="" className="block h-auto w-[clamp(54px,7%,96px)]" style={{ filter: isNight ? "brightness(0.85)" : "none" }} />
-              <div aria-hidden className="absolute left-[50%] bottom-[-4px] h-[8px] w-[80%] -translate-x-1/2 rounded-[50%]"
-                style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.35), transparent 70%)" }} />
-            </div>
-          </div>
+          {/* Sun-arc HUD top-right */}
+          <SunArcHud tod={tod} season={season} />
 
-          {/* 10 — Owned garden items */}
-          {placedItems.map((item) => {
-            const { x, y, scale = 1 } = item.placement;
-            const depth = 14 + (y / 100) * 22;
-            const isLantern = item.id === "garden-lantern";
-            const isPond = item.id === "garden-pond";
-            const isCottage = item.id === "garden-cottage";
-            const isGnome = item.id === "garden-gnome";
-            const isFairy = item.id === "garden-fairyring";
-            const itemAccent =
-              isLantern ? " garden-item-lantern" :
-              isPond ? " garden-item-pond" :
-              isCottage ? " garden-item-cottage" :
-              isFairy ? " garden-item-fairyring" : "";
-            const isPopped = popped === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => pop(item.id)}
-                className={`group absolute -translate-x-1/2 -translate-y-full cursor-pointer rounded-2xl border-0 bg-transparent p-0 outline-none transition-transform duration-100 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-600${itemAccent}`}
-                style={{
-                  left: `${x}%`,
-                  top: `${y}%`,
-                  width: `${13 * scale}%`,
-                  animation: "gardenPop 540ms cubic-bezier(0.34,1.5,0.64,1) both",
-                  ...T(depth)
-                }}
-                aria-label={item.name}
-              >
-                <div className={`relative ${isPopped ? "garden-item-burst" : ""}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.art}
-                    alt={item.name}
-                    className="garden-item-img block h-auto w-full transition-transform duration-200 ease-out group-hover:-translate-y-1 group-hover:scale-105"
-                    style={{
-                      filter: isLantern && isNight
-                        ? "drop-shadow(0 0 18px rgba(255,200,120,0.95)) drop-shadow(0 12px 18px rgba(31,77,44,0.18))"
-                        : isNight
-                          ? "brightness(0.78) saturate(0.85) drop-shadow(0 12px 18px rgba(0,0,0,0.35))"
-                          : "drop-shadow(0 12px 18px rgba(31,77,44,0.18))"
-                    }}
-                  />
-                  {/* ground shadow */}
-                  <div aria-hidden className="absolute left-[55%] bottom-[-2px] h-[9px] w-[80%] -translate-x-1/2 rounded-[50%]"
-                    style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.32), transparent 70%)" }} />
-                  {/* Per-item click reactions */}
-                  {isPond && isPopped && <span aria-hidden className="garden-pond-ripple" />}
-                  {isLantern && isPopped && <span aria-hidden className="garden-lantern-burst" />}
-                  {isCottage && isPopped && (
-                    <>
-                      <span aria-hidden className="garden-smoke" style={{ left: "62%", animationDelay: "0ms" }} />
-                      <span aria-hidden className="garden-smoke" style={{ left: "66%", animationDelay: "150ms" }} />
-                      <span aria-hidden className="garden-smoke" style={{ left: "60%", animationDelay: "320ms" }} />
-                    </>
-                  )}
-                  {isGnome && isPopped && <span aria-hidden className="garden-gnome-hat">✨</span>}
-                  {/* Hover tooltip — sits above the item */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute left-1/2 top-[-22px] -translate-x-1/2 whitespace-nowrap rounded-full bg-ink-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-cream-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                  >
-                    {item.name}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-
-          {/* 11 — Animated creatures.
-              SIZING RULE (learned the hard way): percentage height on an <img>
-              inside an absolute, unsized parent collapses to the image's
-              natural 1024px. So sizing lives on the WRAPPER as a width (% of
-              the scene's container), and the <img> is just `w-full h-auto`.
-              These wrappers must sit inside the aspect-locked scene so the %
-              width resolves correctly. */}
-
-          {/* Bespoke butterfly — drifts across the sky */}
-          <div aria-hidden className="pointer-events-none absolute inset-0" style={T(22)}>
-            <div className="garden-butterfly" style={{ width: "3.5%", minWidth: 28 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/garden/creature-butterfly.webp" alt="" className="block h-auto w-full" />
-            </div>
-          </div>
-
-          {/* Rabbit hops along the ground band — only spawns once the garden
-              has some life in it (any owned item). Empty state has just the
-              butterfly so the eye can rest on the hero tree. */}
-          {placedItems.length > 0 && (
-            <div aria-hidden className="pointer-events-none absolute inset-0" style={T(20)}>
-              <div
-                className={`garden-rabbit ${hasVegpatch ? "garden-rabbit-fast" : ""}`}
-                style={{ width: "4.5%", minWidth: 36 }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/garden/creature-rabbit.webp" alt="" className="block h-auto w-full" />
-              </div>
-            </div>
-          )}
-
-          {/* Songbird — only spawns when there's a real perch (cottage owned).
-              Anchored to the cottage roof peak: cottage is placed at x:9%, y:72%,
-              scale 1.45 so the roof line sits around top:64%, left:6%. */}
-          {hasCottage && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute"
-              style={{ left: "6%", top: "64%", width: "3.2%", minWidth: 26, ...T(18) }}
-            >
-              <div className="garden-songbird">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/garden/creature-songbird.webp" alt="" className="block h-auto w-full" />
-              </div>
-            </div>
-          )}
-
-          {/* Bee — flowers always beat hive when both owned (a bee pollinates,
-              it doesn't loiter on its own house). */}
-          {(hasFlowerbed || hasBeehive) && (
-            <div aria-hidden className="pointer-events-none absolute inset-0" style={T(20)}>
-              <div
-                className={`garden-bee ${hasFlowerbed ? "garden-bee-near-flowers" : "garden-bee-near-hive"}`}
-                style={{ width: "2.6%", minWidth: 22 }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/garden/creature-bee.webp" alt="" className="block h-auto w-full" />
-              </div>
-            </div>
-          )}
-
-          {/* 12 — foreground grass + daisies (in FRONT of items) */}
-          <svg
-            aria-hidden viewBox="0 0 1600 100" preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[12%] w-full"
-            style={T(28)}
-          >
-            <g fill={isNight ? "#2c4f3a" : "#4f8a48"}>
-              {Array.from({ length: 18 }).map((_, i) => {
-                const cx = (i * 92 + ((i * 37) % 25));
-                const h = 22 + ((i * 31) % 14);
-                return (
-                  <path key={i}
-                    d={`M ${cx} 100 Q ${cx + 2} ${100 - h} ${cx + 6} 100 Z M ${cx + 8} 100 Q ${cx + 10} ${100 - h * 0.7} ${cx + 14} 100 Z`}
-                    className="garden-grass-blade"
-                    style={{ animationDelay: `${(i % 7) * 200}ms` }}
-                  />
-                );
-              })}
-            </g>
-            {!isNight && Array.from({ length: 7 }).map((_, i) => {
-              const cx = 80 + i * 220 + ((i * 53) % 30);
-              const cy = 80 - ((i * 17) % 12);
-              return (
-                <g key={`d${i}`} transform={`translate(${cx} ${cy})`}>
-                  {[0, 60, 120, 180, 240, 300].map((deg) => (
-                    <ellipse key={deg} cx="0" cy="-3" rx="1.6" ry="3.2" fill="#fffaea" transform={`rotate(${deg})`} />
-                  ))}
-                  <circle r="1.4" fill="#f3c95a" />
-                </g>
-              );
-            })}
-            {/* At night: fireflies replace daisies — a few yellow dots in the grass */}
-            {isNight && Array.from({ length: 10 }).map((_, i) => {
-              const cx = 80 + i * 150 + ((i * 31) % 40);
-              const cy = 60 - ((i * 11) % 20);
-              return (
-                <circle key={`f${i}`} cx={cx} cy={cy} r="1.6" fill="#fff2a8"
-                  className="garden-firefly" style={{ animationDelay: `${(i % 5) * 400}ms` }} />
-              );
-            })}
-          </svg>
-
-          {/* 13 — soft centre vignette */}
+          {/* Soft centre vignette */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{ background: isNight
               ? "radial-gradient(120% 80% at 50% 40%, transparent 50%, rgba(8,10,30,0.45) 100%)"
-              : "radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(31,45,30,0.12) 100%)" }}
+              : "radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(31,45,30,0.10) 100%)" }}
           />
-
-          {/* Empty-garden hint */}
-          {placedItems.length === 0 && (
-            <p className="absolute bottom-4 right-5 max-w-[60%] text-right text-xs italic text-ink-700/75">
-              Your garden grows with focus — and with items from the shop below.
-            </p>
-          )}
-
-          {/* In-game sun-arc HUD: shows where in the day we are on a painted arc,
-              with the active orb (sun by day, moon at night) sitting at the
-              correct point along the arc. Plus a season strip below. */}
-          <SunArcHud tod={tod} season={season} />
         </div>
 
         <style jsx>{`
-          @keyframes gardenPop {
-            from { opacity: 0; transform: translate(-50%, -90%) scale(0.7); }
-            to   { opacity: 1; transform: translate(-50%, -100%) scale(1); }
-          }
-
-          /* Drifting clouds */
-          .garden-cloud {
-            position: absolute;
-            border-radius: 999px;
-            background: radial-gradient(closest-side, rgba(255,255,255,0.75), rgba(255,255,255,0));
-            filter: blur(2px);
-          }
-          .garden-cloud-1 { top: 12%; left: -10%; width: 22%; height: 16%; animation: gardenCloud 70s linear infinite; }
-          .garden-cloud-2 { top: 6%;  left: -20%; width: 16%; height: 12%; animation: gardenCloud 95s linear infinite; animation-delay: -30s; }
-          .garden-cloud-3 { top: 18%; left: -30%; width: 28%; height: 18%; animation: gardenCloud 110s linear infinite; animation-delay: -55s; }
-          @keyframes gardenCloud { to { transform: translateX(150vw); } }
-
-          /* Stars + moon shimmer */
-          .garden-star circle { animation: gardenTwinkle 3.6s ease-in-out infinite; }
+          /* Stars + moon */
+          :global(.garden-star) circle { animation: gardenTwinkle 3.6s ease-in-out infinite; }
           @keyframes gardenTwinkle { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
           .garden-moon { animation: gardenMoonGlow 6s ease-in-out infinite; }
           @keyframes gardenMoonGlow { 0%,100% { box-shadow: 0 0 22px rgba(251,245,216,0.5), inset -8px -10px 0 rgba(170,150,90,0.18); }
             50% { box-shadow: 0 0 32px rgba(251,245,216,0.8), inset -8px -10px 0 rgba(170,150,90,0.18); } }
 
-          /* Grass sway */
-          :global(.garden-grass-blade) { transform-origin: center bottom; animation: gardenSway 4.5s ease-in-out infinite; }
-          @keyframes gardenSway { 0%,100% { transform: skewX(-3deg); } 50% { transform: skewX(3deg); } }
-
-          /* Fireflies at night */
-          :global(.garden-firefly) { animation: gardenFirefly 2.6s ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(255,242,168,0.9)); }
-          @keyframes gardenFirefly { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
-
-          /* Weather — spring petals */
+          /* Weather */
           .garden-petal {
-            position: absolute;
-            top: -10%;
+            position: absolute; top: -10%;
             width: 10px; height: 14px;
             background: radial-gradient(closest-side, #ffd1de 0%, #ffb3c6 60%, rgba(255,179,198,0));
             border-radius: 60% 40% 60% 40% / 50% 60% 40% 50%;
@@ -530,10 +221,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             animation-timing-function: linear;
             animation-iteration-count: infinite;
           }
-          /* Weather — autumn leaves (re-use drift, different glyph) */
           .garden-leaf {
-            position: absolute;
-            top: -10%;
+            position: absolute; top: -10%;
             width: 12px; height: 12px;
             background: radial-gradient(closest-side, #f5a25a 0%, #d76a2a 70%, rgba(215,106,42,0));
             border-radius: 30% 70% 30% 70% / 60% 30% 70% 40%;
@@ -542,10 +231,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             animation-timing-function: linear;
             animation-iteration-count: infinite;
           }
-          /* Weather — snowflakes */
           .garden-snowflake {
-            position: absolute;
-            top: -10%;
+            position: absolute; top: -10%;
             width: 6px; height: 6px;
             background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0));
             border-radius: 50%;
@@ -559,7 +246,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             50%  { transform: translate3d(28px, 55vh, 0) rotate(180deg); }
             100% { transform: translate3d(-12px, 110vh, 0) rotate(360deg); }
           }
-          /* Weather — summer sunbeams */
           .garden-rays {
             background: repeating-linear-gradient(
               115deg,
@@ -573,163 +259,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           }
           @keyframes gardenRays { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 
-          /* Lantern flicker — gentle (always-on); brightens at night via the
-             item filter; this layer pulses the glow regardless. */
-          :global(.garden-item-lantern .garden-item-img) {
-            animation: gardenFlicker 3.4s ease-in-out infinite;
-          }
-          @keyframes gardenFlicker {
-            0%,100% { filter: drop-shadow(0 0 10px rgba(255,200,120,0.45)) drop-shadow(0 12px 18px rgba(31,77,44,0.18)); }
-            50%     { filter: drop-shadow(0 0 16px rgba(255,200,120,0.85)) drop-shadow(0 12px 18px rgba(31,77,44,0.18)); }
-          }
-
-          /* Pond ripple — gentle scale pulse */
-          :global(.garden-item-pond .garden-item-img) { animation: gardenRipple 5s ease-in-out infinite; transform-origin: center; }
-          @keyframes gardenRipple { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(1.015) scaleY(0.99); } }
-
-          /* Cottage bob */
-          :global(.garden-item-cottage) { animation: gardenBob 6s ease-in-out infinite; transform-origin: bottom center; }
-          @keyframes gardenBob {
-            0%,100% { transform: translate(-50%, -100%) translateY(0); }
-            50%     { transform: translate(-50%, -100%) translateY(-1px); }
-          }
-
-          /* Fairy ring sparkle hint */
-          :global(.garden-item-fairyring .garden-item-img) {
-            animation: gardenSparkle 4.4s ease-in-out infinite;
-            filter: drop-shadow(0 0 6px rgba(255,220,140,0.5));
-          }
-          @keyframes gardenSparkle {
-            0%,100% { filter: drop-shadow(0 0 4px rgba(255,220,140,0.5)) drop-shadow(0 12px 18px rgba(31,77,44,0.18)); }
-            50%     { filter: drop-shadow(0 0 14px rgba(255,235,180,0.95)) drop-shadow(0 12px 18px rgba(31,77,44,0.18)); }
-          }
-
-          /* Click bursts (pond ripple, lantern burst, smoke, gnome hat) */
-          :global(.garden-item-burst) { animation: gardenItemBurst 720ms ease-out both; }
-          @keyframes gardenItemBurst {
-            0%   { transform: scale(1); }
-            35%  { transform: scale(1.12); }
-            100% { transform: scale(1); }
-          }
-
-          :global(.garden-pond-ripple) {
-            position: absolute;
-            left: 50%; bottom: 10%;
-            width: 20px; height: 20px;
-            margin-left: -10px;
-            border: 2px solid rgba(120,200,230,0.85);
-            border-radius: 50%;
-            animation: gardenRingOut 700ms ease-out forwards;
-            pointer-events: none;
-          }
-          @keyframes gardenRingOut { from { transform: scale(0.5); opacity: 0.95; } to { transform: scale(6); opacity: 0; } }
-
-          :global(.garden-lantern-burst) {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle at 50% 45%, rgba(255,220,140,0.95) 0%, rgba(255,220,140,0) 60%);
-            animation: gardenFlash 700ms ease-out forwards;
-            pointer-events: none;
-          }
-          @keyframes gardenFlash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
-
-          :global(.garden-smoke) {
-            position: absolute; top: 6%;
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: radial-gradient(closest-side, rgba(255,255,255,0.85), rgba(255,255,255,0));
-            animation: gardenSmoke 1.2s ease-out forwards;
-            pointer-events: none;
-          }
-          @keyframes gardenSmoke {
-            0%   { transform: translate(0,0) scale(0.6); opacity: 0.9; }
-            100% { transform: translate(-6px,-26px) scale(1.4); opacity: 0; }
-          }
-
-          :global(.garden-gnome-hat) {
-            position: absolute; left: 50%; top: -10%;
-            transform: translateX(-50%);
-            font-size: 14px;
-            animation: gardenHatPop 720ms ease-out forwards;
-            pointer-events: none;
-          }
-          @keyframes gardenHatPop {
-            0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
-            30%  { transform: translate(-50%, -10px) scale(1.1); opacity: 1; }
-            100% { transform: translate(-50%, -22px) scale(1); opacity: 0; }
-          }
-
-          /* Butterfly flight (existing) */
-          .garden-butterfly {
-            position: absolute;
-            top: 50%; left: 10%;
-            transform-origin: center;
-            animation: gardenFly 18s cubic-bezier(0.55, 0, 0.45, 1) infinite, gardenFlutter 0.6s linear infinite;
-          }
-          @keyframes gardenFly {
-            0%   { top: 38%; left: -4%; transform: rotate(8deg); }
-            25%  { top: 28%; left: 28%; transform: rotate(-6deg); }
-            50%  { top: 42%; left: 55%; transform: rotate(10deg); }
-            75%  { top: 32%; left: 78%; transform: rotate(-8deg); }
-            100% { top: 40%; left: 104%; transform: rotate(6deg); }
-          }
-          @keyframes gardenFlutter { 0%,100% { filter: none; } 50% { filter: brightness(1.1); } }
-
-          /* Rabbit hops along the grass band */
-          .garden-rabbit {
-            position: absolute;
-            bottom: 6%; left: -6%;
-            animation: gardenHop 24s linear infinite, gardenHopBob 0.9s ease-in-out infinite;
-          }
-          .garden-rabbit-fast { animation: gardenHop 16s linear infinite, gardenHopBob 0.7s ease-in-out infinite; }
-          @keyframes gardenHop {
-            0% { left: -6%; transform: scaleX(1); }
-            45% { left: 60%; transform: scaleX(1); }
-            48% { left: 60%; transform: scaleX(-1); }
-            95% { left: 5%; transform: scaleX(-1); }
-            98% { left: 5%; transform: scaleX(1); }
-            100% { left: -6%; transform: scaleX(1); }
-          }
-          @keyframes gardenHopBob {
-            0%,100% { transform: translateY(0); }
-            50%     { transform: translateY(-8px); }
-          }
-
-          /* Songbird perched gently bouncing */
-          .garden-songbird { animation: gardenPerchBob 2.4s ease-in-out infinite; transform-origin: bottom center; }
-          @keyframes gardenPerchBob {
-            0%,100% { transform: translateY(0) rotate(-1deg); }
-            50%     { transform: translateY(-2px) rotate(1deg); }
-          }
-
-          /* Bee buzzing — small fast loop */
-          .garden-bee { position: absolute; }
-          .garden-bee-near-flowers { bottom: 16%; left: 14%; animation: gardenBeeLoopA 7s ease-in-out infinite; }
-          .garden-bee-near-hive   { bottom: 42%; left: 19%; animation: gardenBeeLoopB 6s ease-in-out infinite; }
-          @keyframes gardenBeeLoopA {
-            0%,100% { transform: translate(0, 0); }
-            25%     { transform: translate(40px, -10px); }
-            50%     { transform: translate(80px, 4px); }
-            75%     { transform: translate(40px, -8px); }
-          }
-          @keyframes gardenBeeLoopB {
-            0%,100% { transform: translate(0, 0); }
-            25%     { transform: translate(28px, -16px); }
-            50%     { transform: translate(56px, -2px); }
-            75%     { transform: translate(20px, -18px); }
-          }
-
           @media (prefers-reduced-motion: reduce) {
-            .garden-cloud, :global(.garden-grass-blade), .garden-butterfly,
-            .garden-rabbit, .garden-songbird, .garden-bee,
-            :global(.garden-star) circle, :global(.garden-firefly),
-            .garden-rays, .garden-petal, .garden-leaf, .garden-snowflake,
-            .garden-moon {
-              animation: none !important;
-            }
-            :global(.garden-item-lantern .garden-item-img),
-            :global(.garden-item-pond .garden-item-img),
-            :global(.garden-item-cottage),
-            :global(.garden-item-fairyring .garden-item-img) {
+            :global(.garden-star) circle,
+            .garden-moon,
+            .garden-rays, .garden-petal, .garden-leaf, .garden-snowflake {
               animation: none !important;
             }
           }
@@ -745,6 +278,36 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {todayLeaves > 0 && <span className="ml-2 font-semibold text-emerald-700">· +{todayLeaves} today</span>}
         </p>
 
+        {/* Scene-stage progress */}
+        <div className="mt-5 rounded-2xl border border-white/60 bg-gradient-to-br from-cream-50 to-brand-butter/30 p-4">
+          <div className="flex items-baseline justify-between text-[10px] uppercase tracking-[0.22em] text-ink-700/80">
+            <span>your garden</span>
+            <span className="font-semibold text-ink-900">{stageLabel}</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {(["0", "1", "2", "3", "4"] as const).map((s) => {
+              const idx = Number(s);
+              return (
+                <div key={s}
+                  className={`h-1.5 flex-1 rounded-full transition-colors duration-700
+                    ${idx <= sceneStage
+                      ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                      : "bg-ink-900/10"}`}
+                />
+              );
+            })}
+          </div>
+          {nextThreshold ? (
+            <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ink-700/70">
+              buy {nextThreshold - ownedGardenCount} more item{nextThreshold - ownedGardenCount === 1 ? "" : "s"} to unlock the next stage
+            </p>
+          ) : (
+            <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-emerald-700">
+              ✨ peak abundance — your garden is fully tended
+            </p>
+          )}
+        </div>
+
         {leafCount < MAX_LEAVES && (
           <div className="mt-5">
             <div className="mb-1.5 flex items-baseline justify-between text-[10px] uppercase tracking-[0.22em] text-ink-700/70">
@@ -758,36 +321,50 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         )}
 
         <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-ink-700/55">
-          one leaf grows every {MINUTES_PER_LEAF} min of focus · tap any item for a tiny surprise
+          one leaf grows every {MINUTES_PER_LEAF} min of focus
         </p>
       </div>
     </section>
   );
 }
 
+// Stage thresholds: count of owned garden items → which painted scene to show.
+function stageIdFor(ownedCount: number): 0 | 1 | 2 | 3 | 4 {
+  if (ownedCount === 0) return 0;
+  if (ownedCount <= 5) return 1;
+  if (ownedCount <= 12) return 2;
+  if (ownedCount <= 18) return 3;
+  return 4;
+}
+function nextStageThreshold(ownedCount: number): number | null {
+  if (ownedCount === 0) return 1;
+  if (ownedCount < 6) return 6;
+  if (ownedCount < 13) return 13;
+  if (ownedCount < 19) return 19;
+  return null; // peak
+}
+const STAGE_LABEL: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "Untended",
+  1: "Sprouting",
+  2: "Growing",
+  3: "Mature",
+  4: "Lush"
+};
+
 /**
- * In-game sun-arc HUD. A half-arc with a sun (day/dawn/dusk) or moon (night)
- * sliding along it to show roughly where we are in the day. Painterly look:
- * warm cream fill, soft inner shadow, peach gradient on the arc itself.
- * Sits top-right inside the scene like a real cozy-game HUD widget.
+ * In-game sun-arc HUD plaque. Sun (day/dawn/dusk) or moon (night) slides
+ * along a half-arc to show day progress. Painterly look.
  */
 function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
-  // Map TOD to a 0..1 progress along the day-arc (0 = dawn left, 1 = dusk right).
-  // Night uses its own moon arc.
   const progress: number =
     tod === "dawn" ? 0.12 :
     tod === "day"  ? 0.5 :
-    tod === "dusk" ? 0.88 :
-                     0.5; // night — moon at top of moon arc
-
+    tod === "dusk" ? 0.88 : 0.5;
   const isNight = tod === "night";
-  // Arc geometry: semicircle from (8, 56) to (96, 56), radius 44, centered at (52, 56).
   const cx = 52, cy = 56, r = 44;
-  // Angle along the arc: 180deg (left) at progress=0 to 0deg (right) at progress=1.
   const angle = Math.PI * (1 - progress);
   const orbX = cx + r * Math.cos(angle);
   const orbY = cy - r * Math.sin(angle);
-
   const seasonGlyph = season === "spring" ? "🌸" : season === "summer" ? "☀️" : season === "autumn" ? "🍂" : "❄️";
   const seasonLabel = season.charAt(0).toUpperCase() + season.slice(1);
   const todLabel = tod.charAt(0).toUpperCase() + tod.slice(1);
@@ -798,7 +375,6 @@ function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
       className="pointer-events-none absolute right-4 top-4 select-none"
       style={{ width: 132, filter: "drop-shadow(0 6px 12px rgba(31,77,44,0.18))" }}
     >
-      {/* Painted plaque */}
       <svg viewBox="0 0 132 86" className="block w-full">
         <defs>
           <linearGradient id="plaque-fill" x1="0" y1="0" x2="0" y2="1">
@@ -821,15 +397,11 @@ function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
             <stop offset="100%" stopColor="#aa9658" />
           </radialGradient>
         </defs>
-        {/* Plaque body */}
         <rect x="2" y="2" width="128" height="82" rx="14" ry="14"
           fill="url(#plaque-fill)" stroke={isNight ? "#7d7aa8" : "#b88a5b"} strokeWidth="2" />
-        {/* Inner sky band (arc background) */}
         <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy} Z`} fill="url(#arc-bg)" opacity="0.92" />
-        {/* Arc highlight stripe (mimics horizon glow) */}
         <path d={`M ${cx - r + 4} ${cy - 1} A ${r - 4} ${r - 4} 0 0 1 ${cx + r - 4} ${cy - 1}`}
           fill="none" stroke={isNight ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.55)"} strokeWidth="1.5" />
-        {/* Tick marks at dawn / noon / dusk */}
         {[0, 0.5, 1].map((p) => {
           const a = Math.PI * (1 - p);
           const x1 = cx + (r + 1) * Math.cos(a);
@@ -841,16 +413,12 @@ function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
               stroke={isNight ? "rgba(255,255,255,0.55)" : "#7a4a22"} strokeWidth="1.2" strokeLinecap="round" />
           );
         })}
-        {/* The current orb (sun by day, moon at night) */}
         <circle cx={orbX} cy={orbY} r="6.5"
           fill={isNight ? "url(#orb-night)" : "url(#orb-day)"} />
-        {/* Soft halo */}
         <circle cx={orbX} cy={orbY} r="11"
           fill={isNight ? "rgba(251,245,216,0.18)" : "rgba(255,200,100,0.32)"} />
-        {/* Ground line under the arc */}
         <line x1="6" y1="58" x2="126" y2="58"
           stroke={isNight ? "rgba(255,255,255,0.25)" : "rgba(122,74,34,0.55)"} strokeWidth="1.2" />
-        {/* Label */}
         <text x="66" y="76" textAnchor="middle"
           fontSize="11" fontWeight="700"
           fill={isNight ? "#f3eed1" : "#5a3920"}
@@ -858,7 +426,6 @@ function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
           {todLabel} · {seasonLabel}
         </text>
       </svg>
-      {/* Decorative season glyph in corner */}
       <span
         aria-hidden
         className="absolute -right-1 -top-1 select-none text-base"
