@@ -53,11 +53,14 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     [ownedSet]
   );
 
-  // Which painted-scene stage to show, based on owned garden-item count.
-  const sceneStage = stageIdFor(ownedGardenCount);
-  const nextThreshold = nextStageThreshold(ownedGardenCount);
-  const sceneSrc = `/garden-stage-${sceneStage}.webp`;
-  const stageLabel = STAGE_LABEL[sceneStage];
+  // v16: 25 distinct painted scenes, one per owned-count from 1..25.
+  // Count 0 falls back to the empty stage-0 scene.
+  // EVERY purchase moves to a visibly different painting — that's the spec.
+  const sceneSrc = ownedGardenCount === 0
+    ? "/garden-stage-0.webp"
+    : `/garden-n${String(Math.min(ownedGardenCount, 25)).padStart(2, "0")}.webp`;
+  const stageLabel = sceneStageLabel(ownedGardenCount);
+  const nextThreshold = ownedGardenCount < 25 ? ownedGardenCount + 1 : null;
 
   // Time-of-day driven from <html data-tod> (set pre-paint by dashboard layout).
   const [tod, setTod] = useState<Tod>("day");
@@ -278,32 +281,33 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {todayLeaves > 0 && <span className="ml-2 font-semibold text-emerald-700">· +{todayLeaves} today</span>}
         </p>
 
-        {/* Scene-stage progress */}
+        {/* Per-buy scene progress — every purchase paints a new scene */}
         <div className="mt-5 rounded-2xl border border-white/60 bg-gradient-to-br from-cream-50 to-brand-butter/30 p-4">
           <div className="flex items-baseline justify-between text-[10px] uppercase tracking-[0.22em] text-ink-700/80">
             <span>your garden</span>
-            <span className="font-semibold text-ink-900">{stageLabel}</span>
+            <span className="font-semibold text-ink-900">
+              {stageLabel} · {ownedGardenCount}/25
+            </span>
           </div>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            {(["0", "1", "2", "3", "4"] as const).map((s) => {
-              const idx = Number(s);
-              return (
-                <div key={s}
-                  className={`h-1.5 flex-1 rounded-full transition-colors duration-700
-                    ${idx <= sceneStage
-                      ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
-                      : "bg-ink-900/10"}`}
-                />
-              );
-            })}
+          {/* 25-segment progress (one segment per buy = one new painted scene) */}
+          <div className="mt-2 flex items-center gap-[2px]">
+            {Array.from({ length: 25 }).map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 flex-1 rounded-full transition-colors duration-700
+                  ${idx < ownedGardenCount
+                    ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
+                    : "bg-ink-900/10"}`}
+              />
+            ))}
           </div>
           {nextThreshold ? (
             <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-ink-700/70">
-              buy {nextThreshold - ownedGardenCount} more item{nextThreshold - ownedGardenCount === 1 ? "" : "s"} to unlock the next stage
+              every purchase repaints the garden with a new scene
             </p>
           ) : (
             <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-emerald-700">
-              ✨ peak abundance — your garden is fully tended
+              ✨ peak abundance — every item placed
             </p>
           )}
         </div>
@@ -328,28 +332,15 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   );
 }
 
-// Stage thresholds: count of owned garden items → which painted scene to show.
-function stageIdFor(ownedCount: number): 0 | 1 | 2 | 3 | 4 {
-  if (ownedCount === 0) return 0;
-  if (ownedCount <= 5) return 1;
-  if (ownedCount <= 12) return 2;
-  if (ownedCount <= 18) return 3;
-  return 4;
+// v16: descriptive label for the current garden density tier.
+function sceneStageLabel(ownedCount: number): string {
+  if (ownedCount === 0) return "Untended";
+  if (ownedCount <= 5) return "Sprouting";
+  if (ownedCount <= 12) return "Growing";
+  if (ownedCount <= 18) return "Mature";
+  if (ownedCount < 25) return "Lush";
+  return "Peak abundance";
 }
-function nextStageThreshold(ownedCount: number): number | null {
-  if (ownedCount === 0) return 1;
-  if (ownedCount < 6) return 6;
-  if (ownedCount < 13) return 13;
-  if (ownedCount < 19) return 19;
-  return null; // peak
-}
-const STAGE_LABEL: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "Untended",
-  1: "Sprouting",
-  2: "Growing",
-  3: "Mature",
-  4: "Lush"
-};
 
 /**
  * In-game sun-arc HUD plaque. Sun (day/dawn/dusk) or moon (night) slides
