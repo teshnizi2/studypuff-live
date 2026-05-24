@@ -391,44 +391,63 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             );
           })}
 
-          {/* 11 — Animated creatures */}
-          {/* Bespoke butterfly always present */}
+          {/* 11 — Animated creatures.
+              SIZING RULE (learned the hard way): percentage height on an <img>
+              inside an absolute, unsized parent collapses to the image's
+              natural 1024px. So sizing lives on the WRAPPER as a width (% of
+              the scene's container), and the <img> is just `w-full h-auto`.
+              These wrappers must sit inside the aspect-locked scene so the %
+              width resolves correctly. */}
+
+          {/* Bespoke butterfly — drifts across the sky */}
           <div aria-hidden className="pointer-events-none absolute inset-0" style={T(22)}>
-            <div className="garden-butterfly">
+            <div className="garden-butterfly" style={{ width: "3.5%", minWidth: 28 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/garden/creature-butterfly.webp" alt="" className="h-[3.2%] min-h-[24px] w-auto" />
+              <img src="/garden/creature-butterfly.webp" alt="" className="block h-auto w-full" />
             </div>
           </div>
 
-          {/* Rabbit hops along the ground band — extra-cute when vegpatch is owned */}
-          <div aria-hidden className="pointer-events-none absolute inset-0" style={T(20)}>
-            <div className={`garden-rabbit ${hasVegpatch ? "garden-rabbit-fast" : ""}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/garden/creature-rabbit.webp" alt="" className="h-[6%] min-h-[36px] w-auto" />
-            </div>
-          </div>
-
-          {/* Songbird — only spawns when there's a real perch (cottage owned).
-              No cottage = no bird; we don't float it in mid-sky. */}
-          {hasCottage && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute"
-              style={{ left: "15%", top: "58%", ...T(18) }}
-            >
-              <div className="garden-songbird">
+          {/* Rabbit hops along the ground band — only spawns once the garden
+              has some life in it (any owned item). Empty state has just the
+              butterfly so the eye can rest on the hero tree. */}
+          {placedItems.length > 0 && (
+            <div aria-hidden className="pointer-events-none absolute inset-0" style={T(20)}>
+              <div
+                className={`garden-rabbit ${hasVegpatch ? "garden-rabbit-fast" : ""}`}
+                style={{ width: "4.5%", minWidth: 36 }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/garden/creature-songbird.webp" alt="" className="h-[4.5%] min-h-[28px] w-auto" />
+                <img src="/garden/creature-rabbit.webp" alt="" className="block h-auto w-full" />
               </div>
             </div>
           )}
 
-          {/* Bee — buzzes near flowerbed if owned, near beehive otherwise (or skipped) */}
+          {/* Songbird — only spawns when there's a real perch (cottage owned).
+              Anchored to the cottage roof peak: cottage is placed at x:9%, y:72%,
+              scale 1.45 so the roof line sits around top:64%, left:6%. */}
+          {hasCottage && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute"
+              style={{ left: "6%", top: "64%", width: "3.2%", minWidth: 26, ...T(18) }}
+            >
+              <div className="garden-songbird">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/garden/creature-songbird.webp" alt="" className="block h-auto w-full" />
+              </div>
+            </div>
+          )}
+
+          {/* Bee — flowers always beat hive when both owned (a bee pollinates,
+              it doesn't loiter on its own house). */}
           {(hasFlowerbed || hasBeehive) && (
             <div aria-hidden className="pointer-events-none absolute inset-0" style={T(20)}>
-              <div className={`garden-bee ${hasBeehive ? "garden-bee-near-hive" : "garden-bee-near-flowers"}`}>
+              <div
+                className={`garden-bee ${hasFlowerbed ? "garden-bee-near-flowers" : "garden-bee-near-hive"}`}
+                style={{ width: "2.6%", minWidth: 22 }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/garden/creature-bee.webp" alt="" className="h-[3%] min-h-[24px] w-auto" />
+                <img src="/garden/creature-bee.webp" alt="" className="block h-auto w-full" />
               </div>
             </div>
           )}
