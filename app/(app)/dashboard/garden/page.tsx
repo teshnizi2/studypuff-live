@@ -72,7 +72,7 @@ export default async function GardenPage() {
           ownedItemIds={ownedItemIds}
         />
 
-        <div className="mt-10">
+        <div className="mt-20">
           <GardenShop
             coins={settings?.coins ?? 0}
             lifetimeMinutes={lifetimeMinutes}

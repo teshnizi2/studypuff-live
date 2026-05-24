@@ -93,7 +93,7 @@ export function GardenShop(p: GardenShopProps) {
         {CATEGORY_ORDER.map((cat) => (
           <section key={cat}>
             <div className="mb-2 flex items-baseline justify-between gap-3">
-              <h3 className="font-display text-xl text-ink-900">{CATEGORY_LABEL[cat]}</h3>
+              <h2 className="font-display text-xl text-ink-900">{CATEGORY_LABEL[cat]}</h2>
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700">
                 {grouped[cat].length} items
               </span>
@@ -118,7 +118,7 @@ export function GardenShop(p: GardenShopProps) {
                         <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
                       </span>
                     </div>
-                    <h4 className="mt-3 font-display text-lg text-ink-900">{r.name}</h4>
+                    <h3 className="mt-3 font-display text-lg text-ink-900">{r.name}</h3>
                     <p className="mt-1 flex-1 text-xs text-ink-700">{r.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {!owned && (
