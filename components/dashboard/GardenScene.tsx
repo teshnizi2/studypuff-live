@@ -120,23 +120,38 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             <div className="garden-cloud garden-cloud-3" />
           </div>
 
-          {/* 4 — winding stone path between item slots (only when items exist) */}
-          {placedItems.length > 0 && (
-            <svg
-              aria-hidden viewBox="0 0 1600 800" preserveAspectRatio="none"
-              className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-100 ease-out"
-              style={T(8)}
-            >
-              <path
-                d="M 180,720 C 360,680 540,700 760,680 C 900,665 1040,680 1200,700 C 1320,712 1420,720 1520,710"
-                stroke="#c8b89a" strokeWidth="34" strokeLinecap="round" fill="none" opacity="0.75"
-              />
-              <path
-                d="M 180,720 C 360,680 540,700 760,680 C 900,665 1040,680 1200,700 C 1320,712 1420,720 1520,710"
-                stroke="#dccebf" strokeWidth="22" strokeLinecap="round" strokeDasharray="2 28" fill="none" opacity="0.9"
-              />
-            </svg>
-          )}
+          {/* 4 — winding stone path that ACTUALLY threads the owned items.
+              Built dynamically from each owned item's x position so the path
+              visibly connects them (not a generic curve). */}
+          {placedItems.length > 0 && (() => {
+            // Sort owned items left-to-right and put their x in viewBox units.
+            const sorted = [...placedItems].sort((a, b) => a.placement.x - b.placement.x);
+            // Anchor points: start at the far-left ground, weave through each
+            // item's foot (slightly behind it, hence y - 16), end at far-right.
+            const points: Array<{ x: number; y: number }> = [
+              { x: 60, y: 730 },
+              ...sorted.map((it) => ({ x: it.placement.x * 16, y: it.placement.y * 8 - 14 })),
+              { x: 1540, y: 720 }
+            ];
+            // Cubic-bezier through points with horizontal-tangent controls —
+            // smooth, ground-following curve that visibly passes near each item.
+            let d = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+              const a = points[i - 1], b = points[i];
+              const mx = (a.x + b.x) / 2;
+              d += ` C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
+            }
+            return (
+              <svg
+                aria-hidden viewBox="0 0 1600 800" preserveAspectRatio="none"
+                className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-100 ease-out"
+                style={T(8)}
+              >
+                <path d={d} stroke="#c8b89a" strokeWidth="34" strokeLinecap="round" fill="none" opacity="0.75" />
+                <path d={d} stroke="#dccebf" strokeWidth="22" strokeLinecap="round" strokeDasharray="2 28" fill="none" opacity="0.9" />
+              </svg>
+            );
+          })()}
 
           {/* 5+6 — ground line: tree, sheep, items (each with a soft shadow below) */}
           {/* Tree (large, anchor of the scene) */}
@@ -153,7 +168,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 style={{ transform: `scale(${stage.scale})` }}
               />
               {/* ground shadow under tree, offset bottom-right per light source top-left */}
-              <div aria-hidden className="absolute left-[40%] bottom-[-4%] h-[14px] w-[55%] -translate-x-1/2 rounded-[50%]"
+              {/* Ground shadow offset to the RIGHT of the trunk to match the
+                  scene's top-left light source (consistent with item shadows). */}
+              <div aria-hidden className="absolute left-[58%] bottom-[-4%] h-[14px] w-[55%] -translate-x-1/2 rounded-[50%]"
                 style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.4), transparent 70%)" }} />
             </div>
           </div>
