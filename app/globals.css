@@ -16,7 +16,11 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* No smooth-scroll on the document — it animated the navigation
+     scroll-to-top and made route changes feel like the page "jumped to
+     another place then came back." Anchor links don't need it either.
+     Smooth scroll is opted-in per element via .scroll-smooth when wanted. */
+  scroll-behavior: auto;
   overflow-x: clip;
 }
 
