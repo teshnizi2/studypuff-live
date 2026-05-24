@@ -341,7 +341,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 key={item.id}
                 type="button"
                 onClick={() => pop(item.id)}
-                className={`group absolute -translate-x-1/2 -translate-y-full cursor-pointer border-0 bg-transparent p-0 transition-transform duration-100 ease-out${itemAccent}`}
+                className={`group absolute -translate-x-1/2 -translate-y-full cursor-pointer rounded-2xl border-0 bg-transparent p-0 outline-none transition-transform duration-100 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-emerald-600${itemAccent}`}
                 style={{
                   left: `${x}%`,
                   top: `${y}%`,
@@ -392,16 +392,11 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           })}
 
           {/* 11 — Animated creatures */}
-          {/* Butterfly always present */}
+          {/* Bespoke butterfly always present */}
           <div aria-hidden className="pointer-events-none absolute inset-0" style={T(22)}>
             <div className="garden-butterfly">
-              <svg viewBox="0 0 16 12" className="h-3.5 w-4">
-                <g>
-                  <ellipse cx="6" cy="6" rx="3.5" ry="2.6" fill="#f3a4b8" transform="rotate(-18 6 6)" />
-                  <ellipse cx="10" cy="6" rx="3.5" ry="2.6" fill="#f3a4b8" transform="rotate(18 10 6)" />
-                  <line x1="8" y1="3" x2="8" y2="9" stroke="#1f1f1f" strokeWidth="0.6" />
-                </g>
-              </svg>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/garden/creature-butterfly.webp" alt="" className="h-[3.2%] min-h-[24px] w-auto" />
             </div>
           </div>
 
@@ -413,21 +408,20 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             </div>
           </div>
 
-          {/* Songbird — perches with a gentle bob; lands closer to cottage when owned */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute"
-            style={{
-              left: hasCottage ? "15%" : "44%",
-              top: hasCottage ? "58%" : "20%",
-              ...T(18)
-            }}
-          >
-            <div className="garden-songbird">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/garden/creature-songbird.webp" alt="" className="h-[4.5%] min-h-[28px] w-auto" />
+          {/* Songbird — only spawns when there's a real perch (cottage owned).
+              No cottage = no bird; we don't float it in mid-sky. */}
+          {hasCottage && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute"
+              style={{ left: "15%", top: "58%", ...T(18) }}
+            >
+              <div className="garden-songbird">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/garden/creature-songbird.webp" alt="" className="h-[4.5%] min-h-[28px] w-auto" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Bee — buzzes near flowerbed if owned, near beehive otherwise (or skipped) */}
           {(hasFlowerbed || hasBeehive) && (
