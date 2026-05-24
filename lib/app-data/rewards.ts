@@ -65,9 +65,9 @@ export const REWARDS: Reward[] = [
   { id: "garden-treehouse", name: "Treehouse", category: "garden-structures", price: 320, emoji: "🌳", description: "A tiny house perched in a leafy old tree.", art: "/garden/item-treehouse.webp", placement: { x: 92, y: 67, scale: 1.3, layer: 2 } },
   { id: "garden-gazebo", name: "Rose gazebo", category: "garden-structures", price: 290, emoji: "🌹", description: "A white gazebo with pink roses climbing the roof.", art: "/garden/item-gazebo.webp", placement: { x: 80, y: 76, scale: 1.0, layer: 3 } },
   { id: "garden-well", name: "Wishing well", category: "garden-structures", price: 170, emoji: "🪣", description: "A stone well with a wooden roof and bucket.", art: "/garden/item-well.webp", placement: { x: 30, y: 81, scale: 0.85, layer: 3 } },
-  { id: "garden-bridge", name: "Red bridge", category: "garden-structures", price: 140, emoji: "🌉", description: "A small arched footbridge over a little stream.", art: "/garden/item-bridge.webp", placement: { x: 50, y: 88, scale: 0.85, layer: 4 } },
-  { id: "garden-bench", name: "Stone bench", category: "garden-structures", price: 90, emoji: "🪑", description: "A quiet bench to sit at after a focus session.", art: "/garden/item-bench.webp", placement: { x: 64, y: 86, scale: 0.8, layer: 4 } },
-  { id: "garden-lantern", name: "Lantern path", category: "garden-structures", price: 130, emoji: "🏮", description: "Soft paper lanterns lighting a little path. Glow brightens at night.", art: "/garden/item-lantern.webp", placement: { x: 54, y: 92, scale: 0.85, layer: 5 } },
+  { id: "garden-bridge", name: "Red bridge", category: "garden-structures", price: 140, emoji: "🌉", description: "A small arched footbridge over a little stream.", art: "/garden/item-bridge.webp", placement: { x: 46, y: 89, scale: 0.75, layer: 4 } },
+  { id: "garden-bench", name: "Stone bench", category: "garden-structures", price: 90, emoji: "🪑", description: "A quiet bench to sit at after a focus session.", art: "/garden/item-bench.webp", placement: { x: 84, y: 87, scale: 0.75, layer: 4 } },
+  { id: "garden-lantern", name: "Lantern path", category: "garden-structures", price: 130, emoji: "🏮", description: "Soft paper lanterns lighting a little path. Glow brightens at night.", art: "/garden/item-lantern.webp", placement: { x: 18, y: 90, scale: 0.85, layer: 5 } },
   { id: "garden-mailbox", name: "Red mailbox", category: "garden-structures", price: 60, emoji: "📮", description: "A friendly red mailbox at the edge of the path.", art: "/garden/item-mailbox.webp", placement: { x: 4, y: 88, scale: 0.65, layer: 5 } },
   { id: "garden-signpost", name: "Wooden signpost", category: "garden-structures", price: 50, emoji: "🪧", description: "Carved wooden arrows pointing the way.", art: "/garden/item-signpost.webp", placement: { x: 72, y: 82, scale: 0.75, layer: 4 } },
 
@@ -78,7 +78,7 @@ export const REWARDS: Reward[] = [
   { id: "garden-vegpatch", name: "Vegetable patch", category: "garden-plants", price: 110, emoji: "🥕", description: "Carrots and greens growing in neat rows.", art: "/garden/item-vegpatch.webp", placement: { x: 35, y: 96, scale: 0.8, layer: 6 } },
   { id: "garden-flowerbed", name: "Wildflower bed", category: "garden-plants", price: 100, emoji: "🌷", description: "Pink, yellow and purple wildflowers in soft soil.", art: "/garden/item-flowerbed.webp", placement: { x: 14, y: 94, scale: 0.7, layer: 6 } },
   { id: "garden-haybale", name: "Hay bale", category: "garden-plants", price: 80, emoji: "🌾", description: "A round golden bale with a red ribbon tied on top.", art: "/garden/item-haybale.webp", placement: { x: 82, y: 96, scale: 0.7, layer: 6 } },
-  { id: "garden-mushrooms", name: "Mushroom cluster", category: "garden-plants", price: 70, emoji: "🍄", description: "A patch of red-capped mushrooms tucked in the grass.", art: "/garden/item-mushrooms.webp", placement: { x: 60, y: 95, scale: 0.65, layer: 6 } },
+  { id: "garden-mushrooms", name: "Mushroom cluster", category: "garden-plants", price: 70, emoji: "🍄", description: "A patch of red-capped mushrooms tucked in the grass.", art: "/garden/item-mushrooms.webp", placement: { x: 74, y: 95, scale: 0.65, layer: 6 } },
   { id: "garden-waterlilies", name: "Water lilies", category: "garden-plants", price: 90, emoji: "🪷", description: "Two pink lotus flowers floating on lily pads.", art: "/garden/item-waterlilies.webp", placement: { x: 95, y: 97, scale: 0.55, layer: 7 } },
 
   // ───────────────────── GARDEN — CRITTERS & WHIMSY (8 items) ─────────────────────
@@ -89,7 +89,7 @@ export const REWARDS: Reward[] = [
   { id: "garden-snail", name: "Stripey snail", category: "garden-critters", price: 70, emoji: "🐌", description: "A friendly snail with a candy-striped shell.", art: "/garden/item-snail.webp", placement: { x: 39, y: 97, scale: 0.4, layer: 7 } },
   { id: "garden-beehive", name: "Honey hive", category: "garden-critters", price: 200, emoji: "🐝", description: "A striped beehive hanging from a tree branch.", art: "/garden/item-beehive.webp", placement: { x: 13, y: 46, scale: 0.7, layer: 1 } },
   { id: "garden-picnic", name: "Picnic basket", category: "garden-critters", price: 80, emoji: "🧺", description: "A wicker basket with a baguette and apple, set on a checkered cloth.", art: "/garden/item-picnic.webp", placement: { x: 38, y: 90, scale: 0.7, layer: 5 } },
-  { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 67, y: 97, scale: 0.55, layer: 7 } }
+  { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 92, y: 96, scale: 0.5, layer: 7 } }
 ];
 
 export function rewardById(id: string) {
