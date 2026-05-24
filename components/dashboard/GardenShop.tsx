@@ -16,30 +16,47 @@ export type GardenShopProps = {
   equippedAccessory: string | null;
 };
 
-// Show garden items FIRST — this page is the garden, the shop sections
-// supporting it follow.
-const CATEGORY_ORDER: RewardCategory[] = ["garden", "sound", "theme", "accessory"];
+// Garden sub-categories first (the page IS the garden), then the dashboard
+// rewards (sound / theme / accessory).
+const CATEGORY_ORDER: RewardCategory[] = [
+  "garden-structures",
+  "garden-plants",
+  "garden-critters",
+  "sound",
+  "theme",
+  "accessory"
+];
 
 const CATEGORY_LABEL: Record<RewardCategory, string> = {
-  garden: "Garden",
+  "garden-structures": "Cottages & Structures",
+  "garden-plants": "Garden & Bounty",
+  "garden-critters": "Critters & Whimsy",
   sound: "Ambient sounds",
   theme: "Themes",
   accessory: "Sheep accessories"
 };
 
 const CATEGORY_HINT: Record<RewardCategory, string> = {
-  garden: "Each item you buy appears in your garden scene above.",
+  "garden-structures": "The big pieces — cottages, bridges, lanterns. Each one anchors a corner of your scene.",
+  "garden-plants": "Flowers, vegetables, ponds. They fill the ground rows and feed the cozy.",
+  "garden-critters": "Little characters and oddities — gnomes, snails, fairy rings. Hover or click them in the scene.",
   sound: "Plays in the background while a focus session runs.",
   theme: "Re-skins your dashboard until you swap it out.",
   accessory: "Worn by the sheep in the timer."
 };
 
 const CATEGORY_TONE: Record<RewardCategory, string> = {
-  garden: "from-[#d8eccb] to-[#b8d8a8]",
+  "garden-structures": "from-[#e8d8b8] to-[#d2bd8c]",
+  "garden-plants": "from-[#d8eccb] to-[#b8d8a8]",
+  "garden-critters": "from-[#f1d8e8] to-[#e0b8d4]",
   sound: "from-brand-sky/70 to-brand-sky/30",
   theme: "from-brand-lilac/70 to-brand-lilac/30",
   accessory: "from-brand-pink/70 to-brand-pink/30"
 };
+
+function isGardenCat(c: RewardCategory): boolean {
+  return c.startsWith("garden-");
+}
 
 function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -53,18 +70,23 @@ function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
 
 export function GardenShop(p: GardenShopProps) {
   const ownedSet = new Set(p.ownedItemIds);
-  const equippedByCategory: Record<RewardCategory, string | null> = {
-    garden: null, // garden items don't equip — owned = placed
+  const equippedByCategory: Partial<Record<RewardCategory, string | null>> = {
     sound: p.equippedSound,
     theme: p.equippedTheme,
     accessory: p.equippedAccessory
+    // garden-* categories don't equip; owned = placed.
   };
   const grouped: Record<RewardCategory, typeof REWARDS> = {
-    garden: REWARDS.filter((r) => r.category === "garden"),
-    sound: REWARDS.filter((r) => r.category === "sound"),
-    theme: REWARDS.filter((r) => r.category === "theme"),
+    "garden-structures": REWARDS.filter((r) => r.category === "garden-structures"),
+    "garden-plants":     REWARDS.filter((r) => r.category === "garden-plants"),
+    "garden-critters":   REWARDS.filter((r) => r.category === "garden-critters"),
+    sound:     REWARDS.filter((r) => r.category === "sound"),
+    theme:     REWARDS.filter((r) => r.category === "theme"),
     accessory: REWARDS.filter((r) => r.category === "accessory")
   };
+
+  const totalGarden = grouped["garden-structures"].length + grouped["garden-plants"].length + grouped["garden-critters"].length;
+  const ownedGarden = Array.from(ownedSet).filter((id) => id.startsWith("garden-")).length;
 
   return (
     <div>
@@ -80,15 +102,15 @@ export function GardenShop(p: GardenShopProps) {
           </div>
           <div className="grid grid-cols-2 gap-2 text-right">
             <Stat label="Lifetime" value={`${p.lifetimeMinutes}m`} />
-            <Stat label="Owned" value={String(ownedSet.size)} />
+            <Stat label="Garden" value={`${ownedGarden} / ${totalGarden}`} />
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-700">
-          Earn 1 coin per focused minute (capped at 90 / session). Spend them on items below — garden items appear in your scene above, others change how the dashboard or the sheep look + sound.
+          Earn 1 coin per focused minute (capped at 90 / session). Each garden item appears in your scene above the moment you buy it. Sounds, themes, and accessories change how the rest of your dashboard looks and sounds.
         </p>
       </section>
 
-      {/* Shop sections — garden first */}
+      {/* Shop sections — garden categories first */}
       <div className="mt-7 space-y-8">
         {CATEGORY_ORDER.map((cat) => (
           <section key={cat}>
@@ -104,7 +126,8 @@ export function GardenShop(p: GardenShopProps) {
                 const owned = ownedSet.has(r.id);
                 const equipped = equippedByCategory[cat] === r.id;
                 const affordable = p.coins >= r.price;
-                const placed = cat === "garden" && owned;
+                const isGarden = isGardenCat(cat);
+                const placed = isGarden && owned;
                 return (
                   <article
                     key={r.id}
@@ -113,7 +136,13 @@ export function GardenShop(p: GardenShopProps) {
                     } ${CATEGORY_TONE[cat]} p-4 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-200 hover:-translate-y-0.5`}
                   >
                     <div className="flex items-start justify-between">
-                      <span className="text-3xl" aria-hidden>{r.emoji}</span>
+                      {/* Garden items: show the bespoke art thumb. Others: emoji. */}
+                      {isGarden && r.art ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={r.art} alt="" aria-hidden className="h-12 w-12 object-contain" />
+                      ) : (
+                        <span className="text-3xl" aria-hidden>{r.emoji}</span>
+                      )}
                       <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
                         <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
                       </span>
@@ -136,14 +165,14 @@ export function GardenShop(p: GardenShopProps) {
                       )}
 
                       {/* Garden items: owned = always placed, no equip needed. */}
-                      {cat === "garden" && owned && (
+                      {isGarden && owned && (
                         <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
                           ✓ In your garden
                         </span>
                       )}
 
                       {/* Other categories: existing equip/unequip flow. */}
-                      {cat !== "garden" && owned && !equipped && (
+                      {!isGarden && owned && !equipped && (
                         <form action={equipRewardAction}>
                           <input type="hidden" name="item_id" value={r.id} />
                           <input type="hidden" name="category" value={cat} />
@@ -155,7 +184,7 @@ export function GardenShop(p: GardenShopProps) {
                           </button>
                         </form>
                       )}
-                      {cat !== "garden" && equipped && (
+                      {!isGarden && equipped && (
                         <>
                           <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
                             ✓ Equipped
