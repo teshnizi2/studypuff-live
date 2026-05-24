@@ -290,8 +290,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-100 ease-out"
                 style={T(8)}
               >
-                <path d={d} stroke={isNight ? "#8a7a5e" : "#c8b89a"} strokeWidth="34" strokeLinecap="round" fill="none" opacity="0.7" />
-                <path d={d} stroke={isNight ? "#a89878" : "#dccebf"} strokeWidth="22" strokeLinecap="round" strokeDasharray="2 28" fill="none" opacity="0.85" />
+                <path d={d} stroke={isNight ? "#8a7a5e" : "#c8b89a"} strokeWidth="26" strokeLinecap="round" fill="none" opacity="0.55" />
+                <path d={d} stroke={isNight ? "#a89878" : "#dccebf"} strokeWidth="16" strokeLinecap="round" strokeDasharray="2 32" fill="none" opacity="0.75" />
               </svg>
             );
           })()}
@@ -459,9 +459,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             style={T(28)}
           >
             <g fill={isNight ? "#2c4f3a" : "#4f8a48"}>
-              {Array.from({ length: 28 }).map((_, i) => {
-                const cx = (i * 60 + ((i * 37) % 25));
-                const h = 26 + ((i * 31) % 18);
+              {Array.from({ length: 18 }).map((_, i) => {
+                const cx = (i * 92 + ((i * 37) % 25));
+                const h = 22 + ((i * 31) % 14);
                 return (
                   <path key={i}
                     d={`M ${cx} 100 Q ${cx + 2} ${100 - h} ${cx + 6} 100 Z M ${cx + 8} 100 Q ${cx + 10} ${100 - h * 0.7} ${cx + 14} 100 Z`}
@@ -471,8 +471,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 );
               })}
             </g>
-            {!isNight && Array.from({ length: 14 }).map((_, i) => {
-              const cx = 50 + i * 110 + ((i * 53) % 30);
+            {!isNight && Array.from({ length: 7 }).map((_, i) => {
+              const cx = 80 + i * 220 + ((i * 53) % 30);
               const cy = 80 - ((i * 17) % 12);
               return (
                 <g key={`d${i}`} transform={`translate(${cx} ${cy})`}>
