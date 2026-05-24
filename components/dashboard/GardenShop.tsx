@@ -7,19 +7,41 @@ import {
   unequipRewardAction
 } from "@/lib/app-data/actions";
 
+export type GardenShopProps = {
+  coins: number;
+  lifetimeMinutes: number;
+  ownedItemIds: string[];
+  equippedSound: string | null;
+  equippedTheme: string | null;
+  equippedAccessory: string | null;
+};
+
+// Show garden items FIRST — this page is the garden, the shop sections
+// supporting it follow.
+const CATEGORY_ORDER: RewardCategory[] = ["garden", "sound", "theme", "accessory"];
+
 const CATEGORY_LABEL: Record<RewardCategory, string> = {
+  garden: "Garden",
   sound: "Ambient sounds",
   theme: "Themes",
   accessory: "Sheep accessories"
 };
 
+const CATEGORY_HINT: Record<RewardCategory, string> = {
+  garden: "Each item you buy appears in your garden scene above.",
+  sound: "Plays in the background while a focus session runs.",
+  theme: "Re-skins your dashboard until you swap it out.",
+  accessory: "Worn by the sheep in the timer."
+};
+
 const CATEGORY_TONE: Record<RewardCategory, string> = {
+  garden: "from-[#d8eccb] to-[#b8d8a8]",
   sound: "from-brand-sky/70 to-brand-sky/30",
   theme: "from-brand-lilac/70 to-brand-lilac/30",
   accessory: "from-brand-pink/70 to-brand-pink/30"
 };
 
-function CoinGlyph({ className = "h-5 w-5" }: { className?: string }) {
+function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className={className}>
       <circle cx="12" cy="12" r="10" fill="#e9b84a" stroke="#c79126" strokeWidth="1.5" />
@@ -29,29 +51,16 @@ function CoinGlyph({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
-const CATEGORY_HINT: Record<RewardCategory, string> = {
-  sound: "Plays in the background while a focus session runs.",
-  theme: "Re-skins your dashboard until you swap it out.",
-  accessory: "Worn by the sheep in the timer."
-};
-
-export type RewardsContentProps = {
-  coins: number;
-  lifetimeMinutes: number;
-  ownedItemIds: string[];
-  equippedSound: string | null;
-  equippedTheme: string | null;
-  equippedAccessory: string | null;
-};
-
-export function RewardsContent(p: RewardsContentProps) {
+export function GardenShop(p: GardenShopProps) {
   const ownedSet = new Set(p.ownedItemIds);
   const equippedByCategory: Record<RewardCategory, string | null> = {
+    garden: null, // garden items don't equip — owned = placed
     sound: p.equippedSound,
     theme: p.equippedTheme,
     accessory: p.equippedAccessory
   };
   const grouped: Record<RewardCategory, typeof REWARDS> = {
+    garden: REWARDS.filter((r) => r.category === "garden"),
     sound: REWARDS.filter((r) => r.category === "sound"),
     theme: REWARDS.filter((r) => r.category === "theme"),
     accessory: REWARDS.filter((r) => r.category === "accessory")
@@ -60,12 +69,10 @@ export function RewardsContent(p: RewardsContentProps) {
   return (
     <div>
       {/* Balance card */}
-      <section className="rounded-[24px] border border-ink-900/10 bg-gradient-to-br from-brand-butter via-brand-peach to-brand-pink p-5 shadow-soft">
+      <section className="rounded-[26px] border border-white/60 bg-gradient-to-br from-brand-butter via-brand-peach to-brand-pink p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_40px_-28px_rgba(31,77,44,0.45)]">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
-              Your balance
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">Your balance</p>
             <p className="mt-1 flex items-center gap-2 font-display text-4xl text-ink-900">
               <CoinGlyph className="h-8 w-8 drop-shadow-[0_2px_3px_rgba(140,94,18,0.35)]" />
               {p.coins}
@@ -77,13 +84,13 @@ export function RewardsContent(p: RewardsContentProps) {
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-700">
-          Earn 1 coin per focused minute (capped at 90 / session).
+          Earn 1 coin per focused minute (capped at 90 / session). Spend them on items below — garden items appear in your scene above, others change how the dashboard or the sheep look + sound.
         </p>
       </section>
 
-      {/* Shop */}
-      <div className="mt-6 space-y-8">
-        {(Object.keys(grouped) as RewardCategory[]).map((cat) => (
+      {/* Shop sections — garden first */}
+      <div className="mt-7 space-y-8">
+        {CATEGORY_ORDER.map((cat) => (
           <section key={cat}>
             <div className="mb-2 flex items-baseline justify-between gap-3">
               <h3 className="font-display text-xl text-ink-900">{CATEGORY_LABEL[cat]}</h3>
@@ -92,15 +99,18 @@ export function RewardsContent(p: RewardsContentProps) {
               </span>
             </div>
             <p className="mb-3 text-xs text-ink-700">{CATEGORY_HINT[cat]}</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {grouped[cat].map((r) => {
                 const owned = ownedSet.has(r.id);
                 const equipped = equippedByCategory[cat] === r.id;
                 const affordable = p.coins >= r.price;
+                const placed = cat === "garden" && owned;
                 return (
                   <article
                     key={r.id}
-                    className={`flex flex-col rounded-2xl border bg-gradient-to-br ${equipped ? "border-ink-900/70 ring-1 ring-ink-900/30" : "border-white/50"} ${CATEGORY_TONE[cat]} p-4 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-200 hover:-translate-y-0.5`}
+                    className={`flex flex-col rounded-2xl border bg-gradient-to-br ${
+                      equipped || placed ? "border-ink-900/70 ring-1 ring-ink-900/25" : "border-white/55"
+                    } ${CATEGORY_TONE[cat]} p-4 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-200 hover:-translate-y-0.5`}
                   >
                     <div className="flex items-start justify-between">
                       <span className="text-3xl" aria-hidden>{r.emoji}</span>
@@ -124,7 +134,16 @@ export function RewardsContent(p: RewardsContentProps) {
                           </button>
                         </form>
                       )}
-                      {owned && !equipped && (
+
+                      {/* Garden items: owned = always placed, no equip needed. */}
+                      {cat === "garden" && owned && (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
+                          ✓ In your garden
+                        </span>
+                      )}
+
+                      {/* Other categories: existing equip/unequip flow. */}
+                      {cat !== "garden" && owned && !equipped && (
                         <form action={equipRewardAction}>
                           <input type="hidden" name="item_id" value={r.id} />
                           <input type="hidden" name="category" value={cat} />
@@ -136,7 +155,7 @@ export function RewardsContent(p: RewardsContentProps) {
                           </button>
                         </form>
                       )}
-                      {equipped && (
+                      {cat !== "garden" && equipped && (
                         <>
                           <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
                             ✓ Equipped

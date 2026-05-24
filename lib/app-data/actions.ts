@@ -333,6 +333,7 @@ export async function purchaseRewardAction(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/rewards");
+  revalidatePath("/dashboard/garden");
   revalidatePath("/dashboard");
 }
 

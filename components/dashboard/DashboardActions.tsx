@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ListChecks, Sprout, BarChart3, DoorOpen, Coins, Settings as SettingsIcon } from "lucide-react";
+import { ListChecks, Sprout, BarChart3, DoorOpen, Settings as SettingsIcon } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { FocusRail, type RailItem } from "./FocusRail";
 import { AmbientScene } from "./AmbientScene";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
-import { GrowthTree } from "./GrowthTree";
 import { RoomTimer } from "./RoomTimer";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
-import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
 import { HEADER_OPEN_ROOMS, HEADER_OPEN_STATS, HEADER_OPEN_SETTINGS, HEADER_OPEN_GARDEN } from "./HeaderActions";
 import {
@@ -98,7 +96,6 @@ type Props = {
   /** Lifetime focus minutes by task id (last 90 days). */
   minutesByTask?: Record<string, number>;
   stats?: Omit<StatsContentProps, "onCloseHref">;
-  rewards?: RewardsContentProps;
   /** When true, the right-edge garden rail is suppressed so the
       RoomSidebar can take that space. Garden falls back to the inline
       under-timer position it uses on mobile. */
@@ -278,12 +275,12 @@ export function DashboardActions(props: Props) {
       onClick: () => setSidebarHiddenPersist(!sidebarHidden)
     },
     {
+      // Garden + Shop merged into one full page now.
       key: "garden",
       label: "Garden",
       icon: <Sprout className={railIcon} strokeWidth={1.75} aria-hidden />,
-      active: open === "garden",
-      onClick: () => togglePanel("garden"),
-      haspopup: true
+      active: false,
+      href: "/dashboard/garden"
     },
     {
       key: "rooms",
@@ -301,16 +298,6 @@ export function DashboardActions(props: Props) {
           icon: <BarChart3 className={railIcon} strokeWidth={1.75} aria-hidden />,
           active: open === "stats",
           onClick: () => togglePanel("stats"),
-          haspopup: true
-        } as RailItem]
-      : []),
-    ...(props.rewards
-      ? [{
-          key: "rewards",
-          label: "Shop",
-          icon: <Coins className={railIcon} strokeWidth={1.75} aria-hidden />,
-          active: open === "rewards",
-          onClick: () => togglePanel("rewards"),
           haspopup: true
         } as RailItem]
       : []),
@@ -698,36 +685,8 @@ export function DashboardActions(props: Props) {
         </Dialog>
       )}
 
-      {/* Rewards dialog */}
-      {props.rewards && (
-        <Dialog
-          open={open === "rewards"}
-          onClose={close}
-          title="Rewards"
-          description="Earn coins by finishing focus sessions. Spend them on tiny upgrades."
-          size="lg"
-        >
-          <RewardsContent {...props.rewards} />
-        </Dialog>
-      )}
-
-      {/* Garden dialog — replaces the always-visible right rail. */}
-      <Dialog
-        open={open === "garden"}
-        onClose={close}
-        title="Your garden"
-        description="A new leaf for every 25 minutes of focus."
-        size="md"
-      >
-        <div className="flex justify-center py-2">
-          <GrowthTree
-            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-            tasksDone={props.tasks.filter((t) => t.done).length}
-            streak={props.stats?.streak ?? 0}
-          />
-        </div>
-      </Dialog>
+      {/* Garden + Shop modals removed — both moved to /dashboard/garden as
+          a real page. The rail's "Garden" entry navigates there directly. */}
     </>
   );
 }

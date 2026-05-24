@@ -229,14 +229,6 @@ export default async function DashboardPage() {
             recent,
             todayIso
           }}
-          rewards={{
-            coins: settings?.coins ?? 0,
-            lifetimeMinutes,
-            ownedItemIds: (purchases || []).map((p) => p.item_id),
-            equippedSound: settings?.equipped_sound ?? null,
-            equippedTheme: settings?.equipped_theme ?? null,
-            equippedAccessory: settings?.equipped_accessory ?? null
-          }}
         />
         {activeRoom && (
           <RoomSidebar
