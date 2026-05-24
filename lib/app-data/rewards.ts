@@ -77,7 +77,7 @@ export const REWARDS: Reward[] = [
   { id: "garden-frogstatue", name: "Lily-pad frog", category: "garden-critters", price: 130, emoji: "🐸", description: "A round stone frog statue with a lotus on its head.", art: "/garden/item-frogstatue.webp", placement: { x: 80, y: 92, scale: 0.55, layer: 6 } },
   { id: "garden-snail", name: "Stripey snail", category: "garden-critters", price: 70, emoji: "🐌", description: "A friendly snail with a candy-striped shell.", art: "/garden/item-snail.webp", placement: { x: 52, y: 96, scale: 0.45, layer: 7 } },
   { id: "garden-beehive", name: "Honey hive", category: "garden-critters", price: 200, emoji: "🐝", description: "A striped beehive hanging from a tree branch.", art: "/garden/item-beehive.webp", placement: { x: 19, y: 58, scale: 0.8, layer: 1 } },
-  { id: "garden-buntingflags", name: "Bunting flags", category: "garden-critters", price: 80, emoji: "🎉", description: "Colourful triangle flags strung between two posts.", art: "/garden/item-buntingflags.webp", placement: { x: 45, y: 82, scale: 1.1, layer: 4 } },
+  { id: "garden-picnic", name: "Picnic basket", category: "garden-critters", price: 80, emoji: "🧺", description: "A wicker basket with a baguette and apple, set on a checkered cloth.", art: "/garden/item-picnic.webp", placement: { x: 47, y: 88, scale: 0.8, layer: 5 } },
   { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 60, y: 96, scale: 0.65, layer: 7 } }
 ];
 
