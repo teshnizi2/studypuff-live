@@ -38,8 +38,9 @@ export function GrowthTree({ lifetimeMinutes, todayMinutes = 0, tasksDone = 0, s
   const [testMode, setTestMode] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const on = new URLSearchParams(window.location.search).get("growthtest") === "1";
-    if (!on) return;
+    // TEMPORARY: always-on test mode so the user can verify growth visually.
+    // Once verified, revert to the query-param gate (?growthtest=1) or remove
+    // this whole block entirely.
     setTestMode(true);
     const id = window.setInterval(() => setExtraMinutes((m) => m + 5), 1000);
     return () => window.clearInterval(id);
