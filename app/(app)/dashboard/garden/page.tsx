@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GardenScene } from "@/components/dashboard/GardenScene";
 import { GardenShop } from "@/components/dashboard/GardenShop";
@@ -55,8 +57,15 @@ export default async function GardenPage() {
   const ownedItemIds = (purchases || []).map((p) => p.item_id);
 
   return (
-    <DashboardShell profile={profile} bg="scene" fullBleed>
-      <div className="mx-auto w-full max-w-[1100px] px-6 pb-16 pt-2 lg:px-10">
+    <DashboardShell profile={profile} bg="cream">
+      <div className="mx-auto w-full max-w-[1100px]">
+        <Link
+          href="/dashboard"
+          className="mb-4 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-ink-700 hover:text-ink-900"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" strokeWidth={1.75} />
+          Back to dashboard
+        </Link>
         <header className="mb-6 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-ink-700/80">Your garden</p>
           <h1 className="mt-1 font-display text-3xl italic text-ink-900 md:text-4xl">Tend it with every focused minute.</h1>
