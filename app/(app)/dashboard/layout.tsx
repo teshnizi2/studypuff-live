@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth/guards";
+import { DashboardRailNav } from "@/components/dashboard/DashboardRailNav";
 
 // Set the time-of-day on <html> BEFORE first paint so the AmbientScene sky
 // renders in the correct palette immediately — no flash of the default "day"
@@ -10,6 +11,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: TOD_SCRIPT }} />
+      {/* The rail lives in the layout so EVERY dashboard sub-route gets it.
+          Previously it was inside DashboardActions (home-only), which stranded
+          users on /dashboard/garden — a real defect this fixes. */}
+      <DashboardRailNav />
       {children}
     </>
   );

@@ -7,6 +7,8 @@ export type Reward = {
   price: number;
   emoji: string;
   description: string;
+  /** Bespoke art asset path (for garden items rendered in the scene). */
+  art?: string;
   /** For garden items: where the item sits on the garden scene, as a
    *  percentage of the scene's width / height (0–100). Larger values move
    *  toward the right / bottom. Optional `scale` tweaks the rendered size. */
@@ -34,14 +36,16 @@ export const REWARDS: Reward[] = [
   { id: "sheep-mug", name: "Floating tea mug", category: "accessory", price: 60, emoji: "🍵", description: "A small mug of tea that follows the sheep around." },
 
   // Garden items — auto-placed in the garden scene when owned.
-  { id: "garden-mushrooms", name: "Mushroom cluster", category: "garden", price: 70, emoji: "🍄", description: "A patch of red-capped mushrooms tucked in the grass.", placement: { x: 22, y: 78, scale: 1 } },
-  { id: "garden-bench", name: "Stone bench", category: "garden", price: 90, emoji: "🪑", description: "A quiet bench to sit at after a focus session.", placement: { x: 78, y: 76, scale: 1.1 } },
-  { id: "garden-vegpatch", name: "Vegetable patch", category: "garden", price: 110, emoji: "🥕", description: "Carrots and greens growing in neat rows.", placement: { x: 34, y: 84, scale: 1.05 } },
-  { id: "garden-lantern", name: "Lantern path", category: "garden", price: 130, emoji: "🏮", description: "Soft paper lanterns lighting a little path.", placement: { x: 48, y: 86, scale: 0.95 } },
-  { id: "garden-birdbath", name: "Bird bath", category: "garden", price: 150, emoji: "🪺", description: "A stone bowl where little birds come to splash.", placement: { x: 62, y: 82, scale: 1 } },
-  { id: "garden-pond", name: "Wishing pond", category: "garden", price: 180, emoji: "💧", description: "A small clear pond with a lily pad or two.", placement: { x: 84, y: 84, scale: 1.4 } },
-  { id: "garden-cottage", name: "Cozy cottage", category: "garden", price: 240, emoji: "🏡", description: "A little wooden cottage at the edge of your garden.", placement: { x: 12, y: 70, scale: 1.6 } },
-  { id: "garden-gnome", name: "Garden gnome", category: "garden", price: 280, emoji: "🧙", description: "A friendly gnome watching over your tree.", placement: { x: 38, y: 88, scale: 0.9 } }
+  // Bespoke flat-illustration art (fal.ai-generated), webp-optimized.
+  // Placement is in % of the scene; scale tweaks rendered size.
+  { id: "garden-mushrooms", name: "Mushroom cluster", category: "garden", price: 70, emoji: "🍄", description: "A patch of red-capped mushrooms tucked in the grass.", art: "/garden/item-mushrooms.webp", placement: { x: 22, y: 78, scale: 0.9 } },
+  { id: "garden-bench", name: "Stone bench", category: "garden", price: 90, emoji: "🪑", description: "A quiet bench to sit at after a focus session.", art: "/garden/item-bench.webp", placement: { x: 78, y: 78, scale: 1.0 } },
+  { id: "garden-vegpatch", name: "Vegetable patch", category: "garden", price: 110, emoji: "🥕", description: "Carrots and greens growing in neat rows.", art: "/garden/item-vegpatch.webp", placement: { x: 34, y: 86, scale: 1.0 } },
+  { id: "garden-lantern", name: "Lantern path", category: "garden", price: 130, emoji: "🏮", description: "Soft paper lanterns lighting a little path.", art: "/garden/item-lantern.webp", placement: { x: 50, y: 82, scale: 1.0 } },
+  { id: "garden-birdbath", name: "Bird bath", category: "garden", price: 150, emoji: "🪺", description: "A stone bowl where little birds come to splash.", art: "/garden/item-birdbath.webp", placement: { x: 64, y: 80, scale: 1.0 } },
+  { id: "garden-pond", name: "Wishing pond", category: "garden", price: 180, emoji: "💧", description: "A small clear pond with a lily pad or two.", art: "/garden/item-pond.webp", placement: { x: 86, y: 88, scale: 1.35 } },
+  { id: "garden-cottage", name: "Cozy cottage", category: "garden", price: 240, emoji: "🏡", description: "A little wooden cottage at the edge of your garden.", art: "/garden/item-cottage.webp", placement: { x: 14, y: 70, scale: 1.45 } },
+  { id: "garden-gnome", name: "Garden gnome", category: "garden", price: 280, emoji: "🧙", description: "A friendly gnome watching over your tree.", art: "/garden/item-gnome.webp", placement: { x: 40, y: 90, scale: 0.85 } }
 ];
 
 export function rewardById(id: string) {

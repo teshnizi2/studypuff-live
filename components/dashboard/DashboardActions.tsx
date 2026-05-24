@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ListChecks, Sprout, BarChart3, DoorOpen, Settings as SettingsIcon } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { ListChecks } from "lucide-react";
 import { Dialog } from "./Dialog";
-import { FocusRail, type RailItem } from "./FocusRail";
 import { AmbientScene } from "./AmbientScene";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
@@ -246,7 +246,29 @@ export function DashboardActions(props: Props) {
   };
 
   const sound = soundsByMode[timerMode];
-  const close = () => setOpen(null);
+
+  // Open the matching modal when the URL has ?panel=X. The rail (in the
+  // dashboard layout) sets this param when its panel-opener items are
+  // clicked, so the rail works on every sub-route — on home, clicking
+  // "Stats" pops the stats modal; from /dashboard/garden, the rail link
+  // navigates here AND pops the modal.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const p = searchParams.get("panel");
+    if (p === "rooms" || p === "settings" || p === "stats" || p === "profile") setOpen(p);
+    else setOpen(null);
+  }, [searchParams]);
+
+  const close = () => {
+    setOpen(null);
+    // Strip the panel param without reloading or scrolling.
+    const u = new URLSearchParams(searchParams.toString());
+    u.delete("panel");
+    const qs = u.toString();
+    router.replace(pathname + (qs ? "?" + qs : ""), { scroll: false });
+  };
 
   const handleSelectTask = (taskId: string, topicId: string) => {
     setCurrentTaskId(taskId);
@@ -261,55 +283,6 @@ export function DashboardActions(props: Props) {
       if (!task || task.topic_id !== topicId) setCurrentTaskId("");
     }
   };
-
-  // Toggle a dialog panel: clicking the active one closes it.
-  const togglePanel = (key: ModalKey) => setOpen((cur) => (cur === key ? null : key));
-  const railIcon = "h-5 w-5";
-
-  const railItems: RailItem[] = [
-    {
-      key: "tasks",
-      label: "Tasks",
-      icon: <ListChecks className={railIcon} strokeWidth={1.75} aria-hidden />,
-      active: !sidebarHidden,
-      onClick: () => setSidebarHiddenPersist(!sidebarHidden)
-    },
-    {
-      // Garden + Shop merged into one full page now.
-      key: "garden",
-      label: "Garden",
-      icon: <Sprout className={railIcon} strokeWidth={1.75} aria-hidden />,
-      active: false,
-      href: "/dashboard/garden"
-    },
-    {
-      key: "rooms",
-      label: "Rooms",
-      icon: <DoorOpen className={railIcon} strokeWidth={1.75} aria-hidden />,
-      active: open === "rooms",
-      onClick: () => togglePanel("rooms"),
-      badge: !!props.activeRoomTimer,
-      haspopup: true
-    },
-    ...(props.stats
-      ? [{
-          key: "stats",
-          label: "Stats",
-          icon: <BarChart3 className={railIcon} strokeWidth={1.75} aria-hidden />,
-          active: open === "stats",
-          onClick: () => togglePanel("stats"),
-          haspopup: true
-        } as RailItem]
-      : []),
-    {
-      key: "settings",
-      label: "Settings",
-      icon: <SettingsIcon className={railIcon} strokeWidth={1.75} aria-hidden />,
-      active: open === "settings",
-      onClick: () => togglePanel("settings"),
-      haspopup: true
-    }
-  ];
 
   return (
     <>
@@ -330,8 +303,9 @@ export function DashboardActions(props: Props) {
       <div className="relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />
 
-        {/* Slim focus rail — the single access point for every panel. */}
-        <FocusRail items={railItems} />
+        {/* The dashboard rail now lives in app/(app)/dashboard/layout.tsx so
+            every sub-route gets it. We just listen here for the ?panel=KEY
+            param it sets when its panel-openers are clicked. */}
 
         {/* Tasks panel — slides in beside the rail when opened. Hidden by
             default so the timer owns a calm, near-empty space. */}
