@@ -205,41 +205,28 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             </>
           )}
 
-          {/* 3 — meadow backdrop (smallest parallax), tinted at night */}
+          {/* 3 — Painted garden-courtyard backdrop. The backdrop bakes in the
+              far hills, distant trees, drifting clouds, framing corner trees,
+              and a worn path — so we no longer overlay our own SVG silhouettes,
+              clouds, or dashed dirt path on top. */}
           <div
             aria-hidden
             className="absolute inset-0 transition-[filter] duration-1000 ease-in-out"
-            style={{ backgroundImage: "url(/garden-meadow.webp)", backgroundSize: "cover", backgroundPosition: "center", filter: meadowTone, ...T(5) }}
+            style={{ backgroundImage: "url(/garden-courtyard.webp)", backgroundSize: "cover", backgroundPosition: "center", filter: meadowTone, ...T(5) }}
           />
 
-          {/* Night colour overlay — softens cream + adds blue tint over meadow */}
+          {/* Night colour overlay — desaturates the painted scene + adds blue tint */}
           {isNight && (
             <div aria-hidden className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(to bottom, rgba(20,22,58,0.45) 0%, rgba(40,40,90,0.35) 60%, rgba(28,28,60,0.5) 100%)" }} />
+              style={{ background: "linear-gradient(to bottom, rgba(20,22,58,0.5) 0%, rgba(40,40,90,0.4) 60%, rgba(28,28,60,0.55) 100%)" }} />
           )}
-
-          {/* 4 — distant tree silhouettes on the hills */}
-          <svg
-            aria-hidden viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid slice"
-            className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-100 ease-out"
-            style={{ ...T(9), opacity: isNight ? 0.35 : 0.55 }}
-          >
-            {[180, 250, 320, 1140, 1240, 1320, 1400].map((x, i) => (
-              <g key={i} transform={`translate(${x} ${480 + (i % 2) * 14}) scale(${0.6 + ((i * 37) % 30) / 100})`}>
-                <ellipse cx="0" cy="0" rx="36" ry="28" fill={isNight ? "#2e3855" : "#9bc098"} />
-                <ellipse cx="-14" cy="6" rx="22" ry="18" fill={isNight ? "#28304a" : "#8aae87"} />
-                <ellipse cx="16" cy="4" rx="24" ry="20" fill={isNight ? "#28304a" : "#8aae87"} />
-                <rect x="-3" y="16" width="6" height="14" fill={isNight ? "#1f253a" : "#7a5e3a"} rx="2" />
-              </g>
-            ))}
-          </svg>
-
-          {/* 5 — drifting clouds (dimmed at night) */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden" style={{ opacity: isNight ? 0.35 : 1, ...T(3) }}>
-            <div className="garden-cloud garden-cloud-1" />
-            <div className="garden-cloud garden-cloud-2" />
-            <div className="garden-cloud garden-cloud-3" />
-          </div>
+          {/* Dusk / dawn warm wash — gentle peach overlay so the painted scene picks up the sky's mood */}
+          {(tod === "dusk" || tod === "dawn") && (
+            <div aria-hidden className="pointer-events-none absolute inset-0"
+              style={{ background: tod === "dusk"
+                ? "linear-gradient(to bottom, rgba(255,140,90,0.18) 0%, rgba(255,170,120,0.08) 50%, rgba(255,200,160,0.04) 100%)"
+                : "linear-gradient(to bottom, rgba(255,200,140,0.16) 0%, rgba(255,220,180,0.06) 50%, rgba(255,240,210,0.02) 100%)" }} />
+          )}
 
           {/* 6 — Season weather overlay. Petals (spring), sunbeams (summer),
               leaves (autumn), snowflakes (winter). Rotates every 22 s. */}
@@ -270,53 +257,35 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             )}
           </div>
 
-          {/* 7 — winding path threading the owned items */}
-          {placedItems.length > 0 && (() => {
-            const sorted = [...placedItems].sort((a, b) => a.placement.x - b.placement.x);
-            const points: Array<{ x: number; y: number }> = [
-              { x: 60, y: 730 },
-              ...sorted.map((it) => ({ x: it.placement.x * 16, y: it.placement.y * 8 - 14 })),
-              { x: 1540, y: 720 }
-            ];
-            let d = `M ${points[0].x} ${points[0].y}`;
-            for (let i = 1; i < points.length; i++) {
-              const a = points[i - 1], b = points[i];
-              const mx = (a.x + b.x) / 2;
-              d += ` C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
-            }
-            return (
-              <svg
-                aria-hidden viewBox="0 0 1600 800" preserveAspectRatio="none"
-                className="pointer-events-none absolute inset-0 h-full w-full transition-transform duration-100 ease-out"
-                style={T(8)}
-              >
-                <path d={d} stroke={isNight ? "#8a7a5e" : "#c8b89a"} strokeWidth="26" strokeLinecap="round" fill="none" opacity="0.55" />
-                <path d={d} stroke={isNight ? "#a89878" : "#dccebf"} strokeWidth="16" strokeLinecap="round" strokeDasharray="2 32" fill="none" opacity="0.75" />
-              </svg>
-            );
-          })()}
+          {/* Path is now PAINTED into the courtyard backdrop — no dynamic SVG
+              overlay needed. Items snap to its visible curve via their
+              placement coords. */}
 
-          {/* 8 — Tree (anchor of the scene) */}
-          <div className="absolute left-[50%] top-[42%] -translate-x-1/2 transition-transform duration-100 ease-out" style={T(14)}>
+          {/* 8 — Hero focus tree, planted on the painted central plot.
+              Size pulled in a touch so it sits in the painted plot's bowl
+              rather than soaring over the courtyard's framing trees. */}
+          <div className="absolute left-[50%] top-[50%] -translate-x-1/2 transition-transform duration-100 ease-out" style={T(14)}>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/garden-tree.webp"
                 alt={`Your focus tree — ${stage.name.toLowerCase()}`}
-                className="block h-auto w-[clamp(260px,46%,520px)] origin-bottom transition-[transform,filter] duration-700 ease-out"
+                className="block h-auto w-[clamp(200px,36%,400px)] origin-bottom transition-[transform,filter] duration-700 ease-out"
                 style={{ transform: `scale(${stage.scale})`, filter: isNight ? "brightness(0.7) saturate(0.7)" : "none" }}
               />
-              <div aria-hidden className="absolute left-[58%] bottom-[-4%] h-[14px] w-[55%] -translate-x-1/2 rounded-[50%]"
+              <div aria-hidden className="absolute left-[55%] bottom-[-3%] h-[12px] w-[55%] -translate-x-1/2 rounded-[50%]"
                 style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.4), transparent 70%)" }} />
             </div>
           </div>
 
-          {/* 9 — Brand sheep — on the ground at the tree's base */}
-          <div className="absolute left-[58%] top-[78%] -translate-x-1/2 -translate-y-full transition-transform duration-100 ease-out" style={T(18)} aria-hidden>
+          {/* 9 — Brand sheep — character standing in the courtyard, slightly
+              right of the central tree, near the painted path crossing.
+              Smaller than before so the courtyard's depth reads first. */}
+          <div className="absolute left-[57%] top-[82%] -translate-x-1/2 -translate-y-full transition-transform duration-100 ease-out" style={T(18)} aria-hidden>
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/studypuff-sheep.png" alt="" className="block h-auto w-[clamp(72px,9%,128px)]" style={{ filter: isNight ? "brightness(0.85)" : "none" }} />
-              <div aria-hidden className="absolute left-[50%] bottom-[-6px] h-[10px] w-[80%] -translate-x-1/2 rounded-[50%]"
+              <img src="/studypuff-sheep.png" alt="" className="block h-auto w-[clamp(54px,7%,96px)]" style={{ filter: isNight ? "brightness(0.85)" : "none" }} />
+              <div aria-hidden className="absolute left-[50%] bottom-[-4px] h-[8px] w-[80%] -translate-x-1/2 rounded-[50%]"
                 style={{ background: "radial-gradient(closest-side, rgba(31,45,30,0.35), transparent 70%)" }} />
             </div>
           </div>
@@ -510,18 +479,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             </p>
           )}
 
-          {/* Tiny TOD + season indicator (top-right corner, very subtle) */}
-          <div className="pointer-events-none absolute right-3 top-3 flex items-center gap-2 rounded-full bg-white/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-700 backdrop-blur-sm">
-            <span aria-hidden>
-              {tod === "dawn" ? "🌄" : tod === "day" ? "🌤️" : tod === "dusk" ? "🌇" : "🌙"}
-            </span>
-            <span>{tod}</span>
-            <span aria-hidden className="text-ink-700/40">·</span>
-            <span aria-hidden>
-              {season === "spring" ? "🌸" : season === "summer" ? "☀️" : season === "autumn" ? "🍂" : "❄️"}
-            </span>
-            <span>{season}</span>
-          </div>
+          {/* In-game sun-arc HUD: shows where in the day we are on a painted arc,
+              with the active orb (sun by day, moon at night) sitting at the
+              correct point along the arc. Plus a season strip below. */}
+          <SunArcHud tod={tod} season={season} />
         </div>
 
         <style jsx>{`
@@ -801,5 +762,110 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         </p>
       </div>
     </section>
+  );
+}
+
+/**
+ * In-game sun-arc HUD. A half-arc with a sun (day/dawn/dusk) or moon (night)
+ * sliding along it to show roughly where we are in the day. Painterly look:
+ * warm cream fill, soft inner shadow, peach gradient on the arc itself.
+ * Sits top-right inside the scene like a real cozy-game HUD widget.
+ */
+function SunArcHud({ tod, season }: { tod: Tod; season: Season }) {
+  // Map TOD to a 0..1 progress along the day-arc (0 = dawn left, 1 = dusk right).
+  // Night uses its own moon arc.
+  const progress: number =
+    tod === "dawn" ? 0.12 :
+    tod === "day"  ? 0.5 :
+    tod === "dusk" ? 0.88 :
+                     0.5; // night — moon at top of moon arc
+
+  const isNight = tod === "night";
+  // Arc geometry: semicircle from (8, 56) to (96, 56), radius 44, centered at (52, 56).
+  const cx = 52, cy = 56, r = 44;
+  // Angle along the arc: 180deg (left) at progress=0 to 0deg (right) at progress=1.
+  const angle = Math.PI * (1 - progress);
+  const orbX = cx + r * Math.cos(angle);
+  const orbY = cy - r * Math.sin(angle);
+
+  const seasonGlyph = season === "spring" ? "🌸" : season === "summer" ? "☀️" : season === "autumn" ? "🍂" : "❄️";
+  const seasonLabel = season.charAt(0).toUpperCase() + season.slice(1);
+  const todLabel = tod.charAt(0).toUpperCase() + tod.slice(1);
+
+  return (
+    <div
+      aria-label={`${todLabel} · ${seasonLabel}`}
+      className="pointer-events-none absolute right-4 top-4 select-none"
+      style={{ width: 132, filter: "drop-shadow(0 6px 12px rgba(31,77,44,0.18))" }}
+    >
+      {/* Painted plaque */}
+      <svg viewBox="0 0 132 86" className="block w-full">
+        <defs>
+          <linearGradient id="plaque-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={isNight ? "#3a3766" : "#fbe6c8"} />
+            <stop offset="100%" stopColor={isNight ? "#262346" : "#f3cf9a"} />
+          </linearGradient>
+          <linearGradient id="arc-bg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor={isNight ? "#1d1f48" : "#ffd5a4"} />
+            <stop offset="50%" stopColor={isNight ? "#3a3d70" : "#ffb88a"} />
+            <stop offset="100%" stopColor={isNight ? "#1d1f48" : "#5a3f6f"} />
+          </linearGradient>
+          <radialGradient id="orb-day" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fff6c4" />
+            <stop offset="60%" stopColor="#ffd07a" />
+            <stop offset="100%" stopColor="#ffa64d" />
+          </radialGradient>
+          <radialGradient id="orb-night" cx="40%" cy="40%" r="55%">
+            <stop offset="0%" stopColor="#fbf5d8" />
+            <stop offset="65%" stopColor="#e2d4a0" />
+            <stop offset="100%" stopColor="#aa9658" />
+          </radialGradient>
+        </defs>
+        {/* Plaque body */}
+        <rect x="2" y="2" width="128" height="82" rx="14" ry="14"
+          fill="url(#plaque-fill)" stroke={isNight ? "#7d7aa8" : "#b88a5b"} strokeWidth="2" />
+        {/* Inner sky band (arc background) */}
+        <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy} Z`} fill="url(#arc-bg)" opacity="0.92" />
+        {/* Arc highlight stripe (mimics horizon glow) */}
+        <path d={`M ${cx - r + 4} ${cy - 1} A ${r - 4} ${r - 4} 0 0 1 ${cx + r - 4} ${cy - 1}`}
+          fill="none" stroke={isNight ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.55)"} strokeWidth="1.5" />
+        {/* Tick marks at dawn / noon / dusk */}
+        {[0, 0.5, 1].map((p) => {
+          const a = Math.PI * (1 - p);
+          const x1 = cx + (r + 1) * Math.cos(a);
+          const y1 = cy - (r + 1) * Math.sin(a);
+          const x2 = cx + (r - 4) * Math.cos(a);
+          const y2 = cy - (r - 4) * Math.sin(a);
+          return (
+            <line key={p} x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={isNight ? "rgba(255,255,255,0.55)" : "#7a4a22"} strokeWidth="1.2" strokeLinecap="round" />
+          );
+        })}
+        {/* The current orb (sun by day, moon at night) */}
+        <circle cx={orbX} cy={orbY} r="6.5"
+          fill={isNight ? "url(#orb-night)" : "url(#orb-day)"} />
+        {/* Soft halo */}
+        <circle cx={orbX} cy={orbY} r="11"
+          fill={isNight ? "rgba(251,245,216,0.18)" : "rgba(255,200,100,0.32)"} />
+        {/* Ground line under the arc */}
+        <line x1="6" y1="58" x2="126" y2="58"
+          stroke={isNight ? "rgba(255,255,255,0.25)" : "rgba(122,74,34,0.55)"} strokeWidth="1.2" />
+        {/* Label */}
+        <text x="66" y="76" textAnchor="middle"
+          fontSize="11" fontWeight="700"
+          fill={isNight ? "#f3eed1" : "#5a3920"}
+          fontFamily="system-ui, -apple-system, sans-serif">
+          {todLabel} · {seasonLabel}
+        </text>
+      </svg>
+      {/* Decorative season glyph in corner */}
+      <span
+        aria-hidden
+        className="absolute -right-1 -top-1 select-none text-base"
+        style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.18))" }}
+      >
+        {seasonGlyph}
+      </span>
+    </div>
   );
 }
