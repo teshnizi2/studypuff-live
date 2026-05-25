@@ -22,44 +22,52 @@ function stageFor(m: number): { name: string; scale: number } {
 }
 
 /**
- * Top-down / tile-position config for each garden item.
- * x, y are % of scene container (0=left/top, 100=right/bottom).
- * size is % of container width.
- * Lower z = drawn behind, higher z = drawn in front.
+ * v18: themed-zone tile positions on the new td-map.webp.
+ * The map has 5 painted zones — items now land in their thematic zone.
+ *
+ *   FARM       (top-left brown soil): carrots, pumpkins, hay bale, scarecrow, applestree
+ *   FOREST     (top-right grass + edges): treehouse, mushrooms, fairy ring, snail, beehive
+ *   HOMESTEAD  (center stone plaza): cottage, well, mailbox, signpost, bench, lantern, picnic
+ *   POND       (bottom-left blue water): bridge, waterlilies, frog statue, birdbath, pond
+ *   ROSE GARDEN (bottom-right grass): gazebo, flowerbed, gnome
+ *
+ * x, y in % of scene container. size in % of container width. Higher z = front.
  */
 const TD_LAYOUT: Record<string, { x: number; y: number; size: number; z: number }> = {
-  // Centerpieces
-  "garden-cottage":      { x: 18, y: 55, size: 22, z: 5 },
-  "garden-treehouse":    { x: 80, y: 48, size: 22, z: 5 },
-  "garden-gazebo":       { x: 60, y: 50, size: 18, z: 4 },
-  "garden-well":         { x: 38, y: 70, size: 13, z: 6 },
+  // ─── FARM zone (top-left brown soil) ───
+  "garden-vegpatch":     { x: 12, y: 18, size: 9,  z: 5 },
+  "garden-pumpkinpatch": { x: 24, y: 16, size: 10, z: 5 },
+  "garden-haybale":      { x: 20, y: 32, size: 9,  z: 6 },
+  "garden-scarecrow":    { x: 9,  y: 32, size: 10, z: 6 },
+  "garden-applestree":   { x: 32, y: 28, size: 11, z: 4 },
 
-  // Path / functional
-  "garden-bridge":       { x: 8, y: 88, size: 14, z: 7 },
-  "garden-signpost":     { x: 28, y: 78, size: 8, z: 7 },
-  "garden-mailbox":      { x: 14, y: 70, size: 8, z: 6 },
-  "garden-lantern":      { x: 48, y: 82, size: 8, z: 8 },
-  "garden-bench":        { x: 70, y: 70, size: 11, z: 6 },
+  // ─── FOREST zone (top-right grass, including hanging beehive) ───
+  "garden-treehouse":    { x: 78, y: 24, size: 16, z: 4 },
+  "garden-mushrooms":    { x: 90, y: 38, size: 7,  z: 7 },
+  "garden-fairyring":    { x: 82, y: 44, size: 8,  z: 7 },
+  "garden-beehive":      { x: 92, y: 14, size: 8,  z: 3 },
+  "garden-snail":        { x: 86, y: 50, size: 5,  z: 9 },
 
-  // Plants and bounty
-  "garden-applestree":   { x: 32, y: 50, size: 14, z: 4 },
-  "garden-pond":         { x: 88, y: 82, size: 14, z: 7 },
-  "garden-pumpkinpatch": { x: 36, y: 85, size: 11, z: 8 },
-  "garden-vegpatch":     { x: 50, y: 88, size: 10, z: 8 },
-  "garden-flowerbed":    { x: 22, y: 88, size: 9, z: 8 },
-  "garden-haybale":      { x: 64, y: 86, size: 10, z: 8 },
-  "garden-mushrooms":    { x: 58, y: 78, size: 7, z: 7 },
-  "garden-waterlilies":  { x: 79, y: 92, size: 8, z: 9 },
+  // ─── HOMESTEAD zone (center stone plaza) ───
+  "garden-cottage":      { x: 49, y: 48, size: 15, z: 5 },
+  "garden-well":         { x: 37, y: 52, size: 10, z: 6 },
+  "garden-mailbox":      { x: 60, y: 55, size: 7,  z: 6 },
+  "garden-signpost":     { x: 42, y: 62, size: 7,  z: 7 },
+  "garden-bench":        { x: 60, y: 65, size: 9,  z: 6 },
+  "garden-lantern":      { x: 50, y: 38, size: 7,  z: 7 },
+  "garden-picnic":       { x: 38, y: 38, size: 8,  z: 6 },
 
-  // Critters and whimsy
-  "garden-scarecrow":    { x: 45, y: 65, size: 12, z: 5 },
-  "garden-gnome":        { x: 26, y: 88, size: 6, z: 9 },
-  "garden-birdbath":     { x: 72, y: 60, size: 10, z: 5 },
-  "garden-frogstatue":   { x: 86, y: 90, size: 6, z: 9 },
-  "garden-snail":        { x: 18, y: 93, size: 5, z: 9 },
-  "garden-beehive":      { x: 10, y: 20, size: 9, z: 3 },
-  "garden-picnic":       { x: 56, y: 70, size: 10, z: 6 },
-  "garden-fairyring":    { x: 90, y: 70, size: 8, z: 7 }
+  // ─── POND zone (bottom-left blue water) ───
+  "garden-bridge":       { x: 16, y: 56, size: 13, z: 8 },
+  "garden-pond":         { x: 26, y: 80, size: 12, z: 5 },
+  "garden-waterlilies":  { x: 14, y: 76, size: 8,  z: 8 },
+  "garden-frogstatue":   { x: 22, y: 88, size: 6,  z: 9 },
+  "garden-birdbath":     { x: 32, y: 90, size: 9,  z: 7 },
+
+  // ─── ROSE GARDEN zone (bottom-right grass) ───
+  "garden-gazebo":       { x: 70, y: 78, size: 16, z: 5 },
+  "garden-flowerbed":    { x: 60, y: 90, size: 10, z: 8 },
+  "garden-gnome":        { x: 88, y: 88, size: 7,  z: 9 }
 };
 
 type Tod = "dawn" | "day" | "dusk" | "night";
@@ -112,7 +120,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         className="relative w-full overflow-hidden rounded-[28px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
         data-tod={tod}
       >
-        <div className="relative aspect-[16/8] w-full">
+        <div className="relative aspect-[16/9] w-full">
           {/* Base top-down map */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
