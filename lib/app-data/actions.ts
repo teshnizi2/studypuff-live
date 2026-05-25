@@ -369,6 +369,40 @@ export async function equipRewardAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+/** Garden item-placement persistence — accepts a JSON layout map and stores
+ *  it as user_settings.garden_layout. Caller posts the full layout (not a diff)
+ *  so the column always reflects the current state. */
+export async function saveGardenLayoutAction(formData: FormData) {
+  const { user } = await requireUser();
+  const raw = stringValue(formData, "layout");
+  if (!raw) throw new Error("Missing layout.");
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { throw new Error("Invalid layout JSON."); }
+  if (!parsed || typeof parsed !== "object") throw new Error("Layout must be an object.");
+
+  // Sanitize: only accept {x, y} numbers in 0-100 range, item-id key.
+  const clean: Record<string, { x: number; y: number }> = {};
+  for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+    if (!k.startsWith("garden-")) continue;
+    if (!v || typeof v !== "object") continue;
+    const { x, y } = v as { x?: unknown; y?: unknown };
+    if (typeof x !== "number" || typeof y !== "number") continue;
+    if (x < -10 || x > 110 || y < -10 || y > 110) continue;
+    clean[k] = { x, y };
+  }
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("user_settings").update({ garden_layout: clean }).eq("user_id", user.id);
+  revalidatePath("/dashboard/garden");
+}
+
+export async function resetGardenLayoutAction() {
+  const { user } = await requireUser();
+  const supabase = createSupabaseServerClient();
+  await supabase.from("user_settings").update({ garden_layout: {} }).eq("user_id", user.id);
+  revalidatePath("/dashboard/garden");
+}
+
 export async function unequipRewardAction(formData: FormData) {
   const { user } = await requireUser();
   const category = stringValue(formData, "category");
