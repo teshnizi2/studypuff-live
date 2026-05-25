@@ -118,6 +118,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const [dragging, setDragging] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const sceneRef = useRef<HTMLDivElement>(null);
+  // Mirror localLayout into a ref so pointer handlers can read latest value
+  // without being recreated on every drag-tick + without state-setter-in-setter.
+  const layoutRef = useRef<Layout>(localLayout);
+  useEffect(() => { layoutRef.current = localLayout; }, [localLayout]);
   const [, startTransition] = useTransition();
 
   // Sync localLayout from prop when server pushes a fresh saved layout
@@ -165,22 +169,22 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     const rect = sceneRef.current.getBoundingClientRect();
     const xPct = ((e.clientX - rect.left) / rect.width) * 100;
     const yPct = ((e.clientY - rect.top) / rect.height) * 100;
-    // Clamp to a sensible playable area; the user can position anywhere 0..100.
     const x = Math.max(0, Math.min(100, xPct));
     const y = Math.max(0, Math.min(100, yPct));
-    setLocalLayout((prev) => ({ ...prev, [dragging]: { x, y } }));
+    const id = dragging;
+    setLocalLayout((prev) => {
+      const next = { ...prev, [id]: { x, y } };
+      layoutRef.current = next; // keep ref in sync for pointerup
+      return next;
+    });
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
     if (!isEditing || !dragging) return;
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    const id = dragging;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
     setDragging(null);
-    // Persist whatever localLayout has now (which includes the dropped item).
-    setLocalLayout((current) => {
-      persistLayout(current);
-      return current;
-    });
+    // Defer persist to next tick so state updates from pointermove commit first.
+    queueMicrotask(() => persistLayout(layoutRef.current));
   }
 
   function resetLayout() {
