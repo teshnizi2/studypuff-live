@@ -34,40 +34,47 @@ function stageFor(m: number): { name: string; scale: number } {
  * x, y in % of scene container. size in % of container width. Higher z = front.
  */
 const TD_LAYOUT: Record<string, { x: number; y: number; size: number; z: number }> = {
-  // ─── FARM zone (top-left brown soil) ───
-  "garden-vegpatch":     { x: 12, y: 18, size: 9,  z: 5 },
-  "garden-pumpkinpatch": { x: 24, y: 16, size: 10, z: 5 },
-  "garden-haybale":      { x: 20, y: 32, size: 9,  z: 6 },
-  "garden-scarecrow":    { x: 9,  y: 32, size: 10, z: 6 },
-  "garden-applestree":   { x: 32, y: 28, size: 11, z: 4 },
+  // v19 — new clean terrain map. Zones identified by ground texture, not painted props.
+  //   FARM = brown soil patches (top half)
+  //   HOMESTEAD = stone plaza / paths (mid)
+  //   POND = blue water (bottom-left)
+  //   ROSE GARDEN = grass area with soil ring (bottom-right)
+  //   FOREST = upper-right grass + corners
 
-  // ─── FOREST zone (top-right grass, including hanging beehive) ───
-  "garden-treehouse":    { x: 78, y: 24, size: 16, z: 4 },
-  "garden-mushrooms":    { x: 90, y: 38, size: 7,  z: 7 },
-  "garden-fairyring":    { x: 82, y: 44, size: 8,  z: 7 },
-  "garden-beehive":      { x: 92, y: 14, size: 8,  z: 3 },
-  "garden-snail":        { x: 86, y: 50, size: 5,  z: 9 },
+  // ─── FARM zone (brown soil patches at top) ───
+  "garden-vegpatch":     { x: 9,  y: 22, size: 9,  z: 5 },
+  "garden-pumpkinpatch": { x: 22, y: 22, size: 10, z: 5 },
+  "garden-haybale":      { x: 40, y: 22, size: 9,  z: 6 },
+  "garden-applestree":   { x: 52, y: 18, size: 11, z: 4 },
+  "garden-scarecrow":    { x: 67, y: 20, size: 9,  z: 5 },
 
-  // ─── HOMESTEAD zone (center stone plaza) ───
-  "garden-cottage":      { x: 49, y: 48, size: 15, z: 5 },
-  "garden-well":         { x: 37, y: 52, size: 10, z: 6 },
-  "garden-mailbox":      { x: 60, y: 55, size: 7,  z: 6 },
-  "garden-signpost":     { x: 42, y: 62, size: 7,  z: 7 },
-  "garden-bench":        { x: 60, y: 65, size: 9,  z: 6 },
-  "garden-lantern":      { x: 50, y: 38, size: 7,  z: 7 },
+  // ─── FOREST zone (top-right + edges) ───
+  "garden-treehouse":    { x: 84, y: 22, size: 15, z: 4 },
+  "garden-beehive":      { x: 94, y: 8,  size: 7,  z: 3 },
+  "garden-mushrooms":    { x: 88, y: 42, size: 7,  z: 7 },
+  "garden-fairyring":    { x: 78, y: 45, size: 8,  z: 7 },
+  "garden-snail":        { x: 82, y: 53, size: 5,  z: 9 },
+
+  // ─── HOMESTEAD zone (center stone/grass area) ───
+  "garden-cottage":      { x: 47, y: 47, size: 14, z: 5 },
+  "garden-well":         { x: 34, y: 50, size: 9,  z: 6 },
   "garden-picnic":       { x: 38, y: 38, size: 8,  z: 6 },
+  "garden-lantern":      { x: 56, y: 38, size: 7,  z: 7 },
+  "garden-mailbox":      { x: 58, y: 50, size: 7,  z: 6 },
+  "garden-signpost":     { x: 42, y: 58, size: 7,  z: 7 },
+  "garden-bench":        { x: 60, y: 60, size: 9,  z: 6 },
 
   // ─── POND zone (bottom-left blue water) ───
-  "garden-bridge":       { x: 16, y: 56, size: 13, z: 8 },
-  "garden-pond":         { x: 26, y: 80, size: 12, z: 5 },
-  "garden-waterlilies":  { x: 14, y: 76, size: 8,  z: 8 },
-  "garden-frogstatue":   { x: 22, y: 88, size: 6,  z: 9 },
-  "garden-birdbath":     { x: 32, y: 90, size: 9,  z: 7 },
+  "garden-bridge":       { x: 12, y: 60, size: 12, z: 8 },
+  "garden-waterlilies":  { x: 16, y: 78, size: 8,  z: 8 },
+  "garden-pond":         { x: 8,  y: 84, size: 11, z: 5 },
+  "garden-frogstatue":   { x: 22, y: 85, size: 6,  z: 9 },
+  "garden-birdbath":     { x: 26, y: 76, size: 8,  z: 7 },
 
-  // ─── ROSE GARDEN zone (bottom-right grass) ───
-  "garden-gazebo":       { x: 70, y: 78, size: 16, z: 5 },
-  "garden-flowerbed":    { x: 60, y: 90, size: 10, z: 8 },
-  "garden-gnome":        { x: 88, y: 88, size: 7,  z: 9 }
+  // ─── ROSE GARDEN zone (bottom-right) ───
+  "garden-gazebo":       { x: 78, y: 78, size: 15, z: 5 },
+  "garden-flowerbed":    { x: 66, y: 88, size: 10, z: 8 },
+  "garden-gnome":        { x: 92, y: 88, size: 7,  z: 9 }
 };
 
 type Tod = "dawn" | "day" | "dusk" | "night";
