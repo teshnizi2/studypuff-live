@@ -140,7 +140,7 @@ export default async function Page() {
                     Proud partner
                   </p>
                   <p className="mt-2 text-base leading-relaxed text-ink-900 sm:text-lg">
-                    StudyPuff is part of PLNT&apos;s community of innovators and entrepreneurs in
+                    StudyPuff® is part of PLNT&apos;s community of innovators and entrepreneurs in
                     Leiden and The Hague, where early-stage ideas get the coaching, network, and
                     structure to grow from ideation to validation and acceleration.
                   </p>

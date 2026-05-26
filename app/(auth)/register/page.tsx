@@ -17,7 +17,7 @@ export default function RegisterPage({
           </p>
           <h1 className="mt-3 font-display text-4xl text-ink-900">Create your account</h1>
           <p className="mt-3 text-ink-700">
-            Your StudyPuff workspace keeps timer sessions, tasks, and settings synced.
+            Your StudyPuff® workspace keeps timer sessions, tasks, and settings synced.
           </p>
 
           {searchParams?.message && (

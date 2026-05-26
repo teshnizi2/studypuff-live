@@ -22,7 +22,7 @@ export function AdminShell({
               <span aria-hidden>←</span> Back to site
             </Link>
             <Link href="/admin" className="font-display text-3xl">
-              StudyPuff Admin
+              StudyPuff® Admin
             </Link>
           </div>
           <nav className="flex flex-wrap items-center gap-4 text-sm">

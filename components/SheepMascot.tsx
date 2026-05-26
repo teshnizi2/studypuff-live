@@ -16,11 +16,11 @@ export default function SheepMascot({ className = "", tone = "butter" }: Props) 
   return (
     <div
       className={`relative overflow-hidden ${className}`}
-      aria-label="StudyPuff sheep mascot"
+      aria-label="StudyPuff® sheep mascot"
       role="img"
       style={{ backgroundColor: toneMap[tone] }}
     >
-      <img src="/sheep.png" alt="StudyPuff sheep mascot" className="h-full w-full object-contain p-2" />
+      <img src="/sheep.png" alt="StudyPuff® sheep mascot" className="h-full w-full object-contain p-2" />
     </div>
   );
 }

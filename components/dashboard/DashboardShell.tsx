@@ -8,7 +8,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
-// Top nav tabs are intentionally minimal: the StudyPuff wordmark links
+// Top nav tabs are intentionally minimal: the StudyPuff® wordmark links
 // home, the coin pill opens the Shop, and the in-timer chart icon opens
 // the Stats overlay — so we don't double-up with redundant tabs.
 
@@ -70,7 +70,7 @@ export async function DashboardShell({
                 <span aria-hidden>←</span> Back to site
               </Link>
               <Link href="/dashboard" className="font-display text-2xl text-ink-900">
-                StudyPuff
+                StudyPuff®
               </Link>
             </div>
             <Link
@@ -119,7 +119,7 @@ export async function DashboardShell({
             : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
         }
       >
-        {!title && <h1 className="sr-only">StudyPuff dashboard</h1>}
+        {!title && <h1 className="sr-only">StudyPuff® dashboard</h1>}
         {title || subtitle ? (
           <div className="mb-8">
             {title && (

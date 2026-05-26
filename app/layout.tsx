@@ -7,24 +7,24 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "StudyPuff — A cozy study app + community for students",
-    template: "%s · StudyPuff"
+    default: "StudyPuff® — A cozy study app + community for students",
+    template: "%s · StudyPuff®"
   },
   description:
-    "StudyPuff is the home for students who want to improve their performance, without burning out. Join a workshop, drop into a free livestream, or use one of our free templates.",
+    "StudyPuff® is the home for students who want to improve their performance, without burning out. Join a workshop, drop into a free livestream, or use one of our free templates.",
   icons: { icon: "/favicon-v3.png" },
   openGraph: {
     type: "website",
-    siteName: "StudyPuff Academy",
+    siteName: "StudyPuff® Academy",
     url: siteUrl,
-    title: "StudyPuff — A cozy study app + community for students",
+    title: "StudyPuff® — A cozy study app + community for students",
     description:
       "Workshops, livestreams, and tools for students who want to study well without burning out.",
     images: [{ url: "/studypuff-hero.png" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "StudyPuff — A cozy study app + community for students",
+    title: "StudyPuff® — A cozy study app + community for students",
     description:
       "Workshops, livestreams, and tools for students who want to study well without burning out.",
     images: ["/studypuff-hero.png"]

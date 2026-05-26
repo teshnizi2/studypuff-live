@@ -2,7 +2,7 @@ import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 
 export const metadata = {
-  title: "Terms of Service · StudyPuff",
+  title: "Terms of Service · StudyPuff®",
   description: "The terms that govern your use of studypuff.com."
 };
 
@@ -19,8 +19,8 @@ export default function TermsPage() {
       <article className="prose-policy mx-auto max-w-3xl px-6 pb-24 lg:px-10">
         <H2>Overview</H2>
         <p>
-          This website is operated by StudyPuff. Throughout the site, the terms &ldquo;we&rdquo;,
-          &ldquo;us&rdquo; and &ldquo;our&rdquo; refer to StudyPuff. StudyPuff offers this website,
+          This website is operated by StudyPuff®. Throughout the site, the terms &ldquo;we&rdquo;,
+          &ldquo;us&rdquo; and &ldquo;our&rdquo; refer to StudyPuff®. StudyPuff® offers this website,
           including all information, tools and Services available from this site to you, the user,
           conditioned upon your acceptance of all terms, conditions, policies and notices stated
           here.
@@ -187,7 +187,7 @@ export default function TermsPage() {
           kind.
         </p>
         <p>
-          In no case shall StudyPuff, our directors, officers, employees, affiliates, agents,
+          In no case shall StudyPuff®, our directors, officers, employees, affiliates, agents,
           contractors, interns, suppliers, Service providers or licensors be liable for any injury,
           loss, claim, or any direct, indirect, incidental, punitive, special, or consequential
           damages of any kind.
@@ -195,7 +195,7 @@ export default function TermsPage() {
 
         <H2>Section 13 — Indemnification</H2>
         <p>
-          You agree to indemnify, defend and hold harmless StudyPuff and our parent, subsidiaries,
+          You agree to indemnify, defend and hold harmless StudyPuff® and our parent, subsidiaries,
           affiliates, partners, officers, directors, agents, contractors, licensors, Service
           providers, subcontractors, suppliers, interns and employees, harmless from any claim or
           demand, including reasonable attorneys&apos; fees, made by any third-party due to or

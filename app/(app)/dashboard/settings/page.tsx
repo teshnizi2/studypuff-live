@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   return (
     <DashboardShell
       title="Settings"
-      subtitle="Tune your StudyPuff defaults for focus sessions, breaks, and profile display."
+      subtitle="Tune your StudyPuff® defaults for focus sessions, breaks, and profile display."
       profile={profile}
     >
       <div className="grid gap-6 lg:grid-cols-2">

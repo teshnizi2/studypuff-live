@@ -124,7 +124,7 @@ export default function ResourcesPage() {
                   </span>
                   <h3 className="mt-2 font-display text-2xl text-ink-900">Join the Discord</h3>
                   <p className="text-sm text-ink-900/80">
-                    Hang out with other StudyPuffs between livestreams. Share wins, ask for
+                    Hang out with other StudyPuff®s between livestreams. Share wins, ask for
                     accountability, find a study buddy.
                   </p>
                 </div>

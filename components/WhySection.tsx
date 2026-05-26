@@ -5,7 +5,7 @@ const PILLARS = [
     emoji: "⏰",
     title: "Steady focus",
     body:
-      "Structured focus rounds, the StudyPuff timer, and calm real-time background sounds."
+      "Structured focus rounds, the StudyPuff® timer, and calm real-time background sounds."
   },
   {
     emoji: "🌍",
@@ -30,13 +30,13 @@ export default function WhySection() {
       <div className="mx-auto max-w-[1200px] px-6 lg:px-10">
         <Reveal className="mx-auto max-w-3xl text-center">
           <p className="eyebrow-squiggle mb-3 inline-flex flex-col items-center text-xs uppercase tracking-[0.25em] text-ink-700">
-            Why StudyPuff
+            Why StudyPuff®
           </p>
           <h2 className="display-heading text-3xl text-ink-900 sm:text-4xl lg:text-5xl">
             Because we believe that <em className="italic">students deserve better</em>.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-ink-700 sm:text-lg">
-            At StudyPuff, we teach you how to study. However, it doesn&apos;t stop there. We offer
+            At StudyPuff®, we teach you how to study. However, it doesn&apos;t stop there. We offer
             continuous support with the help of our community. Because you don&apos;t have to do
             this alone.
           </p>

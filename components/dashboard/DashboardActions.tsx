@@ -571,7 +571,7 @@ export function DashboardActions(props: Props) {
         open={open === "profile"}
         onClose={close}
         title="Profile"
-        description="What other StudyPuffs see when you join their room."
+        description="What other StudyPuff®s see when you join their room."
         size="lg"
       >
         <div className="flex items-start gap-4">

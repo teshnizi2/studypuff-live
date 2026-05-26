@@ -17,7 +17,7 @@ export default function LoginPage({
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
             Welcome back
           </p>
-          <h1 className="mt-3 font-display text-4xl text-ink-900">Log in to StudyPuff</h1>
+          <h1 className="mt-3 font-display text-4xl text-ink-900">Log in to StudyPuff®</h1>
           <p className="mt-3 text-ink-700">
             Continue to your timer, tasks, sessions, and study dashboard.
           </p>

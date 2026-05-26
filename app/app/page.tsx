@@ -63,7 +63,7 @@ export default function AppLandingPage() {
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 md:grid-cols-12 lg:px-10">
           <Reveal className="md:col-span-6">
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-ink-900/15 bg-cream-50/70 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-ink-700 backdrop-blur">
-              StudyPuff App · free forever
+              StudyPuff® App · free forever
             </p>
             <h1 className="display-heading text-[clamp(2.5rem,5vw,4.25rem)] text-ink-900">
               A cozy timer. A sheep that&apos;s{" "}
@@ -145,7 +145,7 @@ export default function AppLandingPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/studypuff-sheep.png"
-                  alt="StudyPuff sheep"
+                  alt="StudyPuff® sheep"
                   className="h-full w-full animate-bobble object-contain"
                 />
               </div>

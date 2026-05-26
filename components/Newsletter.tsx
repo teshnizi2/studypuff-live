@@ -16,7 +16,7 @@ export default function Newsletter() {
                 Semi-weekly newsletter
               </p>
               <h2 className="display-heading text-4xl text-ink-900 sm:text-5xl">
-                Subscribe to <em className="italic">StudyPuff news</em>.
+                Subscribe to <em className="italic">StudyPuff® news</em>.
               </h2>
               <p className="mt-5 text-lg text-ink-700">
                 Join the semi-weekly email newsletter to get practical study and productivity
@@ -35,7 +35,7 @@ export default function Newsletter() {
               </a>
               <p className="mt-4 max-w-md text-xs text-ink-700">
                 By signing up you&apos;ll receive our free newsletter. We may also send you other
-                emails about StudyPuff resources and projects. You can opt-out at any time.
+                emails about StudyPuff® resources and projects. You can opt-out at any time.
               </p>
             </Reveal>
           </div>

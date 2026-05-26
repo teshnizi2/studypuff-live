@@ -2,8 +2,8 @@ import PageShell from "@/components/PageShell";
 import PageHero from "@/components/PageHero";
 
 export const metadata = {
-  title: "Privacy Policy · StudyPuff",
-  description: "How StudyPuff collects, uses, and protects your personal information."
+  title: "Privacy Policy · StudyPuff®",
+  description: "How StudyPuff® collects, uses, and protects your personal information."
 };
 
 export default function PrivacyPage() {

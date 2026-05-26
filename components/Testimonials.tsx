@@ -9,7 +9,7 @@ const FEATURED = {
 const QUOTES = [
   {
     quote:
-      "StudyPuff helped me realize I'm not bad at studying. I just needed the right motivation.",
+      "StudyPuff® helped me realize I'm not bad at studying. I just needed the right motivation.",
     tone: "bg-brand-pink"
   },
   {

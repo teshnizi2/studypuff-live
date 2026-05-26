@@ -1,4 +1,4 @@
-// Server-rendered SVG mockup of the StudyPuff timer screen.
+// Server-rendered SVG mockup of the StudyPuff® timer screen.
 // Used on the home page so visitors see the real product before signing in.
 
 import { Coins, CloudRain, Flame, MessageCircle } from "lucide-react";

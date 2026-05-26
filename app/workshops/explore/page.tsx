@@ -47,7 +47,7 @@ export default function WorkshopsExplorePage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="StudyPuff Toolkit · our workshops"
+        eyebrow="StudyPuff® Toolkit · our workshops"
         title="Knowing what to do is one thing. Doing it is another."
         subtitle="Our workshops skip the theory overload and get straight to what works for you. In two hours, you'll walk away with a personalised plan, hands-on experience with proven methods, and the support to keep it going."
         accent="sky"
@@ -137,7 +137,7 @@ export default function WorkshopsExplorePage() {
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-900 underline underline-offset-4 decoration-[#c97f72] hover:text-[#c97f72]"
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-              Back to the StudyPuff Toolkit
+              Back to the StudyPuff® Toolkit
             </Link>
           </div>
         </div>

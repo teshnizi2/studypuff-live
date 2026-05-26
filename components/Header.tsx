@@ -8,7 +8,7 @@ import { AuthNav } from "./auth/AuthNav";
 const NAV = [
   { label: "Home", href: "/" },
   { label: "Study with us", href: "/study" },
-  { label: "StudyPuff App", href: "/app" },
+  { label: "StudyPuff® App", href: "/app" },
   { label: "Workshops", href: "/workshops" },
   { label: "Free Resources", href: "/resources" },
   { label: "Store", href: "/store" },
@@ -24,11 +24,11 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full border-b border-ink-900/5 bg-[rgba(239,236,236,0.92)] backdrop-blur">
       <div className="mx-auto flex max-w-[1400px] items-center gap-6 px-6 py-3 lg:px-10">
         {/* Brand (left) */}
-        <Link href="/" className="inline-flex shrink-0 items-center" aria-label="StudyPuff Academy">
+        <Link href="/" className="inline-flex shrink-0 items-center" aria-label="StudyPuff® Academy">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/studypuff-logo-sm.png"
-            alt="StudyPuff Academy"
+            alt="StudyPuff® Academy"
             width={320}
             height={320}
             className="h-14 w-auto object-contain lg:h-16"

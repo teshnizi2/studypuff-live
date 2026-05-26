@@ -39,13 +39,13 @@ const TEAM = [
     name: "Hera Imthorn",
     role: "Co-founder · Research & Development",
     photo: "/assets/hera.jpg",
-    bio: "As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning."
+    bio: "As a master's student in Applied Cognitive Psychology, Hera focuses primarily on research. She contributes to StudyPuff® by conducting usability research and exploring scientific research on studying and learning. She makes sure that everything we build is grounded in evidence and genuinely supports effective learning."
   },
   {
     name: "Reza Teshnizi",
     role: "Co-founder · Engineering & Automation",
     photo: "/assets/reza.jpg",
-    bio: "Reza is the computer scientist behind the StudyPuff app and the website. He also focuses on the automation to make sure that everything keeps running smoothly in the background."
+    bio: "Reza is the computer scientist behind the StudyPuff® app and the website. He also focuses on the automation to make sure that everything keeps running smoothly in the background."
   }
 ];
 
@@ -88,7 +88,7 @@ export default function AboutPage() {
           <Reveal className="mb-10">
             <p className="text-xs uppercase tracking-[0.25em] text-ink-700">The team</p>
             <h2 className="display-heading mt-3 text-3xl text-ink-900 sm:text-4xl">
-              The humans behind StudyPuff.
+              The humans behind StudyPuff®.
             </h2>
           </Reveal>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
