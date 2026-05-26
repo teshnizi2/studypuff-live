@@ -77,6 +77,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const [dragging, setDragging] = useState<{ id: string; source: "scene" | "inventory" } | null>(null);
   // While dragging from inventory, follow the cursor in scene-relative %.
   const [dropPreview, setDropPreview] = useState<{ x: number; y: number; overScene: boolean } | null>(null);
+  // Ghost image that follows cursor during inventory→scene drag (viewport px coords).
+  const [dragGhost, setDragGhost] = useState<{ id: string; x: number; y: number } | null>(null);
   // While dragging from scene, track whether cursor is over the inventory hit-zone.
   const [overInventory, setOverInventory] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -97,6 +99,19 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   // Cleanup ref for window-level drag listeners (attached on pointerdown, removed on pointerup/cancel/unmount).
   const windowDragCleanupRef = useRef<(() => void) | null>(null);
   useEffect(() => () => { windowDragCleanupRef.current?.(); }, []);
+
+  // Preload all owned garden-item images into the browser cache on mount so
+  // there's zero network wait when an item is dragged from inventory to scene.
+  useEffect(() => {
+    for (const id of ownedItemIds) {
+      const r = REWARDS.find((rw) => rw.id === id);
+      if (r && isGardenCategory(r.category)) {
+        const img = new window.Image();
+        img.src = itemArtSrc(id);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // run once on mount — ownedItemIds won't change during the session
 
   // PLACED in scene = owned AND has a localLayout entry.
   // INVENTORY = owned but no localLayout entry.
@@ -210,6 +225,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       const inScene = isOverScene(e.clientX, e.clientY);
       const pct = clientToScenePercent(e.clientX, e.clientY);
       if (pct) setDropPreview({ ...pct, overScene: inScene });
+      setDragGhost({ id: itemId, x: e.clientX, y: e.clientY });
     }
 
     // ── Window-level handlers ──────────────────────────────────────────────
@@ -230,10 +246,11 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         });
         setOverInventory(isOverInventory(ev.clientX, ev.clientY));
       } else {
-        // Inventory drag: track cursor for the drop-preview circle.
+        // Inventory drag: track cursor for the drop-preview circle + ghost image.
         const pct = clientToScenePercent(ev.clientX, ev.clientY);
         const inScene = isOverScene(ev.clientX, ev.clientY);
         if (pct) setDropPreview({ ...pct, overScene: inScene });
+        setDragGhost({ id: d.id, x: ev.clientX, y: ev.clientY });
       }
     };
 
@@ -272,6 +289,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       draggingRef.current = null;
       setDragging(null);
       setDropPreview(null);
+      setDragGhost(null);
       setOverInventory(false);
       queueMicrotask(() => persistLayout(layoutRef.current));
     };
@@ -412,8 +430,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 <img
                   src={itemArtSrc(item.id)}
                   alt={item.name}
-                  loading="lazy"
-                  decoding="async"
                   draggable={false}
                   className="block h-auto w-full select-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
                   style={{ filter: imgFilter }}
@@ -700,6 +716,36 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           one leaf grows every {MINUTES_PER_LEAF} min of focus · hover an item to lift it
         </p>
       </div>
+
+      {/* ── Drag ghost ──────────────────────────────────────────────────────
+          A fixed-position copy of the dragged item image that follows the
+          cursor during inventory→scene drags. Renders outside all containers
+          so it's never clipped by overflow:hidden. pointer-events:none so it
+          doesn't interfere with the underlying drop-zone hit tests.
+      */}
+      {dragGhost && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed z-[9999]"
+          style={{
+            left: dragGhost.x,
+            top: dragGhost.y,
+            width: 72,
+            height: 72,
+            transform: "translate(-50%, -50%) scale(1.08)",
+            opacity: 0.88,
+            filter: dragGhost.id.startsWith("garden-golden-") ? GOLDEN_FILTER : "drop-shadow(0 8px 14px rgba(0,0,0,0.45))",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={itemArtSrc(dragGhost.id)}
+            alt=""
+            draggable={false}
+            className="h-full w-full select-none object-contain"
+          />
+        </div>
+      )}
     </section>
   );
 }
