@@ -94,6 +94,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   useEffect(() => { draggingRef.current = dragging; }, [dragging]);
   useEffect(() => { isEditingRef.current = isEditing; }, [isEditing]);
   const [, startTransition] = useTransition();
+  // Cleanup ref for window-level drag listeners (attached on pointerdown, removed on pointerup/cancel/unmount).
+  const windowDragCleanupRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => { windowDragCleanupRef.current?.(); }, []);
 
   // PLACED in scene = owned AND has a localLayout entry.
   // INVENTORY = owned but no localLayout entry.
@@ -193,82 +196,99 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   ) {
     if (!isEditingRef.current) return;
     e.preventDefault();
+    // setPointerCapture helps prevent browser scroll/default gestures on touch,
+    // but we do NOT rely on it to route events — window listeners handle that.
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    // Write the ref SYNCHRONOUSLY so the very next pointermove (which may fire
-    // before React's re-render commits the new state) sees the live drag.
+
+    // Write ref SYNCHRONOUSLY before setState so the very next pointermove
+    // (which fires before React commits the re-render) sees a live drag.
     const drag = { id: itemId, source };
     draggingRef.current = drag;
     setDragging(drag);
+
     if (source === "inventory") {
-      // Seed an initial preview at cursor if it's already over the scene.
       const inScene = isOverScene(e.clientX, e.clientY);
       const pct = clientToScenePercent(e.clientX, e.clientY);
       if (pct) setDropPreview({ ...pct, overScene: inScene });
     }
-  }
 
-  function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
-    // Read refs, not state — see comment on draggingRef declaration.
-    if (!isEditingRef.current) return;
-    const drag = draggingRef.current;
-    if (!drag) return;
-    if (drag.source === "scene") {
-      // Existing reposition flow: write new coords as the cursor moves.
-      const pct = clientToScenePercent(e.clientX, e.clientY);
-      if (!pct) return;
-      const id = drag.id;
-      setLocalLayout((prev) => {
-        const next = { ...prev, [id]: { x: pct.x, y: pct.y } };
-        layoutRef.current = next;
-        return next;
-      });
-      // Hover-detect the inventory tray for "drop to remove".
-      setOverInventory(isOverInventory(e.clientX, e.clientY));
-    } else {
-      // Inventory drag: don't commit until pointer-up; show a preview meanwhile.
-      const pct = clientToScenePercent(e.clientX, e.clientY);
-      const inScene = isOverScene(e.clientX, e.clientY);
-      if (pct) setDropPreview({ ...pct, overScene: inScene });
-    }
-  }
-
-  function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
-    if (!isEditingRef.current) return;
-    const drag = draggingRef.current;
-    if (!drag) return;
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-    const dropOverInventory = isOverInventory(e.clientX, e.clientY);
-    const dropOverScene = isOverScene(e.clientX, e.clientY);
-
-    if (drag.source === "scene" && dropOverInventory) {
-      // Scene → inventory: remove the entry so the item goes back to the sidebar.
-      setLocalLayout((prev) => {
-        const next = { ...prev };
-        delete next[drag.id];
-        layoutRef.current = next;
-        return next;
-      });
-    } else if (drag.source === "inventory" && dropOverScene) {
-      // Inventory → scene: add the entry at the drop coords.
-      const pct = clientToScenePercent(e.clientX, e.clientY);
-      if (pct) {
+    // ── Window-level handlers ──────────────────────────────────────────────
+    // Attaching move/up to the window (not to individual buttons) means we
+    // receive events regardless of which element the pointer is over — no
+    // dependency on pointer-capture working correctly across all browsers.
+    const onWindowMove = (ev: PointerEvent) => {
+      const d = draggingRef.current;
+      if (!d) return;
+      if (d.source === "scene") {
+        const pct = clientToScenePercent(ev.clientX, ev.clientY);
+        if (!pct) return;
+        const id = d.id;
         setLocalLayout((prev) => {
-          const next = { ...prev, [drag.id]: { x: pct.x, y: pct.y } };
+          const next = { ...prev, [id]: { x: pct.x, y: pct.y } };
           layoutRef.current = next;
           return next;
         });
+        setOverInventory(isOverInventory(ev.clientX, ev.clientY));
+      } else {
+        // Inventory drag: track cursor for the drop-preview circle.
+        const pct = clientToScenePercent(ev.clientX, ev.clientY);
+        const inScene = isOverScene(ev.clientX, ev.clientY);
+        if (pct) setDropPreview({ ...pct, overScene: inScene });
       }
-    }
-    // Scene → scene (anywhere not inventory): coords were live-updated, nothing else to do.
-    // Inventory → outside-scene: cancel (no changes).
+    };
 
-    // Clear ref + state. Ref-first so any straggler pointer event ignores us.
-    draggingRef.current = null;
-    setDragging(null);
-    setDropPreview(null);
-    setOverInventory(false);
-    // Defer persist to next tick so state updates commit first.
-    queueMicrotask(() => persistLayout(layoutRef.current));
+    const onWindowUp = (ev: PointerEvent) => {
+      // Always clean up first so straggler events after release are ignored.
+      cleanup();
+
+      const d = draggingRef.current;
+      if (!d) return;
+
+      const dropOverInventory = isOverInventory(ev.clientX, ev.clientY);
+      const dropOverScene    = isOverScene(ev.clientX, ev.clientY);
+
+      if (d.source === "scene" && dropOverInventory) {
+        // Scene → inventory: remove from layout (goes back to inventory tray).
+        setLocalLayout((prev) => {
+          const next = { ...prev };
+          delete next[d.id];
+          layoutRef.current = next;
+          return next;
+        });
+      } else if (d.source === "inventory" && dropOverScene) {
+        // Inventory → scene: place at cursor coords.
+        const pct = clientToScenePercent(ev.clientX, ev.clientY);
+        if (pct) {
+          setLocalLayout((prev) => {
+            const next = { ...prev, [d.id]: { x: pct.x, y: pct.y } };
+            layoutRef.current = next;
+            return next;
+          });
+        }
+      }
+      // Scene → scene: coords already live-updated during move — nothing extra.
+      // Inventory → outside-scene: cancel, no changes.
+
+      draggingRef.current = null;
+      setDragging(null);
+      setDropPreview(null);
+      setOverInventory(false);
+      queueMicrotask(() => persistLayout(layoutRef.current));
+    };
+
+    const cleanup = () => {
+      window.removeEventListener("pointermove", onWindowMove);
+      window.removeEventListener("pointerup",   onWindowUp);
+      window.removeEventListener("pointercancel", onWindowUp);
+      windowDragCleanupRef.current = null;
+    };
+
+    // Cancel any prior drag that didn't clean up (e.g. navigated away mid-drag).
+    windowDragCleanupRef.current?.();
+    windowDragCleanupRef.current = cleanup;
+    window.addEventListener("pointermove",   onWindowMove);
+    window.addEventListener("pointerup",     onWindowUp);
+    window.addEventListener("pointercancel", onWindowUp);
   }
 
   function resetLayout() {
@@ -308,7 +328,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         className="relative w-full overflow-hidden rounded-[28px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
         data-tod={tod}
       >
-        <div ref={sceneRef} className={`relative aspect-[4/3] w-full ${isEditing ? "cursor-grab" : ""}`}>
+        <div ref={sceneRef} className={`relative aspect-[4/3] w-full ${isEditing ? "cursor-grab" : ""}`} style={isEditing ? { touchAction: "none" } : undefined}>
           {/* Base top-down map */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -387,9 +407,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 }}
                 title={isEditing ? `${item.name} — drag to move` : item.name}
                 onPointerDown={(e) => handlePointerDown(e, item.id, "scene")}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -578,9 +595,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                       ${isBeingDragged ? "opacity-40" : ""}`}
                     style={{ touchAction: isEditing ? "none" : undefined }}
                     onPointerDown={(e) => handlePointerDown(e, item.id, "inventory")}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
