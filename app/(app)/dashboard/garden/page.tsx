@@ -22,7 +22,7 @@ export default async function GardenPage() {
   const [{ data: settings }, { data: purchases }, { data: sessions }] = await Promise.all([
     supabase
       .from("user_settings")
-      .select("coins, lifetime_focus_minutes, equipped_sound, equipped_theme, equipped_accessory, garden_layout")
+      .select("coins, lifetime_focus_minutes, equipped_sound, equipped_theme, equipped_accessory, equipped_map, garden_layout")
       .eq("user_id", user.id)
       .single(),
     supabase.from("user_purchases").select("item_id").eq("user_id", user.id),
@@ -70,6 +70,7 @@ export default async function GardenPage() {
           todayMinutes={todayMinutes}
           streak={streak}
           ownedItemIds={ownedItemIds}
+          equippedMap={settings?.equipped_map ?? null}
           savedLayout={(settings?.garden_layout ?? {}) as Record<string, { x: number; y: number }>}
         />
 
@@ -81,6 +82,7 @@ export default async function GardenPage() {
             equippedSound={settings?.equipped_sound ?? null}
             equippedTheme={settings?.equipped_theme ?? null}
             equippedAccessory={settings?.equipped_accessory ?? null}
+            equippedMap={settings?.equipped_map ?? null}
           />
         </div>
       </div>

@@ -2,14 +2,29 @@ export type RewardCategory =
   | "sound"
   | "theme"
   | "accessory"
+  | "garden-map"
   | "garden-structures"
   | "garden-plants"
   | "garden-critters";
 
-/** True for any of the three garden sub-categories. Use this everywhere
- *  instead of `category === "garden"` so we don't have to enumerate. */
+/** True for PLACEABLE garden categories (items that drop into the scene).
+ *  `garden-map` is intentionally excluded because maps are *equipped* like
+ *  sounds / themes, not placed. Use everywhere in shop / scene logic so the
+ *  set of placeable sub-categories is the single source of truth. */
 export function isGardenCategory(c: RewardCategory): boolean {
-  return c.startsWith("garden-");
+  return c.startsWith("garden-") && c !== "garden-map";
+}
+
+/** Default map id when a user has no `equipped_map` set. Free starter. */
+export const DEFAULT_GARDEN_MAP_ID = "garden-map-forest-river";
+
+/** Resolve a (possibly null) equipped_map id to its art path, falling back
+ *  to the free default. Centralizes "what background to render" for the
+ *  garden scene + the shop preview thumbnails. */
+export function mapArtFor(equippedMap: string | null | undefined): string {
+  const id = equippedMap ?? DEFAULT_GARDEN_MAP_ID;
+  const reward = REWARDS.find((r) => r.id === id && r.category === "garden-map");
+  return reward?.art ?? "/garden-maps/forest-river.webp";
 }
 
 export type Reward = {
@@ -29,6 +44,17 @@ export type Reward = {
 };
 
 export const REWARDS: Reward[] = [
+  // ───────────────────── GARDEN — MAPS (backgrounds) ─────────────────────
+  // Maps are *equipped* like sounds/themes, not placed in the scene.
+  // The free Forest-River starter has price=0 — it never appears in shop UI
+  // as a buyable card, just as the implicit default in the picker.
+  { id: "garden-map-forest-river", name: "Forest River", category: "garden-map", price: 0, emoji: "🏞️", description: "Cozy painterly meadow with two winding rivers. Your starting world.", art: "/garden-maps/forest-river.webp" },
+  { id: "garden-map-beach", name: "Beach Cove", category: "garden-map", price: 220, emoji: "🏖️", description: "Pale sand with palm framing and ocean lapping the bottom edge.", art: "/garden-maps/beach.webp" },
+  { id: "garden-map-snowy", name: "Snowy Meadow", category: "garden-map", price: 240, emoji: "❄️", description: "Untouched snow, evergreen border, a frozen S-curve stream.", art: "/garden-maps/snowy.webp" },
+  { id: "garden-map-desert", name: "Desert Oasis", category: "garden-map", price: 260, emoji: "🌵", description: "Warm sand, a turquoise oasis, distant mesas at the horizon.", art: "/garden-maps/desert.webp" },
+  { id: "garden-map-lavender", name: "Lavender Twilight", category: "garden-map", price: 320, emoji: "💜", description: "Magical purple field, glowing wisps, dreamy twilight path.", art: "/garden-maps/lavender.webp" },
+  { id: "garden-map-night", name: "Moonlit Forest", category: "garden-map", price: 300, emoji: "🌙", description: "Deep-blue moonlit grass, winding river, painted fireflies.", art: "/garden-maps/night.webp" },
+
   // Ambient sounds
   { id: "sound-rain", name: "Soft rain", category: "sound", price: 30, emoji: "🌧️", description: "A gentle drizzle to wash distractions away." },
   { id: "sound-library", name: "Quiet library", category: "sound", price: 30, emoji: "📚", description: "Page turns and the distant hum of a study hall." },

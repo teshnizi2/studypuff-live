@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { REWARDS, isGardenCategory } from "@/lib/app-data/rewards";
+import { REWARDS, isGardenCategory, mapArtFor } from "@/lib/app-data/rewards";
 import { resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
 
 type Layout = Record<string, { x: number; y: number }>;
@@ -13,6 +13,8 @@ type Props = {
   ownedItemIds: string[];
   /** Per-user saved positions, overrides TD_LAYOUT defaults when present. */
   savedLayout?: Layout;
+  /** Reward id of the equipped background map. null = use free default. */
+  equippedMap?: string | null;
 };
 
 const MINUTES_PER_LEAF = 25;
@@ -95,7 +97,7 @@ type Tod = "dawn" | "day" | "dusk" | "night";
  *   • Items wrapped in <button> with focus-visible ring for keyboard.
  *   • Item size for applestree/gazebo reduced per scale-ratio fixes.
  */
-export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemIds, savedLayout }: Props) {
+export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemIds, savedLayout, equippedMap }: Props) {
   const leafCount = Math.min(MAX_LEAVES, Math.floor(lifetimeMinutes / MINUTES_PER_LEAF));
   const todayLeaves = Math.floor(todayMinutes / MINUTES_PER_LEAF);
   const intoNext = lifetimeMinutes % MINUTES_PER_LEAF;
@@ -228,7 +230,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {/* Base top-down map */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/td-map.webp"
+            src={mapArtFor(equippedMap)}
             alt="Your garden plot"
             className="absolute inset-0 block h-full w-full object-cover transition-[filter] duration-1000 ease-in-out select-none"
             draggable={false}

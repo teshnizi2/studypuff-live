@@ -337,10 +337,11 @@ export async function purchaseRewardAction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
-const COLUMN_FOR_CATEGORY: Record<string, "equipped_sound" | "equipped_theme" | "equipped_accessory"> = {
+const COLUMN_FOR_CATEGORY: Record<string, "equipped_sound" | "equipped_theme" | "equipped_accessory" | "equipped_map"> = {
   sound: "equipped_sound",
   theme: "equipped_theme",
-  accessory: "equipped_accessory"
+  accessory: "equipped_accessory",
+  "garden-map": "equipped_map"
 };
 
 export async function equipRewardAction(formData: FormData) {
@@ -367,6 +368,7 @@ export async function equipRewardAction(formData: FormData) {
   revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard/timer");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/garden");
 }
 
 /** Garden item-placement persistence — accepts a JSON layout map and stores
@@ -418,4 +420,5 @@ export async function unequipRewardAction(formData: FormData) {
   revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard/timer");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/garden");
 }

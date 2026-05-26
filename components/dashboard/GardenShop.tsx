@@ -1,6 +1,6 @@
 "use client";
 
-import { REWARDS, type RewardCategory } from "@/lib/app-data/rewards";
+import { DEFAULT_GARDEN_MAP_ID, REWARDS, isGardenCategory, type RewardCategory } from "@/lib/app-data/rewards";
 import {
   equipRewardAction,
   purchaseRewardAction,
@@ -14,11 +14,13 @@ export type GardenShopProps = {
   equippedSound: string | null;
   equippedTheme: string | null;
   equippedAccessory: string | null;
+  equippedMap: string | null;
 };
 
-// Garden sub-categories first (the page IS the garden), then the dashboard
-// rewards (sound / theme / accessory).
+// Maps first (biggest single visual change), then the garden item categories,
+// then the dashboard rewards (sound / theme / accessory).
 const CATEGORY_ORDER: RewardCategory[] = [
+  "garden-map",
   "garden-structures",
   "garden-plants",
   "garden-critters",
@@ -28,6 +30,7 @@ const CATEGORY_ORDER: RewardCategory[] = [
 ];
 
 const CATEGORY_LABEL: Record<RewardCategory, string> = {
+  "garden-map": "Garden Backgrounds",
   "garden-structures": "Cottages & Structures",
   "garden-plants": "Garden & Bounty",
   "garden-critters": "Critters & Whimsy",
@@ -37,6 +40,7 @@ const CATEGORY_LABEL: Record<RewardCategory, string> = {
 };
 
 const CATEGORY_HINT: Record<RewardCategory, string> = {
+  "garden-map": "Different worlds to grow in. Equip one to swap the whole scene — your items move with you.",
   "garden-structures": "The big pieces — cottages, bridges, lanterns. Each one anchors a corner of your scene.",
   "garden-plants": "Flowers, vegetables, ponds. They fill the ground rows and feed the cozy.",
   "garden-critters": "Little characters and oddities — gnomes, snails, fairy rings. Hover or click them in the scene.",
@@ -46,6 +50,7 @@ const CATEGORY_HINT: Record<RewardCategory, string> = {
 };
 
 const CATEGORY_TONE: Record<RewardCategory, string> = {
+  "garden-map": "from-[#d8e6ec] to-[#b9d0db]",
   "garden-structures": "from-[#e8d8b8] to-[#d2bd8c]",
   "garden-plants": "from-[#d8eccb] to-[#b8d8a8]",
   "garden-critters": "from-[#f1d8e8] to-[#e0b8d4]",
@@ -53,10 +58,6 @@ const CATEGORY_TONE: Record<RewardCategory, string> = {
   theme: "from-brand-lilac/70 to-brand-lilac/30",
   accessory: "from-brand-pink/70 to-brand-pink/30"
 };
-
-function isGardenCat(c: RewardCategory): boolean {
-  return c.startsWith("garden-");
-}
 
 function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -70,13 +71,18 @@ function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
 
 export function GardenShop(p: GardenShopProps) {
   const ownedSet = new Set(p.ownedItemIds);
+  // Resolve "equipped map" so the free Forest-River default still shows
+  // ✓ Equipped when the user has nothing set yet.
+  const activeMap = p.equippedMap ?? DEFAULT_GARDEN_MAP_ID;
   const equippedByCategory: Partial<Record<RewardCategory, string | null>> = {
     sound: p.equippedSound,
     theme: p.equippedTheme,
-    accessory: p.equippedAccessory
-    // garden-* categories don't equip; owned = placed.
+    accessory: p.equippedAccessory,
+    "garden-map": activeMap
+    // placeable garden-* categories don't equip; owned = placed.
   };
   const grouped: Record<RewardCategory, typeof REWARDS> = {
+    "garden-map":        REWARDS.filter((r) => r.category === "garden-map"),
     "garden-structures": REWARDS.filter((r) => r.category === "garden-structures"),
     "garden-plants":     REWARDS.filter((r) => r.category === "garden-plants"),
     "garden-critters":   REWARDS.filter((r) => r.category === "garden-critters"),
@@ -85,8 +91,9 @@ export function GardenShop(p: GardenShopProps) {
     accessory: REWARDS.filter((r) => r.category === "accessory")
   };
 
+  // Count only PLACEABLE garden items for the "Garden N/M" stat.
   const totalGarden = grouped["garden-structures"].length + grouped["garden-plants"].length + grouped["garden-critters"].length;
-  const ownedGarden = Array.from(ownedSet).filter((id) => id.startsWith("garden-")).length;
+  const ownedGarden = Array.from(ownedSet).filter((id) => id.startsWith("garden-") && !id.startsWith("garden-map-")).length;
 
   return (
     <div>
@@ -123,11 +130,18 @@ export function GardenShop(p: GardenShopProps) {
             <p className="mb-3 text-xs text-ink-700">{CATEGORY_HINT[cat]}</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {grouped[cat].map((r) => {
-                const owned = ownedSet.has(r.id);
+                // Free items (price 0) are auto-owned for everyone — used for the
+                // default Forest-River map so it sits in the picker with an Equip
+                // button instead of a phantom "Buy 0".
+                const isFree = r.price === 0;
+                const owned = ownedSet.has(r.id) || isFree;
                 const equipped = equippedByCategory[cat] === r.id;
                 const affordable = p.coins >= r.price;
-                const isGarden = isGardenCat(cat);
-                const placed = isGarden && owned;
+                const isPlaceableGarden = isGardenCategory(cat);     // structures / plants / critters
+                const isMap = cat === "garden-map";
+                const placed = isPlaceableGarden && owned;
+                // Wider thumb for maps (16:12 bg) than item PNGs (square).
+                const thumbClass = isMap ? "h-16 w-24 rounded-md object-cover ring-1 ring-black/10" : "h-12 w-12 object-contain";
                 return (
                   <article
                     key={r.id}
@@ -135,17 +149,25 @@ export function GardenShop(p: GardenShopProps) {
                       equipped || placed ? "border-ink-900/70 ring-1 ring-ink-900/25" : "border-white/55"
                     } ${CATEGORY_TONE[cat]} p-4 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-200 hover:-translate-y-0.5`}
                   >
-                    <div className="flex items-start justify-between">
-                      {/* Garden items: show the bespoke art thumb. Others: emoji. */}
-                      {isGarden && r.art ? (
+                    <div className="flex items-start justify-between gap-2">
+                      {/* Show art thumb when the reward has one (maps + placeable garden). Otherwise emoji. */}
+                      {(isMap || isPlaceableGarden) && r.art ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.art} alt="" aria-hidden className="h-12 w-12 object-contain" />
+                        <img src={r.art} alt="" aria-hidden className={thumbClass} />
                       ) : (
                         <span className="text-3xl" aria-hidden>{r.emoji}</span>
                       )}
-                      <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
-                        <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
-                      </span>
+                      {/* Hide price chip on free items. */}
+                      {!isFree && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
+                          <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
+                        </span>
+                      )}
+                      {isFree && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-ink-700">
+                          Free starter
+                        </span>
+                      )}
                     </div>
                     <h3 className="mt-3 font-display text-lg text-ink-900">{r.name}</h3>
                     <p className="mt-1 flex-1 text-xs text-ink-700">{r.description}</p>
@@ -164,15 +186,15 @@ export function GardenShop(p: GardenShopProps) {
                         </form>
                       )}
 
-                      {/* Garden items: owned = always placed, no equip needed. */}
-                      {isGarden && owned && (
+                      {/* Placeable garden items: owned = always placed, no equip needed. */}
+                      {isPlaceableGarden && owned && (
                         <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
                           ✓ In your garden
                         </span>
                       )}
 
-                      {/* Other categories: existing equip/unequip flow. */}
-                      {!isGarden && owned && !equipped && (
+                      {/* Maps: owned -> Equip / Equipped. No Unequip (a map is always equipped). */}
+                      {isMap && owned && !equipped && (
                         <form action={equipRewardAction}>
                           <input type="hidden" name="item_id" value={r.id} />
                           <input type="hidden" name="category" value={cat} />
@@ -184,7 +206,26 @@ export function GardenShop(p: GardenShopProps) {
                           </button>
                         </form>
                       )}
-                      {!isGarden && equipped && (
+                      {isMap && equipped && (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
+                          ✓ Equipped
+                        </span>
+                      )}
+
+                      {/* Sound / theme / accessory: equip + unequip. */}
+                      {!isPlaceableGarden && !isMap && owned && !equipped && (
+                        <form action={equipRewardAction}>
+                          <input type="hidden" name="item_id" value={r.id} />
+                          <input type="hidden" name="category" value={cat} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50 hover:bg-ink-700"
+                          >
+                            Equip
+                          </button>
+                        </form>
+                      )}
+                      {!isPlaceableGarden && !isMap && equipped && (
                         <>
                           <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
                             ✓ Equipped
