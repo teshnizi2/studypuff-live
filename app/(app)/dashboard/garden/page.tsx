@@ -3,6 +3,7 @@ import { GardenScene } from "@/components/dashboard/GardenScene";
 import { GardenShop } from "@/components/dashboard/GardenShop";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { TD_LAYOUT, isPlaceableGardenId } from "@/lib/app-data/garden-layout";
 
 function isoDate(d: Date) {
   const y = d.getFullYear();
@@ -54,6 +55,26 @@ export default async function GardenPage() {
 
   const ownedItemIds = (purchases || []).map((p) => p.item_id);
 
+  // ─────────── one-time inventory migration ───────────
+  // Before Phase B (inventory), every owned item auto-rendered in the scene at
+  // its TD_LAYOUT default whether or not the user had a garden_layout entry.
+  // Phase B switches semantics: garden_layout entries = "placed in scene",
+  // missing entries = "in inventory". To keep existing users from losing
+  // their scene on the first load, seed garden_layout with TD_LAYOUT for
+  // every placeable item they own when their layout is currently empty.
+  let layoutForScene = (settings?.garden_layout ?? {}) as Record<string, { x: number; y: number }>;
+  const layoutIsEmpty = !layoutForScene || Object.keys(layoutForScene).length === 0;
+  const placeableOwned = ownedItemIds.filter((id) => isPlaceableGardenId(id) && TD_LAYOUT[id]);
+  if (layoutIsEmpty && placeableOwned.length > 0) {
+    const seeded: Record<string, { x: number; y: number }> = {};
+    for (const id of placeableOwned) {
+      const def = TD_LAYOUT[id];
+      seeded[id] = { x: def.x, y: def.y };
+    }
+    await supabase.from("user_settings").update({ garden_layout: seeded }).eq("user_id", user.id);
+    layoutForScene = seeded;
+  }
+
   return (
     <DashboardShell profile={profile} bg="cream">
       <div className="mx-auto w-full max-w-[1100px] lg:pl-[88px]">
@@ -71,7 +92,7 @@ export default async function GardenPage() {
           streak={streak}
           ownedItemIds={ownedItemIds}
           equippedMap={settings?.equipped_map ?? null}
-          savedLayout={(settings?.garden_layout ?? {}) as Record<string, { x: number; y: number }>}
+          savedLayout={layoutForScene}
         />
 
         <div className="mt-20">

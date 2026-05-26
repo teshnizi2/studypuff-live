@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { REWARDS, isGardenCategory, mapArtFor } from "@/lib/app-data/rewards";
+import { TD_LAYOUT } from "@/lib/app-data/garden-layout";
 import { resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
 
 type Layout = Record<string, { x: number; y: number }>;
@@ -41,49 +42,6 @@ function stageFor(m: number): { name: string; scale: number } {
  *
  * Applestree size dropped 11→8, gazebo 15→12 per judge §D.4 scale ratios.
  */
-const TD_LAYOUT: Record<string, { x: number; y: number; size: number; z: number }> = {
-  // v20.1 — NEW map: top-left=farm soil, top-right=pond, bottom-left=pond,
-  // bottom-right=grass garden with cobble ring, center=cross sand-path.
-  // Two water zones now (top-right + bottom-left); items split accordingly.
-
-  // FARM zone (top-left brown rectangle)
-  "garden-vegpatch":     { x: 10, y: 22, size: 9,  z: 5 },
-  "garden-pumpkinpatch": { x: 22, y: 22, size: 10, z: 5 },
-  "garden-haybale":      { x: 32, y: 32, size: 9,  z: 6 },
-  "garden-applestree":   { x: 16, y: 32, size: 8,  z: 4 },
-  "garden-scarecrow":    { x: 28, y: 12, size: 9,  z: 5 },
-
-  // TOP-RIGHT POND zone (blue water rectangle)
-  "garden-waterlilies":  { x: 75, y: 20, size: 8,  z: 8 },
-  "garden-frogstatue":   { x: 65, y: 22, size: 6,  z: 9 },
-  "garden-birdbath":     { x: 88, y: 22, size: 8,  z: 7 },
-
-  // BOTTOM-LEFT POND zone (blue water organic shape)
-  "garden-pond":         { x: 18, y: 75, size: 12, z: 5 },
-  "garden-bridge":       { x: 38, y: 60, size: 11, z: 8 },
-
-  // BOTTOM-RIGHT ROSE GARDEN zone (grass with cobble ring)
-  "garden-gazebo":       { x: 72, y: 78, size: 12, z: 5 },
-  "garden-flowerbed":    { x: 62, y: 72, size: 9,  z: 8 },
-  "garden-gnome":        { x: 88, y: 78, size: 7,  z: 9 },
-  "garden-mushrooms":    { x: 78, y: 65, size: 7,  z: 7 },
-  "garden-fairyring":    { x: 70, y: 85, size: 8,  z: 7 },
-  "garden-snail":        { x: 86, y: 70, size: 5,  z: 9 },
-
-  // CENTER cross-path / homestead
-  "garden-cottage":      { x: 50, y: 50, size: 14, z: 5 },
-  "garden-well":         { x: 40, y: 42, size: 9,  z: 6 },
-  "garden-picnic":       { x: 38, y: 60, size: 8,  z: 6 },
-  "garden-lantern":      { x: 50, y: 38, size: 7,  z: 7 },
-  "garden-mailbox":      { x: 60, y: 60, size: 7,  z: 6 },
-  "garden-signpost":     { x: 42, y: 30, size: 7,  z: 7 },
-  "garden-bench":        { x: 60, y: 42, size: 9,  z: 6 },
-
-  // EDGES (between zones, on grass borders)
-  "garden-treehouse":    { x: 50, y: 12, size: 12, z: 4 },
-  "garden-beehive":      { x: 90, y: 50, size: 7,  z: 3 }
-};
-
 type Tod = "dawn" | "day" | "dusk" | "night";
 
 /**
@@ -105,26 +63,43 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const stage = stageFor(lifetimeMinutes);
 
   const ownedSet = useMemo(() => new Set(ownedItemIds), [ownedItemIds]);
-  const placedItems = useMemo(
-    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && TD_LAYOUT[r.id]),
-    [ownedSet]
-  );
-  const ownedGardenCount = placedItems.length;
-  const totalGardenCount = REWARDS.filter((r) => isGardenCategory(r.category)).length;
 
-  // ───── Drag-and-drop layout editing ─────
-  // local layout overrides saved layout for unsaved drags; saved layout overrides
-  // TD_LAYOUT defaults. Final effective position = local ?? saved ?? default.
+  // ───── Drag-and-drop layout + inventory ─────
+  // Phase B model:
+  //   • An owned item with an entry in `localLayout` is PLACED in the scene.
+  //   • An owned item with NO entry is in the INVENTORY sidebar.
+  // Drag flows:
+  //   • Inventory → scene = add entry (place at drop coords).
+  //   • Scene → inventory = remove entry (return to inventory).
+  //   • Scene → scene    = update coords (existing reposition).
   const [localLayout, setLocalLayout] = useState<Layout>(() => savedLayout ?? {});
   const [isEditing, setIsEditing] = useState(false);
-  const [dragging, setDragging] = useState<string | null>(null);
+  const [dragging, setDragging] = useState<{ id: string; source: "scene" | "inventory" } | null>(null);
+  // While dragging from inventory, follow the cursor in scene-relative %.
+  const [dropPreview, setDropPreview] = useState<{ x: number; y: number; overScene: boolean } | null>(null);
+  // While dragging from scene, track whether cursor is over the inventory hit-zone.
+  const [overInventory, setOverInventory] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const sceneRef = useRef<HTMLDivElement>(null);
+  const inventoryRef = useRef<HTMLDivElement>(null);
   // Mirror localLayout into a ref so pointer handlers can read latest value
   // without being recreated on every drag-tick + without state-setter-in-setter.
   const layoutRef = useRef<Layout>(localLayout);
   useEffect(() => { layoutRef.current = localLayout; }, [localLayout]);
   const [, startTransition] = useTransition();
+
+  // PLACED in scene = owned AND has a localLayout entry.
+  // INVENTORY = owned but no localLayout entry.
+  const placedItems = useMemo(
+    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && r.id in localLayout && TD_LAYOUT[r.id]),
+    [ownedSet, localLayout]
+  );
+  const inventoryItems = useMemo(
+    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && !(r.id in localLayout)),
+    [ownedSet, localLayout]
+  );
+  const ownedGardenCount = placedItems.length + inventoryItems.length;
+  const totalGardenCount = REWARDS.filter((r) => isGardenCategory(r.category)).length;
 
   // Sync localLayout from prop when server pushes a fresh saved layout
   useEffect(() => {
@@ -159,33 +134,103 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     });
   }
 
-  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>, itemId: string) {
+  /** Translate a viewport (clientX, clientY) into scene-relative percentages,
+   *  clamped to 0–100. Returns null if the scene ref isn't mounted yet. */
+  function clientToScenePercent(clientX: number, clientY: number): { x: number; y: number } | null {
+    const el = sceneRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const xPct = ((clientX - rect.left) / rect.width) * 100;
+    const yPct = ((clientY - rect.top) / rect.height) * 100;
+    return { x: Math.max(0, Math.min(100, xPct)), y: Math.max(0, Math.min(100, yPct)) };
+  }
+
+  function isOverScene(clientX: number, clientY: number): boolean {
+    const el = sceneRef.current;
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+  }
+
+  function isOverInventory(clientX: number, clientY: number): boolean {
+    const el = inventoryRef.current;
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+  }
+
+  function handlePointerDown(
+    e: React.PointerEvent<HTMLButtonElement>,
+    itemId: string,
+    source: "scene" | "inventory"
+  ) {
     if (!isEditing) return;
     e.preventDefault();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    setDragging(itemId);
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    setDragging({ id: itemId, source });
+    if (source === "inventory") {
+      // Seed an initial preview at cursor if it's already over the scene.
+      const inScene = isOverScene(e.clientX, e.clientY);
+      const pct = clientToScenePercent(e.clientX, e.clientY);
+      if (pct) setDropPreview({ ...pct, overScene: inScene });
+    }
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
-    if (!isEditing || !dragging || !sceneRef.current) return;
-    const rect = sceneRef.current.getBoundingClientRect();
-    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
-    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
-    const x = Math.max(0, Math.min(100, xPct));
-    const y = Math.max(0, Math.min(100, yPct));
-    const id = dragging;
-    setLocalLayout((prev) => {
-      const next = { ...prev, [id]: { x, y } };
-      layoutRef.current = next; // keep ref in sync for pointerup
-      return next;
-    });
+    if (!isEditing || !dragging) return;
+    if (dragging.source === "scene") {
+      // Existing reposition flow: write new coords as the cursor moves.
+      const pct = clientToScenePercent(e.clientX, e.clientY);
+      if (!pct) return;
+      const id = dragging.id;
+      setLocalLayout((prev) => {
+        const next = { ...prev, [id]: { x: pct.x, y: pct.y } };
+        layoutRef.current = next;
+        return next;
+      });
+      // Hover-detect the inventory tray for "drop to remove".
+      setOverInventory(isOverInventory(e.clientX, e.clientY));
+    } else {
+      // Inventory drag: don't commit until pointer-up; show a preview meanwhile.
+      const pct = clientToScenePercent(e.clientX, e.clientY);
+      const inScene = isOverScene(e.clientX, e.clientY);
+      if (pct) setDropPreview({ ...pct, overScene: inScene });
+    }
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
     if (!isEditing || !dragging) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    const drag = dragging;
+    const dropOverInventory = isOverInventory(e.clientX, e.clientY);
+    const dropOverScene = isOverScene(e.clientX, e.clientY);
+
+    if (drag.source === "scene" && dropOverInventory) {
+      // Scene → inventory: remove the entry so the item goes back to the sidebar.
+      setLocalLayout((prev) => {
+        const next = { ...prev };
+        delete next[drag.id];
+        layoutRef.current = next;
+        return next;
+      });
+    } else if (drag.source === "inventory" && dropOverScene) {
+      // Inventory → scene: add the entry at the drop coords.
+      const pct = clientToScenePercent(e.clientX, e.clientY);
+      if (pct) {
+        setLocalLayout((prev) => {
+          const next = { ...prev, [drag.id]: { x: pct.x, y: pct.y } };
+          layoutRef.current = next;
+          return next;
+        });
+      }
+    }
+    // Scene → scene (anywhere not inventory): coords were live-updated, nothing else to do.
+    // Inventory → outside-scene: cancel (no changes).
+
     setDragging(null);
-    // Defer persist to next tick so state updates from pointermove commit first.
+    setDropPreview(null);
+    setOverInventory(false);
+    // Defer persist to next tick so state updates commit first.
     queueMicrotask(() => persistLayout(layoutRef.current));
   }
 
@@ -283,7 +328,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             if (!pos) return null;
             const isLantern = item.id === "garden-lantern";
             const isPond = item.id === "garden-pond";
-            const isBeingDragged = dragging === item.id;
+            const isBeingDragged = dragging?.id === item.id;
             return (
               <button
                 key={item.id}
@@ -298,7 +343,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   touchAction: isEditing ? "none" : undefined
                 }}
                 title={isEditing ? `${item.name} — drag to move` : item.name}
-                onPointerDown={(e) => handlePointerDown(e, item.id)}
+                onPointerDown={(e) => handlePointerDown(e, item.id, "scene")}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
@@ -325,6 +370,21 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
               </button>
             );
           })}
+
+          {/* Drop preview while dragging from inventory: a soft circle at cursor. */}
+          {isEditing && dragging?.source === "inventory" && dropPreview && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute z-[60] -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${dropPreview.x}%`, top: `${dropPreview.y}%` }}
+            >
+              <div
+                className={`h-16 w-16 rounded-full border-2 transition-colors ${
+                  dropPreview.overScene ? "border-emerald-500 bg-emerald-300/30" : "border-rose-400 bg-rose-300/20"
+                }`}
+              />
+            </div>
+          )}
 
           {/* Sun-arc HUD plaque top-right */}
           <SunArcHud tod={tod} />
@@ -404,6 +464,80 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             }
           }
         `}</style>
+      </div>
+
+      {/* ─────────── Inventory tray ───────────
+          Items the user owns but hasn't placed in the scene live here.
+          Visible at all times; only DRAGGABLE in edit mode (drop on scene
+          to place). Also acts as a drop-zone: drag a scene item onto the
+          tray (in edit mode) to remove it from the scene.
+      */}
+      <div
+        ref={inventoryRef}
+        className={`mt-4 w-full overflow-hidden rounded-[22px] border bg-cream-50/85 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.35),inset_0_1px_0_rgba(255,255,255,0.5)] transition-colors
+          ${overInventory && isEditing
+            ? "border-rose-500/70 ring-2 ring-rose-400/50"
+            : isEditing
+            ? "border-emerald-400/60"
+            : "border-white/60"}`}
+      >
+        <div className="flex items-baseline justify-between px-4 pt-3">
+          <h3 className="font-display text-base italic text-ink-900">
+            Inventory <span className="text-ink-700/70">({inventoryItems.length})</span>
+          </h3>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-ink-700/70">
+            {isEditing
+              ? overInventory
+                ? "Drop here to remove"
+                : inventoryItems.length > 0
+                  ? "Drag onto the scene to place"
+                  : "Drop scene items here to remove"
+              : "Buy items below — they land here"}
+          </p>
+        </div>
+        <div className="mt-2 px-4 pb-4">
+          {inventoryItems.length === 0 ? (
+            <p className="rounded-xl bg-ink-900/[0.04] px-3 py-4 text-center text-xs text-ink-700">
+              {ownedGardenCount === 0
+                ? "Nothing here yet. Browse the shop below to pick your first item."
+                : "Everything you own is placed in the scene. Drag an item onto this tray to put it back."}
+            </p>
+          ) : (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+              {inventoryItems.map((item) => {
+                const isBeingDragged = dragging?.id === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-label={`${item.name} — inventory${isEditing ? " (drag to place)" : ""}`}
+                    title={isEditing ? `Drag ${item.name} onto the scene to place it` : item.name}
+                    className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border bg-white/70 p-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
+                      ${isEditing ? "cursor-grab border-emerald-400/40 hover:bg-white" : "cursor-default border-white/70"}
+                      ${isBeingDragged ? "opacity-40" : ""}`}
+                    style={{ touchAction: isEditing ? "none" : undefined }}
+                    onPointerDown={(e) => handlePointerDown(e, item.id, "inventory")}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerUp}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/td-items/${item.id.replace("garden-", "")}.webp`}
+                      alt=""
+                      aria-hidden
+                      draggable={false}
+                      className="h-full w-full object-contain"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 truncate rounded-b-lg bg-ink-900/70 px-1 py-0.5 text-center text-[8px] font-medium uppercase tracking-wider text-cream-50 opacity-0 group-hover:opacity-100">
+                      {item.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Edit-layout controls (above the stage strip so it's discoverable) */}
