@@ -2,6 +2,7 @@
 
 import { DEFAULT_GARDEN_MAP_ID, REWARDS, isGardenCategory, type RewardCategory } from "@/lib/app-data/rewards";
 import {
+  claimGoldenItemAction,
   equipRewardAction,
   purchaseRewardAction,
   unequipRewardAction
@@ -21,6 +22,7 @@ export type GardenShopProps = {
 // then the dashboard rewards (sound / theme / accessory).
 const CATEGORY_ORDER: RewardCategory[] = [
   "garden-map",
+  "garden-golden",
   "garden-structures",
   "garden-plants",
   "garden-critters",
@@ -31,6 +33,7 @@ const CATEGORY_ORDER: RewardCategory[] = [
 
 const CATEGORY_LABEL: Record<RewardCategory, string> = {
   "garden-map": "Garden Backgrounds",
+  "garden-golden": "Golden Trophies",
   "garden-structures": "Cottages & Structures",
   "garden-plants": "Garden & Bounty",
   "garden-critters": "Critters & Whimsy",
@@ -41,6 +44,7 @@ const CATEGORY_LABEL: Record<RewardCategory, string> = {
 
 const CATEGORY_HINT: Record<RewardCategory, string> = {
   "garden-map": "Different worlds to grow in. Equip one to swap the whole scene — your items move with you.",
+  "garden-golden": "Not for sale. Earn each one by spending focused time — your lifetime focus is the only currency.",
   "garden-structures": "The big pieces — cottages, bridges, lanterns. Each one anchors a corner of your scene.",
   "garden-plants": "Flowers, vegetables, ponds. They fill the ground rows and feed the cozy.",
   "garden-critters": "Little characters and oddities — gnomes, snails, fairy rings. Hover or click them in the scene.",
@@ -51,6 +55,7 @@ const CATEGORY_HINT: Record<RewardCategory, string> = {
 
 const CATEGORY_TONE: Record<RewardCategory, string> = {
   "garden-map": "from-[#d8e6ec] to-[#b9d0db]",
+  "garden-golden": "from-[#fff0c8] to-[#f5d57a]",
   "garden-structures": "from-[#e8d8b8] to-[#d2bd8c]",
   "garden-plants": "from-[#d8eccb] to-[#b8d8a8]",
   "garden-critters": "from-[#f1d8e8] to-[#e0b8d4]",
@@ -58,6 +63,14 @@ const CATEGORY_TONE: Record<RewardCategory, string> = {
   theme: "from-brand-lilac/70 to-brand-lilac/30",
   accessory: "from-brand-pink/70 to-brand-pink/30"
 };
+
+/** Format minutes as a human-friendly hours-and-minutes label. */
+function formatMinutes(m: number): string {
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r === 0 ? `${h}h` : `${h}h ${r}m`;
+}
 
 function CoinGlyph({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -83,6 +96,7 @@ export function GardenShop(p: GardenShopProps) {
   };
   const grouped: Record<RewardCategory, typeof REWARDS> = {
     "garden-map":        REWARDS.filter((r) => r.category === "garden-map"),
+    "garden-golden":     REWARDS.filter((r) => r.category === "garden-golden"),
     "garden-structures": REWARDS.filter((r) => r.category === "garden-structures"),
     "garden-plants":     REWARDS.filter((r) => r.category === "garden-plants"),
     "garden-critters":   REWARDS.filter((r) => r.category === "garden-critters"),
@@ -91,8 +105,12 @@ export function GardenShop(p: GardenShopProps) {
     accessory: REWARDS.filter((r) => r.category === "accessory")
   };
 
-  // Count only PLACEABLE garden items for the "Garden N/M" stat.
-  const totalGarden = grouped["garden-structures"].length + grouped["garden-plants"].length + grouped["garden-critters"].length;
+  // Count only PLACEABLE garden items for the "Garden N/M" stat (excludes maps).
+  const totalGarden =
+    grouped["garden-structures"].length +
+    grouped["garden-plants"].length +
+    grouped["garden-critters"].length +
+    grouped["garden-golden"].length;
   const ownedGarden = Array.from(ownedSet).filter((id) => id.startsWith("garden-") && !id.startsWith("garden-map-")).length;
 
   return (
@@ -133,15 +151,24 @@ export function GardenShop(p: GardenShopProps) {
                 // Free items (price 0) are auto-owned for everyone — used for the
                 // default Forest-River map so it sits in the picker with an Equip
                 // button instead of a phantom "Buy 0".
-                const isFree = r.price === 0;
+                // Golden trophies are also price 0 but NOT auto-owned: they need
+                // an explicit Claim once the focus-time threshold is met.
+                const isMap = cat === "garden-map";
+                const isGoldenTrophy = cat === "garden-golden";
+                const isFree = r.price === 0 && !isGoldenTrophy;
                 const owned = ownedSet.has(r.id) || isFree;
                 const equipped = equippedByCategory[cat] === r.id;
                 const affordable = p.coins >= r.price;
-                const isPlaceableGarden = isGardenCategory(cat);     // structures / plants / critters
-                const isMap = cat === "garden-map";
+                const isPlaceableGarden = isGardenCategory(cat);     // structures / plants / critters / golden
                 const placed = isPlaceableGarden && owned;
+                const unlockMin = r.unlocks_at_minutes ?? 0;
+                const unlocked = isGoldenTrophy ? p.lifetimeMinutes >= unlockMin : true;
                 // Wider thumb for maps (16:12 bg) than item PNGs (square).
                 const thumbClass = isMap ? "h-16 w-24 rounded-md object-cover ring-1 ring-black/10" : "h-12 w-12 object-contain";
+                // Gold filter for golden trophy thumbnails so they look the part in the shop too.
+                const thumbFilter = isGoldenTrophy
+                  ? "sepia(1) saturate(3.5) hue-rotate(-22deg) brightness(1.18) contrast(1.08)"
+                  : undefined;
                 return (
                   <article
                     key={r.id}
@@ -153,26 +180,60 @@ export function GardenShop(p: GardenShopProps) {
                       {/* Show art thumb when the reward has one (maps + placeable garden). Otherwise emoji. */}
                       {(isMap || isPlaceableGarden) && r.art ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.art} alt="" aria-hidden className={thumbClass} />
+                        <img
+                          src={r.art}
+                          alt=""
+                          aria-hidden
+                          className={`${thumbClass} ${isGoldenTrophy && !unlocked ? "opacity-40 grayscale" : ""}`}
+                          style={{ filter: thumbFilter }}
+                        />
                       ) : (
                         <span className="text-3xl" aria-hidden>{r.emoji}</span>
                       )}
-                      {/* Hide price chip on free items. */}
-                      {!isFree && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
-                          <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
+                      {/* Right-side chip: price / Free starter / unlock progress */}
+                      {isGoldenTrophy ? (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest ${
+                          unlocked ? "bg-amber-500 text-white" : "bg-ink-900/10 text-ink-700"
+                        }`}>
+                          {unlocked ? "✨ Trophy" : `🔒 ${formatMinutes(unlockMin)}`}
                         </span>
-                      )}
-                      {isFree && (
+                      ) : isFree ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-ink-700">
                           Free starter
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cream-50/85 px-2.5 py-0.5 text-xs font-semibold text-ink-900">
+                          <CoinGlyph className="h-3.5 w-3.5" /> {r.price}
                         </span>
                       )}
                     </div>
                     <h3 className="mt-3 font-display text-lg text-ink-900">{r.name}</h3>
                     <p className="mt-1 flex-1 text-xs text-ink-700">{r.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {!owned && (
+                      {/* Golden trophies: locked OR claim OR claimed. No coin spend. */}
+                      {isGoldenTrophy && !owned && !unlocked && (
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex items-center gap-2 rounded-full bg-ink-900/20 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-ink-700 cursor-not-allowed"
+                        >
+                          🔒 Need {formatMinutes(unlockMin - p.lifetimeMinutes)} more
+                        </button>
+                      )}
+                      {isGoldenTrophy && !owned && unlocked && (
+                        <form action={claimGoldenItemAction}>
+                          <input type="hidden" name="item_id" value={r.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-white shadow-sm hover:bg-amber-600"
+                          >
+                            ✨ Claim free
+                          </button>
+                        </form>
+                      )}
+
+                      {/* Coin-priced items: regular Buy. */}
+                      {!isGoldenTrophy && !owned && (
                         <form action={purchaseRewardAction}>
                           <input type="hidden" name="item_id" value={r.id} />
                           <input type="hidden" name="price" value={r.price} />
@@ -186,10 +247,10 @@ export function GardenShop(p: GardenShopProps) {
                         </form>
                       )}
 
-                      {/* Placeable garden items: owned = always placed, no equip needed. */}
+                      {/* Placeable garden items (including claimed trophies): owned = in inventory or placed. */}
                       {isPlaceableGarden && owned && (
                         <span className="inline-flex items-center gap-2 rounded-full bg-ink-900 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-cream-50">
-                          ✓ In your garden
+                          {isGoldenTrophy ? "✨ Claimed" : "✓ In your garden"}
                         </span>
                       )}
 

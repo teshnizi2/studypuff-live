@@ -91,7 +91,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   // PLACED in scene = owned AND has a localLayout entry.
   // INVENTORY = owned but no localLayout entry.
   const placedItems = useMemo(
-    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && r.id in localLayout && TD_LAYOUT[r.id]),
+    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && r.id in localLayout),
     [ownedSet, localLayout]
   );
   const inventoryItems = useMemo(
@@ -108,15 +108,31 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
 
   function effectivePos(id: string) {
     const def = TD_LAYOUT[id];
-    if (!def) return null;
     const override = localLayout[id];
+    if (!def && !override) return null;
+    // Golden-trophy items have no TD_LAYOUT entry — they only appear in the
+    // scene once placed via drag from inventory. Fall back to sensible
+    // defaults for size + z, and use the override coords (always present
+    // here because the !def branch requires override).
     return {
-      x: override?.x ?? def.x,
-      y: override?.y ?? def.y,
-      size: def.size,
-      z: def.z
+      x: override?.x ?? def!.x,
+      y: override?.y ?? def!.y,
+      size: def?.size ?? 10,
+      z: def?.z ?? 5
     };
   }
+
+  /** Resolve art path: golden trophies share their base item's PNG and get
+   *  a CSS gold filter at render time. */
+  function itemArtSrc(id: string): string {
+    if (id.startsWith("garden-golden-")) {
+      return `/td-items/${id.replace("garden-golden-", "")}.webp`;
+    }
+    return `/td-items/${id.replace("garden-", "")}.webp`;
+  }
+
+  /** CSS filter that gilds an item PNG so it reads as a gold trophy. */
+  const GOLDEN_FILTER = "sepia(1) saturate(3.5) hue-rotate(-22deg) brightness(1.18) contrast(1.08) drop-shadow(0 0 6px rgba(255,210,90,0.7))";
 
   function persistLayout(next: Layout) {
     setSaveStatus("saving");
@@ -326,15 +342,21 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {placedItems.map((item) => {
             const pos = effectivePos(item.id);
             if (!pos) return null;
-            const isLantern = item.id === "garden-lantern";
+            const isLantern = item.id === "garden-lantern" || item.id === "garden-golden-lantern";
             const isPond = item.id === "garden-pond";
+            const isGolden = item.id.startsWith("garden-golden-");
             const isBeingDragged = dragging?.id === item.id;
+            // Compose filter chain: night dim + optional gold sheen.
+            const imgFilter = [
+              isNight ? "brightness(0.78) saturate(0.85)" : "",
+              isGolden ? GOLDEN_FILTER : ""
+            ].filter(Boolean).join(" ") || "none";
             return (
               <button
                 key={item.id}
                 type="button"
                 aria-label={item.name}
-                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isLantern ? "td-item-lantern" : ""} ${isPond ? "td-item-pond" : ""} ${isEditing ? "cursor-grab" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
+                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isLantern ? "td-item-lantern" : ""} ${isPond ? "td-item-pond" : ""} ${isGolden ? "td-item-golden" : ""} ${isEditing ? "cursor-grab" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
                 style={{
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
@@ -350,22 +372,27 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`/td-items/${item.id.replace("garden-", "")}.webp`}
+                  src={itemArtSrc(item.id)}
                   alt={item.name}
                   loading="lazy"
                   decoding="async"
                   draggable={false}
                   className="block h-auto w-full select-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
-                  style={{ filter: isNight ? "brightness(0.72) saturate(0.8)" : "none" }}
+                  style={{ filter: imgFilter }}
                 />
                 {/* Edit-mode handle ring */}
                 {isEditing && (
                   <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ring-2 ${isBeingDragged ? "ring-amber-400" : "ring-emerald-400/70"}`} />
                 )}
-                {/* Lantern night glow (only when owned + at night) */}
+                {/* Lantern night glow (regular OR gold) */}
                 {isLantern && isNight && (
                   <div aria-hidden className="td-lantern-glow pointer-events-none absolute inset-x-[20%] top-[10%] aspect-square rounded-full"
                     style={{ background: "radial-gradient(circle, rgba(255,200,120,0.85) 0%, rgba(255,180,90,0.35) 35%, transparent 70%)" }} />
+                )}
+                {/* Golden sparkle ring (subtle, always visible) */}
+                {isGolden && (
+                  <div aria-hidden className="td-item-golden-aura pointer-events-none absolute inset-[-15%] rounded-full"
+                    style={{ background: "radial-gradient(circle, rgba(255,210,90,0.35) 0%, rgba(255,180,40,0.12) 45%, transparent 70%)" }} />
                 )}
               </button>
             );
@@ -415,6 +442,15 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             100% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
           }
 
+          /* Golden trophy aura — gentle warm pulse */
+          :global(.td-item-golden-aura) {
+            animation: tdGoldPulse 4.2s ease-in-out infinite;
+          }
+          @keyframes tdGoldPulse {
+            0%, 100% { opacity: 0.65; transform: scale(1); }
+            50%      { opacity: 1;    transform: scale(1.05); }
+          }
+
           /* Lantern night glow — pulses gently */
           :global(.td-lantern-glow) {
             animation: tdLanternFlicker 3s ease-in-out infinite;
@@ -459,7 +495,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
 
           @media (prefers-reduced-motion: reduce) {
             :global(.td-item-btn) { animation: none !important; }
-            :global(.td-lantern-glow), :global(.td-item-pond img), :global(.td-star), .td-cloud {
+            :global(.td-lantern-glow), :global(.td-item-pond img), :global(.td-star), :global(.td-item-golden-aura), .td-cloud {
               animation: none !important;
             }
           }
@@ -506,14 +542,18 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
               {inventoryItems.map((item) => {
                 const isBeingDragged = dragging?.id === item.id;
+                const isGolden = item.id.startsWith("garden-golden-");
                 return (
                   <button
                     key={item.id}
                     type="button"
                     aria-label={`${item.name} — inventory${isEditing ? " (drag to place)" : ""}`}
                     title={isEditing ? `Drag ${item.name} onto the scene to place it` : item.name}
-                    className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border bg-white/70 p-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
-                      ${isEditing ? "cursor-grab border-emerald-400/40 hover:bg-white" : "cursor-default border-white/70"}
+                    className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border p-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
+                      ${isGolden
+                        ? "border-amber-300 bg-gradient-to-br from-amber-100 to-amber-200/70 ring-1 ring-amber-300/60"
+                        : "bg-white/70 border-white/70"}
+                      ${isEditing ? "cursor-grab hover:bg-white" : "cursor-default"}
                       ${isBeingDragged ? "opacity-40" : ""}`}
                     style={{ touchAction: isEditing ? "none" : undefined }}
                     onPointerDown={(e) => handlePointerDown(e, item.id, "inventory")}
@@ -523,12 +563,18 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`/td-items/${item.id.replace("garden-", "")}.webp`}
+                      src={itemArtSrc(item.id)}
                       alt=""
                       aria-hidden
                       draggable={false}
                       className="h-full w-full object-contain"
+                      style={{ filter: isGolden ? GOLDEN_FILTER : undefined }}
                     />
+                    {isGolden && (
+                      <span aria-hidden className="absolute right-0 top-0 rounded-bl-lg rounded-tr-md bg-amber-500 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white shadow-sm">
+                        ✨
+                      </span>
+                    )}
                     <span className="absolute inset-x-0 bottom-0 truncate rounded-b-lg bg-ink-900/70 px-1 py-0.5 text-center text-[8px] font-medium uppercase tracking-wider text-cream-50 opacity-0 group-hover:opacity-100">
                       {item.name}
                     </span>

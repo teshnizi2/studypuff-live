@@ -5,7 +5,8 @@ export type RewardCategory =
   | "garden-map"
   | "garden-structures"
   | "garden-plants"
-  | "garden-critters";
+  | "garden-critters"
+  | "garden-golden";
 
 /** True for PLACEABLE garden categories (items that drop into the scene).
  *  `garden-map` is intentionally excluded because maps are *equipped* like
@@ -32,6 +33,10 @@ export type Reward = {
   name: string;
   category: RewardCategory;
   price: number;
+  /** For garden-golden trophies: total lifetime_focus_minutes required to unlock.
+   *  When set, the item is "claimed" for free (price ignored) once the user
+   *  meets the threshold. */
+  unlocks_at_minutes?: number;
   emoji: string;
   description: string;
   /** Bespoke art asset path (for garden items rendered in the scene). */
@@ -124,7 +129,20 @@ export const REWARDS: Reward[] = [
   { id: "garden-snail", name: "Stripey snail", category: "garden-critters", price: 70, emoji: "🐌", description: "A friendly snail with a candy-striped shell.", art: "/garden/item-snail.webp", placement: { x: 53, y: 97, scale: 0.28, layer: 7 } },
   { id: "garden-beehive", name: "Honey hive", category: "garden-critters", price: 200, emoji: "🐝", description: "A striped beehive hanging from a tree branch.", art: "/garden/item-beehive.webp", placement: { x: 10, y: 22, scale: 0.36, layer: 1 } },
   { id: "garden-picnic", name: "Picnic basket", category: "garden-critters", price: 80, emoji: "🧺", description: "A wicker basket with a baguette and apple, set on a checkered cloth.", art: "/garden/item-picnic.webp", placement: { x: 70, y: 96, scale: 0.42, layer: 5 } },
-  { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 56, y: 95, scale: 0.32, layer: 7 } }
+  { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 56, y: 95, scale: 0.32, layer: 7 } },
+
+  // ───────────────────── GARDEN — GOLDEN TROPHIES (6 items) ─────────────────────
+  // These are NOT bought with coins. They unlock based on lifetime focus
+  // minutes and are claimed for free once unlocked. Visually they share the
+  // base item's PNG art but get a CSS gold filter at render time. Lands in
+  // inventory (no TD_LAYOUT entry) on claim, then drag-to-place like any
+  // other inventory item.
+  { id: "garden-golden-lantern",   name: "Golden lantern",   category: "garden-golden", price: 0, unlocks_at_minutes: 300,   emoji: "🏮", description: "A glowing brass lantern. Unlocks after 5 focused hours.",   art: "/td-items/lantern.webp" },
+  { id: "garden-golden-gnome",     name: "Golden gnome",     category: "garden-golden", price: 0, unlocks_at_minutes: 900,   emoji: "🧙", description: "A gilded gnome that smiles knowingly. Unlocks at 15 hours.", art: "/td-items/gnome.webp" },
+  { id: "garden-golden-cottage",   name: "Golden cottage",   category: "garden-golden", price: 0, unlocks_at_minutes: 1800,  emoji: "🏡", description: "A grand cottage with a golden roof. Unlocks at 30 hours.",   art: "/td-items/cottage.webp" },
+  { id: "garden-golden-applestree",name: "Golden tree",      category: "garden-golden", price: 0, unlocks_at_minutes: 3600,  emoji: "🌳", description: "An apple tree heavy with golden fruit. Unlocks at 60 hours.", art: "/td-items/applestree.webp" },
+  { id: "garden-golden-gazebo",    name: "Golden gazebo",    category: "garden-golden", price: 0, unlocks_at_minutes: 7200,  emoji: "🌹", description: "Ornate gold gazebo, climbing roses, the works. Unlocks at 120 hours.", art: "/td-items/gazebo.webp" },
+  { id: "garden-golden-fairyring", name: "Golden fairy ring",category: "garden-golden", price: 0, unlocks_at_minutes: 14400, emoji: "✨", description: "A trophy ring of luminous gold mushrooms. Unlocks at 240 hours.", art: "/td-items/fairyring.webp" }
 ];
 
 export function rewardById(id: string) {

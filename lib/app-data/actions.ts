@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { StudyMode, TaskPriority } from "@/lib/supabase/database.types";
+import { REWARDS } from "@/lib/app-data/rewards";
 
 function stringValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -317,6 +318,47 @@ export async function addStudySessionAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/stats");
   revalidatePath("/dashboard/rewards");
+}
+
+/** Claim a free golden trophy item once the user has reached its unlock
+ *  threshold (lifetime focused minutes). No coins are spent. Inserts a row
+ *  in user_purchases at price 0 — after that the item behaves like any
+ *  other owned item in inventory. */
+export async function claimGoldenItemAction(formData: FormData) {
+  const { user } = await requireUser();
+  const itemId = stringValue(formData, "item_id");
+  if (!itemId || !itemId.startsWith("garden-golden-")) {
+    throw new Error("Invalid trophy item id.");
+  }
+
+  // Look up the reward to learn its unlock threshold.
+  const reward = REWARDS.find((r) => r.id === itemId);
+  if (!reward || reward.category !== "garden-golden") {
+    throw new Error("Unknown trophy item.");
+  }
+  const threshold = reward.unlocks_at_minutes ?? Number.POSITIVE_INFINITY;
+
+  const supabase = createSupabaseServerClient();
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("lifetime_focus_minutes")
+    .eq("user_id", user.id)
+    .single();
+  const minutes = settings?.lifetime_focus_minutes ?? 0;
+  if (minutes < threshold) {
+    throw new Error(`Need ${threshold - minutes} more focused minutes to claim this trophy.`);
+  }
+
+  // Idempotent insert: ignore duplicate-key errors (already claimed).
+  const { error } = await supabase
+    .from("user_purchases")
+    .insert({ user_id: user.id, item_id: itemId, price_paid: 0 });
+  if (error && !/duplicate|unique/i.test(error.message)) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/dashboard/garden");
+  revalidatePath("/dashboard");
 }
 
 export async function purchaseRewardAction(formData: FormData) {
