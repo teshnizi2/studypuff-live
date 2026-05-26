@@ -82,10 +82,17 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const sceneRef = useRef<HTMLDivElement>(null);
   const inventoryRef = useRef<HTMLDivElement>(null);
-  // Mirror localLayout into a ref so pointer handlers can read latest value
-  // without being recreated on every drag-tick + without state-setter-in-setter.
+  // Mirror state into refs so pointer handlers can read the latest values
+  // synchronously. Without this, the first pointermove after pointerdown often
+  // executes a stale closure where `dragging` is still null (React hasn't
+  // re-rendered yet), so the drag silently bails out — manifests as "some
+  // items don't respond to drag." Same pattern as the layoutRef fix.
   const layoutRef = useRef<Layout>(localLayout);
+  const draggingRef = useRef<{ id: string; source: "scene" | "inventory" } | null>(null);
+  const isEditingRef = useRef<boolean>(false);
   useEffect(() => { layoutRef.current = localLayout; }, [localLayout]);
+  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
+  useEffect(() => { isEditingRef.current = isEditing; }, [isEditing]);
   const [, startTransition] = useTransition();
 
   // PLACED in scene = owned AND has a localLayout entry.
@@ -101,9 +108,13 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const ownedGardenCount = placedItems.length + inventoryItems.length;
   const totalGardenCount = REWARDS.filter((r) => isGardenCategory(r.category)).length;
 
-  // Sync localLayout from prop when server pushes a fresh saved layout
+  // Sync localLayout from prop when the server pushes a fresh saved layout.
+  // Skip while a drag is in flight — otherwise a revalidatePath that lands
+  // mid-drag would clobber the user's pending coords.
   useEffect(() => {
-    if (savedLayout) setLocalLayout(savedLayout);
+    if (!savedLayout) return;
+    if (draggingRef.current) return;
+    setLocalLayout(savedLayout);
   }, [savedLayout]);
 
   function effectivePos(id: string) {
@@ -180,10 +191,14 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     itemId: string,
     source: "scene" | "inventory"
   ) {
-    if (!isEditing) return;
+    if (!isEditingRef.current) return;
     e.preventDefault();
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    setDragging({ id: itemId, source });
+    // Write the ref SYNCHRONOUSLY so the very next pointermove (which may fire
+    // before React's re-render commits the new state) sees the live drag.
+    const drag = { id: itemId, source };
+    draggingRef.current = drag;
+    setDragging(drag);
     if (source === "inventory") {
       // Seed an initial preview at cursor if it's already over the scene.
       const inScene = isOverScene(e.clientX, e.clientY);
@@ -193,12 +208,15 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
-    if (!isEditing || !dragging) return;
-    if (dragging.source === "scene") {
+    // Read refs, not state — see comment on draggingRef declaration.
+    if (!isEditingRef.current) return;
+    const drag = draggingRef.current;
+    if (!drag) return;
+    if (drag.source === "scene") {
       // Existing reposition flow: write new coords as the cursor moves.
       const pct = clientToScenePercent(e.clientX, e.clientY);
       if (!pct) return;
-      const id = dragging.id;
+      const id = drag.id;
       setLocalLayout((prev) => {
         const next = { ...prev, [id]: { x: pct.x, y: pct.y } };
         layoutRef.current = next;
@@ -215,9 +233,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   }
 
   function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
-    if (!isEditing || !dragging) return;
+    if (!isEditingRef.current) return;
+    const drag = draggingRef.current;
+    if (!drag) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-    const drag = dragging;
     const dropOverInventory = isOverInventory(e.clientX, e.clientY);
     const dropOverScene = isOverScene(e.clientX, e.clientY);
 
@@ -243,6 +262,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     // Scene → scene (anywhere not inventory): coords were live-updated, nothing else to do.
     // Inventory → outside-scene: cancel (no changes).
 
+    // Clear ref + state. Ref-first so any straggler pointer event ignores us.
+    draggingRef.current = null;
     setDragging(null);
     setDropPreview(null);
     setOverInventory(false);
