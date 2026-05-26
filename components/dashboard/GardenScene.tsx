@@ -224,7 +224,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         className="relative w-full overflow-hidden rounded-[28px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
         data-tod={tod}
       >
-        <div ref={sceneRef} className={`relative aspect-[16/9] w-full ${isEditing ? "cursor-grab" : ""}`}>
+        <div ref={sceneRef} className={`relative aspect-[4/3] w-full ${isEditing ? "cursor-grab" : ""}`}>
           {/* Base top-down map */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
