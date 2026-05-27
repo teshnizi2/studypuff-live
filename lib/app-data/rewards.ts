@@ -59,6 +59,14 @@ export const REWARDS: Reward[] = [
   { id: "garden-map-desert", name: "Desert Oasis", category: "garden-map", price: 260, emoji: "🌵", description: "Warm sand, a turquoise oasis, distant mesas at the horizon.", art: "/garden-maps/desert.webp" },
   { id: "garden-map-lavender", name: "Lavender Twilight", category: "garden-map", price: 320, emoji: "💜", description: "Magical purple field, glowing wisps, dreamy twilight path.", art: "/garden-maps/lavender.webp" },
   { id: "garden-map-night", name: "Moonlit Forest", category: "garden-map", price: 300, emoji: "🌙", description: "Deep-blue moonlit grass, winding river, painted fireflies.", art: "/garden-maps/night.webp" },
+  // ── Cozy maps
+  { id: "garden-map-cherry-blossom", name: "Cherry Blossom", category: "garden-map", price: 320, emoji: "🌸", description: "Delicate pink cherry trees frame a stone path and a quiet koi pool.", art: "/garden-maps/cherry-blossom.webp" },
+  { id: "garden-map-autumn", name: "Autumn Meadow", category: "garden-map", price: 280, emoji: "🍂", description: "Golden maples line a winding dirt path. Fallen leaves dot the warm earth.", art: "/garden-maps/autumn.webp" },
+  { id: "garden-map-english-cottage", name: "Cottage Garden", category: "garden-map", price: 300, emoji: "🌹", description: "Cobblestone paths wind through rose hedges. A crisp English afternoon.", art: "/garden-maps/english-cottage.webp" },
+  // ── Elegant maps
+  { id: "garden-map-marble-terrace", name: "Marble Terrace", category: "garden-map", price: 420, emoji: "🏛️", description: "Gleaming marble tiles, sculpted hedges, long afternoon shadows. Pure elegance.", art: "/garden-maps/marble-terrace.webp" },
+  { id: "garden-map-zen", name: "Zen Garden", category: "garden-map", price: 380, emoji: "☯️", description: "Raked sand, granite boulders, bamboo. Every ripple is a thought let go.", art: "/garden-maps/zen.webp" },
+  { id: "garden-map-enchanted", name: "Enchanted Grove", category: "garden-map", price: 360, emoji: "🍄", description: "Giant mushrooms, glowing fairy circles, teal grass. A garden visible only at twilight.", art: "/garden-maps/enchanted.webp" },
 
   // Ambient sounds
   { id: "sound-rain", name: "Soft rain", category: "sound", price: 30, emoji: "🌧️", description: "A gentle drizzle to wash distractions away." },
@@ -130,6 +138,31 @@ export const REWARDS: Reward[] = [
   { id: "garden-beehive", name: "Honey hive", category: "garden-critters", price: 200, emoji: "🐝", description: "A striped beehive hanging from a tree branch.", art: "/garden/item-beehive.webp", placement: { x: 10, y: 22, scale: 0.36, layer: 1 } },
   { id: "garden-picnic", name: "Picnic basket", category: "garden-critters", price: 80, emoji: "🧺", description: "A wicker basket with a baguette and apple, set on a checkered cloth.", art: "/garden/item-picnic.webp", placement: { x: 70, y: 96, scale: 0.42, layer: 5 } },
   { id: "garden-fairyring", name: "Fairy ring", category: "garden-critters", price: 110, emoji: "✨", description: "A circle of toadstools with a magical sparkle.", art: "/garden/item-fairyring.webp", placement: { x: 56, y: 95, scale: 0.32, layer: 7 } },
+
+  // ───────────────────── GARDEN — JAPANESE / CHERRY-BLOSSOM (5 items) ─────────────────────
+  { id: "garden-cherry-tree",    name: "Cherry blossom tree", category: "garden-plants",    price: 200, emoji: "🌸", description: "A full canopy of soft pink blooms. Petals drift when the wind blows." },
+  { id: "garden-torii",          name: "Torii gate",           category: "garden-structures", price: 220, emoji: "⛩️", description: "A bold vermillion arch — every step through it feels like a new beginning." },
+  { id: "garden-stone-lantern",  name: "Stone lantern",        category: "garden-structures", price: 100, emoji: "🪔", description: "A mossy granite lantern that glows warm amber at dusk." },
+  { id: "garden-koi-pond",       name: "Koi pond",             category: "garden-plants",    price: 190, emoji: "🐟", description: "Orange and white koi circle under lily pads in clear turquoise water." },
+  { id: "garden-tea-house",      name: "Tea house",            category: "garden-structures", price: 280, emoji: "🫖", description: "A pagoda-roofed tea house with paper screens and a wooden porch." },
+
+  // ───────────────────── GARDEN — AUTUMN / HARVEST (4 items) ─────────────────────
+  { id: "garden-maple-tree",     name: "Maple tree",           category: "garden-plants",    price: 190, emoji: "🍁", description: "Blazing red and orange leaves. A riot of warm color every session." },
+  { id: "garden-harvest-cart",   name: "Harvest cart",         category: "garden-critters",  price: 150, emoji: "🛒", description: "A weathered wooden cart overflowing with pumpkins and apples." },
+  { id: "garden-pumpkin-stack",  name: "Pumpkin stack",        category: "garden-plants",    price: 90,  emoji: "🎃", description: "Three cheerfully carved jack-o-lanterns stacked for maximum autumn energy." },
+  { id: "garden-leaf-pile",      name: "Leaf pile",            category: "garden-critters",  price: 70,  emoji: "🍂", description: "A golden heap of autumn leaves with a rake leaning on the side." },
+
+  // ───────────────────── GARDEN — ELEGANT (4 items) ─────────────────────
+  { id: "garden-marble-fountain",name: "Marble fountain",      category: "garden-structures", price: 320, emoji: "⛲", description: "A three-tiered marble fountain with flowing turquoise water." },
+  { id: "garden-topiary",        name: "Topiary sphere",       category: "garden-plants",    price: 140, emoji: "🌿", description: "A perfectly spherical emerald topiary on a stone pedestal." },
+  { id: "garden-rose-arch",      name: "Rose arch",            category: "garden-structures", price: 250, emoji: "🌹", description: "A stone arch draped with red roses and cascading ivy." },
+  { id: "garden-sundial",        name: "Sundial",              category: "garden-structures", price: 130, emoji: "🕐", description: "A classical stone sundial. Time passes more gently here." },
+
+  // ───────────────────── GARDEN — ZEN & MAGICAL (4 items) ─────────────────────
+  { id: "garden-pagoda",         name: "Pagoda",               category: "garden-structures", price: 300, emoji: "🏯", description: "A three-tier red-and-gold pagoda with upturned eaves and stone steps." },
+  { id: "garden-bamboo",         name: "Bamboo grove",         category: "garden-plants",    price: 120, emoji: "🎋", description: "A tight cluster of vibrant green bamboo stalks whispering in the breeze." },
+  { id: "garden-crystal-tree",   name: "Crystal tree",         category: "garden-plants",    price: 350, emoji: "💎", description: "A magical tree bearing glowing crystal fruits. Lights up purple at night." },
+  { id: "garden-mushroom-house", name: "Mushroom house",       category: "garden-structures", price: 230, emoji: "🍄", description: "A whimsical fairy-tale home carved inside a giant red-capped mushroom." },
 
   // ───────────────────── GARDEN — GOLDEN TROPHIES (6 items) ─────────────────────
   // These are NOT bought with coins. They unlock based on lifetime focus

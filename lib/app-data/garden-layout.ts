@@ -52,7 +52,32 @@ export const TD_LAYOUT: Record<string, TileDefault> = {
 
   // EDGES
   "garden-treehouse":    { x: 50, y: 12, size: 12, z: 4 },
-  "garden-beehive":      { x: 90, y: 50, size: 7,  z: 3 }
+  "garden-beehive":      { x: 90, y: 50, size: 7,  z: 3 },
+
+  // ── JAPANESE / CHERRY-BLOSSOM zone
+  "garden-cherry-tree":    { x: 80, y: 42, size: 11, z: 4 },
+  "garden-torii":          { x: 58, y: 20, size: 9,  z: 5 },
+  "garden-stone-lantern":  { x: 48, y: 20, size: 6,  z: 7 },
+  "garden-koi-pond":       { x: 78, y: 58, size: 10, z: 5 },
+  "garden-tea-house":      { x: 8,  y: 58, size: 12, z: 4 },
+
+  // ── AUTUMN / HARVEST zone
+  "garden-maple-tree":     { x: 5,  y: 42, size: 11, z: 4 },
+  "garden-harvest-cart":   { x: 15, y: 52, size: 10, z: 5 },
+  "garden-pumpkin-stack":  { x: 8,  y: 68, size: 7,  z: 6 },
+  "garden-leaf-pile":      { x: 25, y: 42, size: 8,  z: 6 },
+
+  // ── ELEGANT zone
+  "garden-marble-fountain":{ x: 50, y: 68, size: 11, z: 5 },
+  "garden-topiary":        { x: 32, y: 68, size: 8,  z: 6 },
+  "garden-rose-arch":      { x: 68, y: 58, size: 10, z: 5 },
+  "garden-sundial":        { x: 46, y: 20, size: 7,  z: 6 },
+
+  // ── ZEN / MAGICAL zone
+  "garden-pagoda":         { x: 92, y: 42, size: 12, z: 3 },
+  "garden-bamboo":         { x: 5,  y: 18, size: 8,  z: 4 },
+  "garden-crystal-tree":   { x: 38, y: 8,  size: 10, z: 3 },
+  "garden-mushroom-house": { x: 22, y: 68, size: 10, z: 5 }
 };
 
 /** Reward-id prefix used to identify placeable garden items
