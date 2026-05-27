@@ -232,13 +232,15 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     draggingRef.current = drag;
     setDragging(drag);
 
-    // Bring scene items to front the moment the user grabs them — update
-    // placedAt so this item sorts last in the render order.
+    // Whatever you touch goes to the front immediately.
+    // Stamp placedAt synchronously so it's already in layoutRef before the
+    // first pointermove fires and re-renders the sort order.
     if (source === "scene") {
+      const placedAt = Date.now();
       setLocalLayout((prev) => {
         const entry = prev[itemId];
         if (!entry) return prev;
-        const next = { ...prev, [itemId]: { ...entry, placedAt: Date.now() } };
+        const next = { ...prev, [itemId]: { ...entry, placedAt } };
         layoutRef.current = next;
         return next;
       });
