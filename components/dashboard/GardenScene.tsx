@@ -164,16 +164,19 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   const GOLDEN_FILTER = "sepia(1) saturate(3.5) hue-rotate(-22deg) brightness(1.18) contrast(1.08) drop-shadow(0 0 6px rgba(255,210,90,0.7))";
 
   function persistLayout(next: Layout) {
+    const itemCount = Object.keys(next).length;
+    console.log(`[🌱 garden-drag] saving layout (${itemCount} items)`);
     setSaveStatus("saving");
     const fd = new FormData();
     fd.append("layout", JSON.stringify(next));
     startTransition(async () => {
       try {
         await saveGardenLayoutAction(fd);
+        console.log("[🌱 garden-drag] layout saved ✓");
         setSaveStatus("saved");
         window.setTimeout(() => setSaveStatus("idle"), 1500);
       } catch (e) {
-        console.error("Failed to save garden layout", e);
+        console.error("[🌱 garden-drag] save FAILED ✗", e);
         setSaveStatus("error");
       }
     });
@@ -209,7 +212,11 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     itemId: string,
     source: "scene" | "inventory"
   ) {
-    if (!isEditingRef.current) return;
+    if (!isEditingRef.current) {
+      console.log("[🌱 garden-drag] pointerdown ignored — not in edit mode", itemId);
+      return;
+    }
+    console.log("[🌱 garden-drag] drag start", { itemId, source });
     e.preventDefault();
     // setPointerCapture helps prevent browser scroll/default gestures on touch,
     // but we do NOT rely on it to route events — window listeners handle that.
@@ -255,14 +262,31 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     };
 
     const onWindowUp = (ev: PointerEvent) => {
-      // Always clean up first so straggler events after release are ignored.
+      // Remove window listeners first so straggler events are ignored.
       cleanup();
 
+      // Grab + clear the drag ref atomically before any state work.
       const d = draggingRef.current;
-      if (!d) return;
+      draggingRef.current = null;
+
+      // Always clear visual drag state, even if d is somehow null.
+      setDragging(null);
+      setDropPreview(null);
+      setDragGhost(null);
+      setOverInventory(false);
+
+      if (!d) {
+        console.warn("[🌱 garden-drag] pointerup fired but draggingRef was null — stale event?");
+        return;
+      }
 
       const dropOverInventory = isOverInventory(ev.clientX, ev.clientY);
       const dropOverScene    = isOverScene(ev.clientX, ev.clientY);
+
+      console.log("[🌱 garden-drag] drop", {
+        id: d.id, source: d.source, dropOverScene, dropOverInventory,
+        clientX: Math.round(ev.clientX), clientY: Math.round(ev.clientY),
+      });
 
       if (d.source === "scene" && dropOverInventory) {
         // Scene → inventory: remove from layout (goes back to inventory tray).
@@ -276,21 +300,20 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         // Inventory → scene: place at cursor coords.
         const pct = clientToScenePercent(ev.clientX, ev.clientY);
         if (pct) {
+          console.log("[🌱 garden-drag] placing", d.id, "at", pct);
           setLocalLayout((prev) => {
             const next = { ...prev, [d.id]: { x: pct.x, y: pct.y } };
             layoutRef.current = next;
             return next;
           });
+        } else {
+          console.warn("[🌱 garden-drag] clientToScenePercent returned null — sceneRef missing?");
         }
+      } else {
+        // Inventory → outside-scene: cancel. Scene → scene: coords already live-updated.
+        console.log("[🌱 garden-drag] no-op drop (inventory→outside or scene→scene)");
       }
-      // Scene → scene: coords already live-updated during move — nothing extra.
-      // Inventory → outside-scene: cancel, no changes.
 
-      draggingRef.current = null;
-      setDragging(null);
-      setDropPreview(null);
-      setDragGhost(null);
-      setOverInventory(false);
       queueMicrotask(() => persistLayout(layoutRef.current));
     };
 
