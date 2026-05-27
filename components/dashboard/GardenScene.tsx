@@ -263,7 +263,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         if (!pct) return;
         const id = d.id;
         setLocalLayout((prev) => {
-          const next = { ...prev, [id]: { x: pct.x, y: pct.y } };
+          // Spread the existing entry so placedAt (and any future fields)
+          // are preserved — only x/y should change during a reposition.
+          const next = { ...prev, [id]: { ...prev[id], x: pct.x, y: pct.y } };
           layoutRef.current = next;
           return next;
         });
