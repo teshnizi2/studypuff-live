@@ -62,7 +62,7 @@ export default async function GardenPage() {
   // missing entries = "in inventory". To keep existing users from losing
   // their scene on the first load, seed garden_layout with TD_LAYOUT for
   // every placeable item they own when their layout is currently empty.
-  let layoutForScene = (settings?.garden_layout ?? {}) as Record<string, { x: number; y: number }>;
+  let layoutForScene = (settings?.garden_layout ?? {}) as Record<string, { x: number; y: number; placedAt?: number }>;
   const layoutIsEmpty = !layoutForScene || Object.keys(layoutForScene).length === 0;
   const placeableOwned = ownedItemIds.filter((id) => isPlaceableGardenId(id) && TD_LAYOUT[id]);
   if (layoutIsEmpty && placeableOwned.length > 0) {

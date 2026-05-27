@@ -424,15 +424,17 @@ export async function saveGardenLayoutAction(formData: FormData) {
   try { parsed = JSON.parse(raw); } catch { throw new Error("Invalid layout JSON."); }
   if (!parsed || typeof parsed !== "object") throw new Error("Layout must be an object.");
 
-  // Sanitize: only accept {x, y} numbers in 0-100 range, item-id key.
-  const clean: Record<string, { x: number; y: number }> = {};
+  // Sanitize: accept {x, y, placedAt?} — placedAt is a unix-ms timestamp used
+  // for z-ordering (last-touched item renders on top). Strip unknown fields.
+  const clean: Record<string, { x: number; y: number; placedAt?: number }> = {};
   for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
     if (!k.startsWith("garden-")) continue;
     if (!v || typeof v !== "object") continue;
-    const { x, y } = v as { x?: unknown; y?: unknown };
+    const { x, y, placedAt } = v as { x?: unknown; y?: unknown; placedAt?: unknown };
     if (typeof x !== "number" || typeof y !== "number") continue;
     if (x < -10 || x > 110 || y < -10 || y > 110) continue;
     clean[k] = { x, y };
+    if (typeof placedAt === "number" && placedAt > 0) clean[k].placedAt = placedAt;
   }
 
   const supabase = createSupabaseServerClient();
