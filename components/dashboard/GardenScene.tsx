@@ -5,7 +5,7 @@ import { REWARDS, isGardenCategory, mapArtFor } from "@/lib/app-data/rewards";
 import { TD_LAYOUT } from "@/lib/app-data/garden-layout";
 import { resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
 
-type Layout = Record<string, { x: number; y: number }>;
+type Layout = Record<string, { x: number; y: number; placedAt?: number }>;
 
 type Props = {
   lifetimeMinutes: number;
@@ -115,8 +115,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
 
   // PLACED in scene = owned AND has a localLayout entry.
   // INVENTORY = owned but no localLayout entry.
+  // Sorted by placedAt ascending so the most-recently placed item renders
+  // last in the DOM — giving it natural CSS stacking priority (on top).
   const placedItems = useMemo(
-    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && r.id in localLayout),
+    () => REWARDS
+      .filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && r.id in localLayout)
+      .sort((a, b) => (localLayout[a.id]?.placedAt ?? 0) - (localLayout[b.id]?.placedAt ?? 0)),
     [ownedSet, localLayout]
   );
   const inventoryItems = useMemo(
@@ -228,6 +232,18 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     draggingRef.current = drag;
     setDragging(drag);
 
+    // Bring scene items to front the moment the user grabs them — update
+    // placedAt so this item sorts last in the render order.
+    if (source === "scene") {
+      setLocalLayout((prev) => {
+        const entry = prev[itemId];
+        if (!entry) return prev;
+        const next = { ...prev, [itemId]: { ...entry, placedAt: Date.now() } };
+        layoutRef.current = next;
+        return next;
+      });
+    }
+
     if (source === "inventory") {
       const inScene = isOverScene(e.clientX, e.clientY);
       const pct = clientToScenePercent(e.clientX, e.clientY);
@@ -297,12 +313,14 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           return next;
         });
       } else if (d.source === "inventory" && dropOverScene) {
-        // Inventory → scene: place at cursor coords.
+        // Inventory → scene: place at cursor coords, stamp placedAt so it
+        // renders on top of everything already in the scene.
         const pct = clientToScenePercent(ev.clientX, ev.clientY);
         if (pct) {
-          console.log("[🌱 garden-drag] placing", d.id, "at", pct);
+          const placedAt = Date.now();
+          console.log("[🌱 garden-drag] placing", d.id, "at", pct, "placedAt", placedAt);
           setLocalLayout((prev) => {
-            const next = { ...prev, [d.id]: { x: pct.x, y: pct.y } };
+            const next = { ...prev, [d.id]: { x: pct.x, y: pct.y, placedAt } };
             layoutRef.current = next;
             return next;
           });
@@ -420,8 +438,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           )}
 
           {/* Owned items, each anchored at the FOOT (bottom-center).
-              In edit mode, items become draggable pointers. */}
-          {placedItems.map((item) => {
+              Rendered in placedAt order (oldest first) so the most recently
+              placed item is last in the DOM and naturally appears on top.
+              z-index mirrors the render index so explicit overlaps also work. */}
+          {placedItems.map((item, idx) => {
             const pos = effectivePos(item.id);
             if (!pos) return null;
             const isLantern = item.id === "garden-lantern" || item.id === "garden-golden-lantern";
@@ -443,7 +463,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
                   width: `${pos.size}%`,
-                  zIndex: isBeingDragged ? 999 : pos.z + 10,
+                  // idx is the item's rank in placedAt-sorted order:
+                  // lowest idx = placed first = behind; highest = placed last = in front.
+                  zIndex: isBeingDragged ? 999 : 10 + idx,
                   touchAction: isEditing ? "none" : undefined
                 }}
                 title={isEditing ? `${item.name} — drag to move` : item.name}
