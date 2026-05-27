@@ -522,12 +522,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             animation: tdItemPop 420ms cubic-bezier(0.34, 1.5, 0.64, 1) both;
             transition: transform 250ms ease-out, filter 200ms ease-out;
           }
+          /* Scale up on hover but do NOT change z-index — placement order
+             must be preserved. Previously z-index:50!important here caused
+             any hovered item to pop to the top layer then drop back when
+             the cursor left, making layering feel broken. */
           :global(.td-item-btn:not(.td-item-dragging):hover) {
             transform: translate(-50%, -100%) scale(1.08);
-            z-index: 50 !important;
-          }
-          :global(.td-item-btn:focus-visible) {
-            z-index: 50 !important;
           }
           :global(.td-item-btn.td-item-dragging) {
             animation: none !important;
