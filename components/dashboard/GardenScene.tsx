@@ -1,11 +1,19 @@
 "use client";
 
 import { memo, RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
-import { REWARDS, isGardenCategory, mapArtFor, RewardCategory } from "@/lib/app-data/rewards";
+import { REWARDS, isGardenCategory, mapArtFor, RARITY_META, RewardCategory } from "@/lib/app-data/rewards";
 import { TD_LAYOUT } from "@/lib/app-data/garden-layout";
 import { purchaseRewardAction, resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
 
-type Layout = Record<string, { x: number; y: number; placedAt?: number }>;
+type Layout = Record<string, { x: number; y: number; placedAt?: number; scale?: number; rotation?: number }>;
+
+/** Per-item resize bounds (multiplier on the item's base size) + rotation range. */
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 2.6;
+const MIN_ROT = -180;
+const MAX_ROT = 180;
+function clampScale(s: number) { return Math.max(MIN_SCALE, Math.min(MAX_SCALE, s)); }
+function clampRot(r: number) { return Math.max(MIN_ROT, Math.min(MAX_ROT, r)); }
 
 type Props = {
   lifetimeMinutes: number;
@@ -187,6 +195,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   //   • Scene → scene    = update coords (existing reposition).
   const [localLayout, setLocalLayout] = useState<Layout>(() => savedLayout ?? {});
   const [isEditing, setIsEditing] = useState(false);
+  /** Placed item currently selected for resize/rotate (edit mode only). */
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragging, setDragging] = useState<{ id: string; source: "scene" | "inventory" } | null>(null);
   // While dragging from inventory, follow the cursor in scene-relative %.
   const [dropPreview, setDropPreview] = useState<{ x: number; y: number; overScene: boolean } | null>(null);
@@ -243,6 +253,9 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   // Cleanup ref for window-level drag listeners (attached on pointerdown, removed on pointerup/cancel/unmount).
   const windowDragCleanupRef = useRef<(() => void) | null>(null);
   useEffect(() => () => { windowDragCleanupRef.current?.(); }, []);
+  /** Debounce timer for persisting size/rotation changes from the control bar. */
+  const transformSaveTimerRef = useRef<number | null>(null);
+  useEffect(() => () => { if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current); }, []);
 
   // Preload all owned garden-item images into the browser cache on mount so
   // there's zero network wait when an item is dragged from inventory to scene.
@@ -396,6 +409,20 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     });
   }
 
+  /** Update scale/rotation for an item — live visual update + debounced persist
+   *  (so dragging a slider doesn't fire a server write on every tick). */
+  function updateTransform(id: string, patch: { scale?: number; rotation?: number }) {
+    setLocalLayout((prev) => {
+      const entry = prev[id];
+      if (!entry) return prev;
+      const next = { ...prev, [id]: { ...entry, ...patch } };
+      layoutRef.current = next;
+      return next;
+    });
+    if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current);
+    transformSaveTimerRef.current = window.setTimeout(() => persistLayout(layoutRef.current), 500);
+  }
+
   /** Translate a viewport (clientX, clientY) into scene-relative percentages,
    *  clamped to 0–100. Returns null if the scene ref isn't mounted yet. */
   function clientToScenePercent(clientX: number, clientY: number): { x: number; y: number } | null {
@@ -430,6 +457,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       return;
     }
     e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
     // setPointerCapture helps prevent browser scroll/default gestures on touch,
     // but we do NOT rely on it to route events — window listeners handle that.
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
@@ -506,6 +535,13 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       if (!d) {
         console.warn("[🌱 garden-drag] pointerup fired but draggingRef was null — stale event?");
         return;
+      }
+
+      // Tap (negligible movement) on a placed scene item → select it for
+      // resize / rotate, rather than treating it as a reposition.
+      const movedDist = Math.hypot(ev.clientX - startX, ev.clientY - startY);
+      if (d.source === "scene" && movedDist < 6) {
+        setSelectedId((cur) => (cur === d.id ? cur : d.id));
       }
 
       const dropOverInventory = isOverInventory(ev.clientX, ev.clientY);
@@ -752,6 +788,10 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {placedItems.map((item, idx) => {
             const pos = effectivePos(item.id);
             if (!pos) return null;
+            const entry = localLayout[item.id];
+            const userScale = entry?.scale ?? 1;
+            const userRotation = entry?.rotation ?? 0;
+            const isSelected = isEditing && selectedId === item.id;
             const isLantern = item.id === "garden-lantern" || item.id === "garden-golden-lantern";
             const isPond = item.id === "garden-pond";
             const isGolden = item.id.startsWith("garden-golden-");
@@ -770,7 +810,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 style={{
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
-                  width: `${pos.size}%`,
+                  width: `${pos.size * userScale}%`,
                   // idx is the item's rank in placedAt-sorted order:
                   // lowest idx = placed first = behind; highest = placed last = in front.
                   zIndex: isBeingDragged ? 999 : 10 + idx,
@@ -785,11 +825,11 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   alt={item.name}
                   draggable={false}
                   className="block h-auto w-full select-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
-                  style={{ filter: imgFilter }}
+                  style={{ filter: imgFilter, transform: userRotation ? `rotate(${userRotation}deg)` : undefined, transformOrigin: "50% 100%" }}
                 />
-                {/* Edit-mode handle ring */}
+                {/* Edit-mode handle ring — thicker amber when selected for resize/rotate */}
                 {isEditing && (
-                  <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ring-2 ${isBeingDragged ? "ring-amber-400" : "ring-emerald-400/70"}`} />
+                  <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ${isSelected ? "ring-[3px] ring-amber-400" : isBeingDragged ? "ring-2 ring-amber-400" : "ring-2 ring-emerald-400/70"}`} />
                 )}
                 {/* Lantern night glow (regular OR gold) */}
                 {isLantern && isNight && (
@@ -822,9 +862,56 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
 
           {/* Sun-arc HUD plaque top-right */}
           <SunArcHud tod={tod} />
+
+          {/* Resize / rotate control bar — appears when a placed item is tapped in edit mode. */}
+          {isEditing && selectedId !== null && localLayout[selectedId] && (() => {
+            const sid = selectedId!;
+            const sel = REWARDS.find((r) => r.id === sid);
+            const ent = localLayout[sid];
+            const scale = ent.scale ?? 1;
+            const rotation = ent.rotation ?? 0;
+            return (
+              <div
+                className="absolute inset-x-2 bottom-2 z-[80] mx-auto flex max-w-[440px] flex-col gap-2 rounded-2xl border border-white/15 bg-ink-900/85 px-3 py-2.5 text-cream-50 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.5)] backdrop-blur-md"
+                style={{ touchAction: "auto" }}
+                onPointerDown={(ev) => ev.stopPropagation()}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 truncate font-display text-xs italic">
+                    <span aria-hidden>{sel?.emoji}</span>{sel?.name ?? "Item"}
+                  </span>
+                  <button type="button" onClick={() => setSelectedId(null)} aria-label="Done adjusting this item"
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-cream-50 transition hover:bg-white/20">✕</button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-10 shrink-0 text-[9px] uppercase tracking-wider text-cream-50/70">Size</span>
+                  <input type="range" min={MIN_SCALE} max={MAX_SCALE} step={0.05} value={scale}
+                    onChange={(ev) => updateTransform(sid, { scale: clampScale(+ev.target.value) })}
+                    aria-label="Item size" className="gdn-range h-1.5 flex-1 cursor-pointer" />
+                  <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-cream-50/80">{Math.round(scale * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-10 shrink-0 text-[9px] uppercase tracking-wider text-cream-50/70">Angle</span>
+                  <input type="range" min={MIN_ROT} max={MAX_ROT} step={1} value={rotation}
+                    onChange={(ev) => updateTransform(sid, { rotation: clampRot(+ev.target.value) })}
+                    aria-label="Item rotation" className="gdn-range h-1.5 flex-1 cursor-pointer" />
+                  <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-cream-50/80">{rotation}°</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <button type="button" onClick={() => updateTransform(sid, { scale: 1, rotation: 0 })}
+                    className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition hover:bg-white/20">↺ Reset size &amp; angle</button>
+                  <span className="hidden text-[9px] uppercase tracking-wider text-cream-50/45 sm:inline">Tap another item to adjust it</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <style jsx>{`
+          /* Resize/rotate sliders on the dark control bar — amber to match selection. */
+          :global(.gdn-range) { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 9999px; background: rgba(255,255,255,0.18); accent-color: #fbbf24; }
+          :global(.gdn-range::-webkit-slider-thumb) { -webkit-appearance: none; appearance: none; height: 16px; width: 16px; border-radius: 9999px; background: #fbbf24; border: 2px solid #1f1f1f; cursor: pointer; }
+          :global(.gdn-range::-moz-range-thumb) { height: 16px; width: 16px; border: 2px solid #1f1f1f; border-radius: 9999px; background: #fbbf24; cursor: pointer; }
           /* Item pop-in on first appear + hover lift */
           :global(.td-item-btn) {
             animation: tdItemPop 420ms cubic-bezier(0.34, 1.5, 0.64, 1) both;
@@ -1110,8 +1197,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
               {overInventory && isEditing
                 ? "Drop here to remove from scene"
                 : isEditing
-                ? "Drag owned items onto the scene"
-                : "Click to buy · edit mode to drag & place"}
+                ? "Drag to place · tap a placed item to resize or rotate"
+                : "Click to buy · use Move items to arrange, resize & rotate"}
             </p>
           </div>
           {/* Coins balance pill — owns its own tween state; parent never re-renders during count-down */}
@@ -1288,7 +1375,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                         ? "border-coin-gold-300/70 bg-gradient-to-br from-coin-gold-50 to-coin-gold-50/80 ring-1 ring-coin-gold-300/50"
                         : isPlaced
                           ? "border-emerald-400/50 bg-emerald-50/70 ring-1 ring-emerald-300/40"
-                          : "border-white/80 bg-white"}
+                          : "border-emerald-900/10 bg-[#eef2e5]"}
                       ${isInventory && isEditing ? "cursor-grab" : "cursor-default"}
                       ${isBeingDragged ? "opacity-40" : ""}`}
                     style={{
@@ -1457,7 +1544,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                         : isBeingBought
                           ? "cursor-wait opacity-60 border-emerald-300/50 bg-emerald-50/50"
                           : canAfford
-                            ? "cursor-pointer border-ink-500/25 bg-white can-hover:hover:scale-[1.04] can-hover:hover:shadow-md can-hover:hover:border-moss-300/60"
+                            ? "cursor-pointer border-ink-500/15 bg-[#eef2e5] can-hover:hover:scale-[1.04] can-hover:hover:shadow-md can-hover:hover:border-moss-300/60"
                             : "cursor-not-allowed border-ink-500/15 bg-ink-900/[0.025]"}`}
                   style={{ animationDelay: `${Math.min(itemIdx * 28, 280)}ms` }}
                 >
@@ -1471,6 +1558,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                       draggable={false}
                       className={`h-full w-full object-contain transition ${canAfford ? "opacity-65 can-group-hover:opacity-90" : "opacity-25"}`}
                     />
+                    {/* Rarity dot top-left — collection tier at a glance */}
+                    {item.rarity && (
+                      <span aria-hidden title={RARITY_META[item.rarity].label}
+                        className="absolute left-1 top-1 h-2.5 w-2.5 rounded-full ring-2 ring-white/70"
+                        style={{ background: RARITY_META[item.rarity].dot }} />
+                    )}
                     {/* Lock icon top-right — coin-gold = affordable, ink = not affordable */}
                     <span
                       aria-hidden
@@ -1563,7 +1656,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       <div className="mt-4 flex w-full max-w-[640px] items-center justify-center gap-3">
         <button
           type="button"
-          onClick={() => setIsEditing((v) => !v)}
+          onClick={() => { setIsEditing((v) => !v); setSelectedId(null); }}
           className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition
             ${isEditing
               ? "bg-emerald-600 text-cream-50 hover:bg-emerald-700"

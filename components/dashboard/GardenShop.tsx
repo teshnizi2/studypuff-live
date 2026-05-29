@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_GARDEN_MAP_ID, REWARDS, isGardenCategory, type RewardCategory } from "@/lib/app-data/rewards";
+import { DEFAULT_GARDEN_MAP_ID, REWARDS, RARITY_META, isGardenCategory, type RewardCategory } from "@/lib/app-data/rewards";
 import {
   claimGoldenItemAction,
   equipRewardAction,
@@ -128,7 +128,7 @@ export function GardenShop(p: GardenShopProps) {
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-700">
-          Earn 1 coin per focused minute (capped at 90 / session). Each garden item appears in your scene above the moment you buy it. Sounds, themes, and accessories change how the rest of your dashboard looks and sounds.
+          Earn 1 coin for every minute you focus — and coins only land when you finish a session, so see it through. Each garden item drops into your scene the moment you buy it; sounds, themes, and accessories restyle the rest of your dashboard.
         </p>
       </section>
 
@@ -204,7 +204,15 @@ export function GardenShop(p: GardenShopProps) {
                         </span>
                       )}
                     </div>
-                    <h3 className="mt-3 font-display text-lg text-ink-900">{r.name}</h3>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <h3 className="font-display text-lg text-ink-900">{r.name}</h3>
+                      {r.rarity && (
+                        <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${RARITY_META[r.rarity].chip} ${RARITY_META[r.rarity].text}`}>
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: RARITY_META[r.rarity].dot }} />
+                          {RARITY_META[r.rarity].label}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-1 flex-1 text-xs text-ink-700">{r.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {/* Golden trophies: locked OR claim OR claimed. No coin spend. */}

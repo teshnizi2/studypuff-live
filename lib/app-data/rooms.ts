@@ -340,6 +340,15 @@ export async function endRoomAction(formData: FormData) {
     .update({ ended_at: new Date().toISOString(), is_open: false })
     .eq("id", roomId);
 
+  // Ending the room also LEAVES it — drop the owner's membership so the
+  // dashboard stops showing them parked in a room that's over. Other members
+  // see is_open=false via realtime and leave on their own.
+  await supabase
+    .from("study_room_members")
+    .delete()
+    .eq("room_id", roomId)
+    .eq("user_id", user.id);
+
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

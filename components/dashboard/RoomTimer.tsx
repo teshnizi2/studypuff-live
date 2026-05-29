@@ -193,25 +193,47 @@ export function RoomTimer({
   // currently-selected topic/task. We detect 'focus → short/long' on the
   // canonical room state so partial sessions from pause/reset don't log.
   const lastModeRef = useRef<TimerMode>(initial.timer_mode);
+  // When THIS client first started witnessing the current focus block. Used to
+  // cap logged minutes to actual presence — a member who joins late (or the
+  // room ends early) can't bank more focus time than they were in the room.
+  const blockObservedAtRef = useRef<number | null>(initial.timer_mode === "focus" ? Date.now() : null);
   useEffect(() => {
     const prev = lastModeRef.current;
     const next = state.timer_mode;
     lastModeRef.current = next;
+
+    // Entering a focus block (from idle / break / reset) — stamp the moment
+    // this client first saw it running.
+    if (next === "focus" && prev !== "focus") {
+      blockObservedAtRef.current = Date.now();
+    }
+
     if (prev === "focus" && (next === "short" || next === "long")) {
-      const fd = new FormData();
-      fd.set("minutes", String(state.focus_minutes));
-      fd.set("mode", "focus");
-      if (currentTopicId) {
-        fd.set("topic_id", currentTopicId);
-        const t = topics.find((x) => x.id === currentTopicId);
-        if (t) fd.set("topic_name", t.name);
+      // Presence cap: minutes = min(block length, wall-clock time present).
+      const observed = blockObservedAtRef.current;
+      const presentMin = observed != null
+        ? Math.round((Date.now() - observed) / 60000)
+        : state.focus_minutes;
+      const minutes = Math.max(0, Math.min(state.focus_minutes, presentMin));
+      blockObservedAtRef.current = null;
+      // Skip logging when present <1 min (joined at the tail end) — also avoids
+      // the server's "minutes<=0 → default 25" fallback awarding phantom coins.
+      if (minutes >= 1) {
+        const fd = new FormData();
+        fd.set("minutes", String(minutes));
+        fd.set("mode", "focus");
+        if (currentTopicId) {
+          fd.set("topic_id", currentTopicId);
+          const t = topics.find((x) => x.id === currentTopicId);
+          if (t) fd.set("topic_name", t.name);
+        }
+        if (currentTaskId) {
+          fd.set("task_id", currentTaskId);
+          const t = tasks.find((x) => x.id === currentTaskId);
+          if (t) fd.set("task_name", t.text);
+        }
+        addStudySessionAction(fd).catch(() => {});
       }
-      if (currentTaskId) {
-        fd.set("task_id", currentTaskId);
-        const t = tasks.find((x) => x.id === currentTaskId);
-        if (t) fd.set("task_name", t.text);
-      }
-      addStudySessionAction(fd).catch(() => {});
       // Same quiet leaf flourish as the solo timer — every member sees their
       // own when the shared focus block lands.
       setCelebrate(true);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RotateCcw, Play, Pause } from "lucide-react";
+import { Play } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
 import { InlineSoundChooser } from "@/components/dashboard/InlineSoundChooser";
@@ -56,6 +56,9 @@ export function TimerCircle({
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
   const [celebrate, setCelebrate] = useState(false);
+  // Commit-or-forfeit: there is no pause/stop. `confirmAbandon` gates the only
+  // exit — giving up early, which forfeits the in-progress session's coins.
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
@@ -122,8 +125,9 @@ export function TimerCircle({
     }
   }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete, onRunningChange]);
 
-  const reset = () => { onRunningChange(false); setRemaining(totalSeconds); };
-  const skip  = () => { setRemaining(0); handleComplete(); };
+  // Giving up resets the clock WITHOUT calling handleComplete, so nothing is
+  // logged and this session's coins are forfeited. Saved balance is untouched.
+  const abandon = () => { onRunningChange(false); setRemaining(totalSeconds); setConfirmAbandon(false); };
 
   const setPreset = (m: StudyMode, mins: number) => {
     setMode(m);
@@ -246,11 +250,13 @@ export function TimerCircle({
             <button
               type="button"
               onClick={() => setPreset(p.id, p.mins)}
+              disabled={running}
+              title={running ? "Finish or give up this session before changing length" : undefined}
               className={`font-display italic transition draw-underline ${
                 activePresetId === p.id
                   ? "font-semibold text-ink-900"
                   : "text-ink-700 hover:text-ink-900"
-              }`}
+              } ${running ? "cursor-not-allowed opacity-50" : ""}`}
             >
               {p.label} <span className="text-ink-700/60">· {p.mins}m</span>
             </button>
@@ -258,39 +264,65 @@ export function TimerCircle({
         ))}
       </div>
 
-      {/* Play / pause — the only solid focal element */}
-      <div className="mt-6 flex items-center gap-5">
-        <button
-          type="button"
-          onClick={reset}
-          aria-label="Reset" title="Reset"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-ink-900/60 transition hover:bg-cream-50/55 hover:text-ink-900 active:scale-95"
-        >
-          <RotateCcw className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onRunningChange(!running)}
-          aria-label={running ? "Pause" : "Start"}
-          className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
-        >
-          <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
-          {running ? (
-            <Pause className="h-7 w-7 fill-current" strokeWidth={0} />
-          ) : (
-            <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={skip}
-          aria-label="Skip" title="Skip · log session"
-          className="font-display text-xs italic uppercase tracking-[0.22em] text-ink-700 transition hover:text-ink-900"
-        >
-          skip
-        </button>
+      {/* Commit-or-finish controls — no pause, no stop. Coins bank ONLY when a
+          session completes; giving up early forfeits just this session's coins
+          (your saved balance is never touched). */}
+      <div className="mt-6 flex min-h-[96px] flex-col items-center justify-center gap-3">
+        {!running ? (
+          <>
+            <button
+              type="button"
+              onClick={() => { setConfirmAbandon(false); onRunningChange(true); }}
+              aria-label="Start focus session"
+              className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
+            >
+              <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
+              <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
+            </button>
+            <p className="max-w-[260px] text-center text-[10px] uppercase tracking-[0.18em] text-ink-700/60">
+              Once you start, see it through — coins only land when you finish.
+            </p>
+          </>
+        ) : confirmAbandon ? (
+          <div className="flex flex-col items-center gap-2.5">
+            <p className="text-center font-display text-sm italic text-ink-900">
+              Give up now? You&apos;ll lose this session&apos;s coins.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={abandon}
+                className="rounded-full bg-rose-600 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-cream-50 transition hover:bg-rose-700 active:scale-95"
+              >
+                Give up
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmAbandon(false)}
+                className="rounded-full border border-ink-900/20 bg-cream-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-900 transition hover:border-ink-900/40 active:scale-95"
+              >
+                Keep going
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              aria-label="Focusing — no pausing"
+              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)]"
+            >
+              <span aria-hidden className="absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/25 animate-halo" />
+              <span aria-hidden className="h-3 w-3 rounded-full bg-emerald-400 animate-breathe" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setConfirmAbandon(true)}
+              className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700/55 underline-offset-4 transition hover:text-rose-600 hover:underline"
+            >
+              Give up session
+            </button>
+          </>
+        )}
       </div>
 
       {/* Today's gauge */}

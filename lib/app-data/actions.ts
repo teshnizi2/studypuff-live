@@ -305,9 +305,14 @@ export async function addStudySessionAction(formData: FormData) {
     focus_score: numberValue(formData, "focus_score", 0) || null
   });
 
-  // Reward coins for focus sessions: 1 coin per minute focused, capped at 90
+  // Reward coins for focus sessions: 1 coin per focused minute. Cap at 180
+  // (the longest single session) — the old 90 cap quietly punished long sits.
+  // Coins only land when a session COMPLETES: the client never logs partial or
+  // abandoned sessions, and room sessions are additionally capped to the time
+  // the user was actually present (see RoomTimer). So `minutes` here is already
+  // "earned" focus time; we just guard against an implausibly long single value.
   if (mode === "focus" && minutes > 0) {
-    const coinsEarned = Math.min(minutes, 90);
+    const coinsEarned = Math.min(minutes, 180);
     await supabase.rpc("award_focus_coins", {
       p_minutes: minutes,
       p_coins: coinsEarned
@@ -424,17 +429,21 @@ export async function saveGardenLayoutAction(formData: FormData) {
   try { parsed = JSON.parse(raw); } catch { throw new Error("Invalid layout JSON."); }
   if (!parsed || typeof parsed !== "object") throw new Error("Layout must be an object.");
 
-  // Sanitize: accept {x, y, placedAt?} — placedAt is a unix-ms timestamp used
-  // for z-ordering (last-touched item renders on top). Strip unknown fields.
-  const clean: Record<string, { x: number; y: number; placedAt?: number }> = {};
+  // Sanitize: accept {x, y, placedAt?, scale?, rotation?}. placedAt is a unix-ms
+  // timestamp for z-ordering (last-touched renders on top); scale + rotation are
+  // the per-item resize/rotate the user sets in edit mode. Strip unknown fields
+  // and clamp scale/rotation to safe bounds so a tampered payload can't explode.
+  const clean: Record<string, { x: number; y: number; placedAt?: number; scale?: number; rotation?: number }> = {};
   for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
     if (!k.startsWith("garden-")) continue;
     if (!v || typeof v !== "object") continue;
-    const { x, y, placedAt } = v as { x?: unknown; y?: unknown; placedAt?: unknown };
+    const { x, y, placedAt, scale, rotation } = v as { x?: unknown; y?: unknown; placedAt?: unknown; scale?: unknown; rotation?: unknown };
     if (typeof x !== "number" || typeof y !== "number") continue;
     if (x < -10 || x > 110 || y < -10 || y > 110) continue;
     clean[k] = { x, y };
     if (typeof placedAt === "number" && placedAt > 0) clean[k].placedAt = placedAt;
+    if (typeof scale === "number" && Number.isFinite(scale)) clean[k].scale = Math.max(0.4, Math.min(2.6, scale));
+    if (typeof rotation === "number" && Number.isFinite(rotation)) clean[k].rotation = Math.max(-180, Math.min(180, rotation));
   }
 
   const supabase = createSupabaseServerClient();
