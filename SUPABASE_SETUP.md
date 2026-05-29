@@ -52,3 +52,64 @@ The app builds `redirectTo` as `{origin}/auth/callback?next=/dashboard` (or anot
 
 - [Supabase: Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google)
 - [Supabase: Redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls)
+
+---
+
+## Password reset (self-service)
+
+Users who forget their password use **`/forgot-password`** (linked from the login
+page). They enter an email or username; we send a recovery email; the link lands
+on **`/auth/confirm`**, which verifies the token and opens **`/reset-password`**
+where they set a new password.
+
+This uses the **token-hash** flow so the link works on any device (the person can
+request on a laptop and open it on their phone). For that to work you must point
+the recovery email at our `/auth/confirm` route.
+
+### 1. Email template
+
+**Authentication → Email Templates → "Reset Password"** — make the link:
+
+```html
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">
+  Reset your password
+</a>
+```
+
+`{{ .RedirectTo }}` resolves to the URL the app passed
+(`<origin>/auth/confirm?next=/reset-password`), so the link automatically points at
+whatever origin made the request — `localhost:3001` in dev, the preview/prod host
+otherwise — without ever changing the global Site URL.
+
+The default template uses `{{ .ConfirmationURL }}`, which routes through Supabase's
+verify endpoint and only works in the **same browser** that requested the reset.
+Using `{{ .TokenHash }}` as above is what makes it cross-device.
+
+### 2. URL configuration
+
+**Authentication → URL Configuration → Redirect URLs** — the redirect target must
+be allow-listed or `resetPasswordForEmail` is rejected and no email is sent. Add
+(or confirm a wildcard covers) the confirm route for each origin you use:
+
+- `http://localhost:3001/auth/confirm` (local dev)
+- `https://www.studypuff.com/auth/confirm` (production)
+- your Vercel preview origin + `/auth/confirm`, if you test on previews
+
+A wildcard like `https://www.studypuff.com/**` and `http://localhost:3001/**`
+covers these (and the existing `/auth/callback` used by Google).
+
+> **Silent-fail gotcha:** to avoid leaking which accounts exist, the request form
+> always shows "if an account matches, we sent a link" — even when the redirect URL
+> is not allow-listed and the send actually failed. If a test email never arrives,
+> check this allow list first.
+
+### 3. Notes
+
+- **Email rate limit:** the built-in Supabase email service is limited to roughly
+  **3–4 messages per hour** and may land in spam. For production volume, configure
+  custom SMTP under **Authentication → Email → SMTP Settings**.
+- **No enumeration:** `/forgot-password` always shows the same "if an account
+  matches, we sent a link" confirmation, so it cannot be used to discover which
+  emails or usernames are registered.
+- **No code/middleware changes needed** for new environments — only the two
+  dashboard settings above.

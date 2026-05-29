@@ -18,14 +18,11 @@ export type GardenShopProps = {
   equippedMap: string | null;
 };
 
-// Maps first (biggest single visual change), then the garden item categories,
-// then the dashboard rewards (sound / theme / accessory).
+// Maps first (biggest single visual change), then dashboard rewards.
+// Note: garden-structures / garden-plants / garden-critters / garden-golden are intentionally
+// excluded here — they are managed by the embedded shop panel inside GardenScene itself.
 const CATEGORY_ORDER: RewardCategory[] = [
   "garden-map",
-  "garden-golden",
-  "garden-structures",
-  "garden-plants",
-  "garden-critters",
   "sound",
   "theme",
   "accessory"

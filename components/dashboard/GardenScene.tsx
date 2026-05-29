@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { REWARDS, isGardenCategory, mapArtFor } from "@/lib/app-data/rewards";
+import { memo, RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
+import { REWARDS, isGardenCategory, mapArtFor, RewardCategory } from "@/lib/app-data/rewards";
 import { TD_LAYOUT } from "@/lib/app-data/garden-layout";
-import { resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
+import { purchaseRewardAction, resetGardenLayoutAction, saveGardenLayoutAction } from "@/lib/app-data/actions";
 
 type Layout = Record<string, { x: number; y: number; placedAt?: number }>;
 
@@ -12,22 +12,135 @@ type Props = {
   todayMinutes: number;
   streak: number;
   ownedItemIds: string[];
+  /** Current coin balance — used for affordability signals + inline purchase. */
+  coins: number;
   /** Per-user saved positions, overrides TD_LAYOUT defaults when present. */
   savedLayout?: Layout;
   /** Reward id of the equipped background map. null = use free default. */
   equippedMap?: string | null;
+  /** When true, the shop panel shows a skeleton grid instead of live items.
+   *  Pass from a Suspense boundary while the parent page streams data. */
+  loading?: boolean;
+  /** When set, the shop panel shows a warm-toned error message instead of items.
+   *  Pass from a parent error boundary or failed server-side fetch. */
+  shopError?: string;
 };
 
 const MINUTES_PER_LEAF = 25;
 const MAX_LEAVES = 80;
 
-function stageFor(m: number): { name: string; scale: number } {
-  if (m < 30)   return { name: "A tiny sprout", scale: 0.65 };
-  if (m < 180)  return { name: "A young sapling", scale: 0.82 };
-  if (m < 720)  return { name: "Branching out", scale: 0.95 };
-  if (m < 3000) return { name: "A leafy canopy", scale: 1.08 };
-  return { name: "A grand old tree", scale: 1.16 };
+/** Total number of placeable garden items — hoisted so it isn't recalculated on every render. */
+const TOTAL_GARDEN_ITEMS = REWARDS.filter((r) => isGardenCategory(r.category)).length;
+
+/** Maximum grid columns at the largest breakpoint (lg:grid-cols-10).
+ *  Used to derive the skeleton tile count: at least 2 full rows = MAX_GRID_COLS * 2.
+ *  Kept as a named constant so it stays in sync with the Tailwind grid class. */
+const MAX_GRID_COLS = 10;
+/** Skeleton tile count — derived from the max grid layout (≥2 full rows), not a magic number. */
+const SKELETON_TILE_COUNT = Math.max(12, MAX_GRID_COLS * 2);
+
+/** Category tabs shown in the shop panel — order determines tab bar order. */
+const SHOP_TABS = [
+  { id: "garden-structures" as const, label: "Structures", emoji: "🏡" },
+  { id: "garden-plants"     as const, label: "Plants",     emoji: "🌿" },
+  { id: "garden-critters"   as const, label: "Critters",   emoji: "🐸" },
+  { id: "garden-golden"     as const, label: "Golden",     emoji: "✨" },
+] satisfies { id: RewardCategory; label: string; emoji: string }[];
+
+/** Self-contained coin balance pill — owns its own tween state so count-down
+ *  animation re-renders are ISOLATED to this component (≤12 renders per purchase).
+ *  The 70-card grid in the parent never re-renders during the tween.
+ *  prf.1.a / prf.1.b — R.cap.coins.prf */
+const CoinPill = memo(function CoinPill({
+  localCoins,
+  pillRef,
+}: {
+  localCoins: number;
+  pillRef: RefObject<HTMLDivElement>;
+}) {
+  const [displayCoins, setDisplayCoins] = useState<number>(localCoins);
+  const displayCoinsRef = useRef<number>(localCoins);
+  const tweenIntervalRef = useRef<number | null>(null);
+
+  // Tween displayCoins toward localCoins whenever localCoins changes (count-down animation).
+  // Respects prefers-reduced-motion: snaps immediately if the OS motion preference is "reduce".
+  useEffect(() => {
+    const startVal = displayCoinsRef.current;
+    const endVal = localCoins;
+    if (startVal === endVal) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      displayCoinsRef.current = endVal;
+      setDisplayCoins(endVal);
+      return;
+    }
+    const STEPS = 12;
+    const DURATION_MS = 350;
+    const intervalMs = DURATION_MS / STEPS;
+    let step = 0;
+    if (tweenIntervalRef.current) { clearInterval(tweenIntervalRef.current); tweenIntervalRef.current = null; }
+    tweenIntervalRef.current = window.setInterval(() => {
+      step++;
+      // Cubic ease-out: fast start → gentle settle (same easing family as tab-indicator and panel-enter).
+      const t = step / STEPS;
+      const easedProgress = 1 - Math.pow(1 - t, 3);
+      const current = Math.round(startVal + (endVal - startVal) * easedProgress);
+      displayCoinsRef.current = current;
+      setDisplayCoins(current);
+      if (step >= STEPS) {
+        clearInterval(tweenIntervalRef.current!);
+        tweenIntervalRef.current = null;
+        displayCoinsRef.current = endVal;
+        setDisplayCoins(endVal);
+      }
+    }, intervalMs);
+    return () => {
+      if (tweenIntervalRef.current) { clearInterval(tweenIntervalRef.current); tweenIntervalRef.current = null; }
+    };
+  }, [localCoins]);
+
+  return (
+    <div
+      ref={pillRef}
+      aria-label={`Coin balance: ${displayCoins} coins`}
+      className="flex min-w-[92px] items-center justify-center gap-1.5 rounded-full bg-ink-900 px-4 py-2.5 ring-1 ring-coin-gold-300/70"
+      style={{ boxShadow: "0 2px 8px -2px rgba(31,31,31,0.35), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(31,31,31,0.28)" }}
+    >
+      <span aria-hidden className="text-base leading-none">🪙</span>
+      <span className="font-display tabular-nums text-base font-bold leading-tight text-coin-gold-300">
+        {displayCoins.toLocaleString()}
+      </span>
+    </div>
+  );
+});
+
+/** Shared action chip wrapper — base styles for Buy and Claim chips (P.shop.buy.coh.1.a).
+ *  Colour, scale, and state variants are passed via className. */
+function ActionChip({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span className={`gdn-action-chip flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[12px] font-bold leading-tight shadow-sm transition-all duration-150 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)] ${className}`}>
+      {children}
+    </span>
+  );
 }
+
+function stageFor(m: number): { name: string } {
+  if (m < 30)   return { name: "A tiny sprout" };
+  if (m < 180)  return { name: "A young sapling" };
+  if (m < 720)  return { name: "Branching out" };
+  if (m < 3000) return { name: "A leafy canopy" };
+  return { name: "A grand old tree" };
+}
+
+/** Resolve art path: golden trophies share their base item's PNG; gold CSS filter applied at render time. */
+function itemArtSrc(id: string): string {
+  if (id.startsWith("garden-golden-")) {
+    return `/td-items/${id.replace("garden-golden-", "")}.webp`;
+  }
+  return `/td-items/${id.replace("garden-", "")}.webp`;
+}
+
+/** CSS filter that gilds an item PNG so it reads as a gold trophy. */
+const GOLDEN_FILTER = "sepia(1) saturate(3.5) hue-rotate(-22deg) brightness(1.18) contrast(1.08) drop-shadow(0 0 6px rgba(255,210,90,0.7))";
 
 /**
  * v20 — tile coords describe where each item's FOOT lands on the map (bottom-center anchor).
@@ -55,7 +168,7 @@ type Tod = "dawn" | "day" | "dusk" | "night";
  *   • Items wrapped in <button> with focus-visible ring for keyboard.
  *   • Item size for applestree/gazebo reduced per scale-ratio fixes.
  */
-export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemIds, savedLayout, equippedMap }: Props) {
+export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemIds, coins, savedLayout, equippedMap, loading = false, shopError }: Props) {
   const leafCount = Math.min(MAX_LEAVES, Math.floor(lifetimeMinutes / MINUTES_PER_LEAF));
   const todayLeaves = Math.floor(todayMinutes / MINUTES_PER_LEAF);
   const intoNext = lifetimeMinutes % MINUTES_PER_LEAF;
@@ -82,8 +195,39 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   // While dragging from scene, track whether cursor is over the inventory hit-zone.
   const [overInventory, setOverInventory] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  /** Which category tab is currently shown in the shop panel. */
+  const [activeTab, setActiveTab] = useState<RewardCategory>("garden-structures");
+  /** item id currently being purchased (shows spinner, prevents double-click). */
+  const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  /** Optimistic coin count — deducted immediately on purchase, rolled back on error. */
+  const [localCoins, setLocalCoins] = useState<number>(coins);
+  /** Ref-backed purchase guard — avoids stale-closure race when two cards are clicked in the same render frame. */
+  const purchasingRef = useRef<string | null>(null);
+  /** Ids of all pending window.setTimeout callbacks so we can clear them on unmount. */
+  const pendingTimeoutsRef = useRef<number[]>([]);
+  /** Item ids that were JUST purchased optimistically (cleared when server confirms). */
+  const [extraOwned, setExtraOwned] = useState<Set<string>>(() => new Set());
+  /** Item ids that just completed their unlock reveal animation window (~700ms). */
+  const [justUnlocked, setJustUnlocked] = useState<Set<string>>(() => new Set());
+  /** Item id that most recently failed purchase (shows inline error). */
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  // confirmingId: item showing "Purchased ✓" success micro-state (int.7).
+  // Set on server success; cleared 500ms later when card flips to owned.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  /** Text for the aria-live purchase announcement region. */
+  const [announceMsg, setAnnounceMsg] = useState<string>("");
+  /** Viewport coords for the flying-coin arc animation. null when idle. */
+  const [coinAnim, setCoinAnim] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const inventoryRef = useRef<HTMLDivElement>(null);
+  /** Ref on the coins balance pill so we can read its viewport position for the coin arc. */
+  const coinsRef = useRef<HTMLDivElement>(null);
+  /** Ref on the category tablist container for slide-indicator positioning. */
+  const tablistRef = useRef<HTMLDivElement>(null);
+  /** Refs for each tab button, populated via ref-callback — used to measure indicator position. */
+  const tabBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  /** Pixel rect of the active tab button, used to position the sliding indicator. */
+  const [indicatorStyle, setIndicatorStyle] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   // Mirror state into refs so pointer handlers can read the latest values
   // synchronously. Without this, the first pointermove after pointerdown often
   // executes a stale closure where `dragging` is still null (React hasn't
@@ -123,12 +267,40 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       .sort((a, b) => (localLayout[a.id]?.placedAt ?? 0) - (localLayout[b.id]?.placedAt ?? 0)),
     [ownedSet, localLayout]
   );
-  const inventoryItems = useMemo(
-    () => REWARDS.filter((r) => isGardenCategory(r.category) && ownedSet.has(r.id) && !(r.id in localLayout)),
-    [ownedSet, localLayout]
+  // ownedGardenCount: union of server-confirmed + optimistically-owned for the progress bar.
+  const ownedGardenCount = useMemo(
+    () => REWARDS.filter((r) => isGardenCategory(r.category) && (ownedSet.has(r.id) || extraOwned.has(r.id))).length,
+    [ownedSet, extraOwned]
   );
-  const ownedGardenCount = placedItems.length + inventoryItems.length;
-  const totalGardenCount = REWARDS.filter((r) => isGardenCategory(r.category)).length;
+
+  /** All items in the currently-active shop tab.
+   *  Sort: owned items first (so placed items sit at top of inventory tray),
+   *  then by price ascending within each group. */
+  const tabItems = useMemo(() => {
+    const combined = new Set([...Array.from(ownedSet), ...Array.from(extraOwned)]);
+    return REWARDS
+      .filter((r) => r.category === activeTab)
+      .sort((a, b) => {
+        const aOwned = combined.has(a.id) ? 0 : 1;
+        const bOwned = combined.has(b.id) ? 0 : 1;
+        if (aOwned !== bOwned) return aOwned - bOwned;
+        return a.price - b.price;
+      });
+  }, [activeTab, ownedSet, extraOwned]);
+
+  /** Owned / total count per tab category for the progress badges.
+   *  Includes `extraOwned` (optimistic) so badges update instantly on purchase. */
+  const tabProgress = useMemo(() => {
+    const out: Partial<Record<RewardCategory, { owned: number; total: number }>> = {};
+    for (const { id } of SHOP_TABS) {
+      const all = REWARDS.filter((r) => r.category === id);
+      out[id] = {
+        owned: all.filter((r) => ownedSet.has(r.id) || extraOwned.has(r.id)).length,
+        total: all.length,
+      };
+    }
+    return out;
+  }, [ownedSet, extraOwned]);
 
   // Sync localLayout from prop when the server pushes a fresh saved layout.
   // Skip while a drag is in flight — otherwise a revalidatePath that lands
@@ -138,6 +310,59 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     if (draggingRef.current) return;
     setLocalLayout(savedLayout);
   }, [savedLayout]);
+
+  // Sync optimistic coin count when server pushes an update (after revalidatePath).
+  useEffect(() => { setLocalCoins(coins); }, [coins]);
+  // Selectively prune extraOwned when the server confirms items (ownedItemIds is now authoritative).
+  // We diff rather than wholesale-clear so in-flight purchases for OTHER items aren't lost
+  // when an unrelated revalidatePath fires (e.g. buying a sound effect triggers garden reload).
+  useEffect(() => {
+    setExtraOwned((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      for (const id of prev) {
+        if (ownedItemIds.includes(id)) next.delete(id);
+      }
+      return next.size === prev.size ? prev : next;       // stable reference if nothing changed
+    });
+  }, [ownedItemIds]);
+
+  // Clear all pending animation timeouts when the component unmounts to prevent setState-on-unmounted calls.
+  useEffect(() => {
+    return () => {
+      for (const id of pendingTimeoutsRef.current) clearTimeout(id);
+      pendingTimeoutsRef.current = [];
+    };
+  }, []);
+
+  // Measure + update the sliding indicator position whenever the active tab changes.
+  // useLayoutEffect fires synchronously after DOM mutations, before paint — no flash.
+  useLayoutEffect(() => {
+    const idx = SHOP_TABS.findIndex(t => t.id === activeTab);
+    const btn = tabBtnRefs.current[idx];
+    if (!btn) return;
+    setIndicatorStyle({
+      left: btn.offsetLeft,
+      top: btn.offsetTop,
+      width: btn.offsetWidth,
+      height: btn.offsetHeight,
+    });
+  }, [activeTab]);
+
+  // Also measure once on mount so the indicator shows for the initial active tab
+  // (the [activeTab] effect above fires on mount too, but if ref callbacks haven't populated
+  // yet — e.g. in strict-mode double-invoke — this second pass guarantees it renders).
+  useLayoutEffect(() => {
+    const idx = SHOP_TABS.findIndex(t => t.id === activeTab);
+    const btn = tabBtnRefs.current[idx];
+    if (!btn) return;
+    setIndicatorStyle({
+      left: btn.offsetLeft,
+      top: btn.offsetTop,
+      width: btn.offsetWidth,
+      height: btn.offsetHeight,
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function effectivePos(id: string) {
     const def = TD_LAYOUT[id];
@@ -155,28 +380,13 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     };
   }
 
-  /** Resolve art path: golden trophies share their base item's PNG and get
-   *  a CSS gold filter at render time. */
-  function itemArtSrc(id: string): string {
-    if (id.startsWith("garden-golden-")) {
-      return `/td-items/${id.replace("garden-golden-", "")}.webp`;
-    }
-    return `/td-items/${id.replace("garden-", "")}.webp`;
-  }
-
-  /** CSS filter that gilds an item PNG so it reads as a gold trophy. */
-  const GOLDEN_FILTER = "sepia(1) saturate(3.5) hue-rotate(-22deg) brightness(1.18) contrast(1.08) drop-shadow(0 0 6px rgba(255,210,90,0.7))";
-
   function persistLayout(next: Layout) {
-    const itemCount = Object.keys(next).length;
-    console.log(`[🌱 garden-drag] saving layout (${itemCount} items)`);
     setSaveStatus("saving");
     const fd = new FormData();
     fd.append("layout", JSON.stringify(next));
     startTransition(async () => {
       try {
         await saveGardenLayoutAction(fd);
-        console.log("[🌱 garden-drag] layout saved ✓");
         setSaveStatus("saved");
         window.setTimeout(() => setSaveStatus("idle"), 1500);
       } catch (e) {
@@ -217,10 +427,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     source: "scene" | "inventory"
   ) {
     if (!isEditingRef.current) {
-      console.log("[🌱 garden-drag] pointerdown ignored — not in edit mode", itemId);
       return;
     }
-    console.log("[🌱 garden-drag] drag start", { itemId, source });
     e.preventDefault();
     // setPointerCapture helps prevent browser scroll/default gestures on touch,
     // but we do NOT rely on it to route events — window listeners handle that.
@@ -303,11 +511,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
       const dropOverInventory = isOverInventory(ev.clientX, ev.clientY);
       const dropOverScene    = isOverScene(ev.clientX, ev.clientY);
 
-      console.log("[🌱 garden-drag] drop", {
-        id: d.id, source: d.source, dropOverScene, dropOverInventory,
-        clientX: Math.round(ev.clientX), clientY: Math.round(ev.clientY),
-      });
-
       if (d.source === "scene" && dropOverInventory) {
         // Scene → inventory: remove from layout (goes back to inventory tray).
         setLocalLayout((prev) => {
@@ -322,7 +525,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         const pct = clientToScenePercent(ev.clientX, ev.clientY);
         if (pct) {
           const placedAt = Date.now();
-          console.log("[🌱 garden-drag] placing", d.id, "at", pct, "placedAt", placedAt);
           setLocalLayout((prev) => {
             const next = { ...prev, [d.id]: { x: pct.x, y: pct.y, placedAt } };
             layoutRef.current = next;
@@ -333,7 +535,6 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         }
       } else {
         // Inventory → outside-scene: cancel. Scene → scene: coords already live-updated.
-        console.log("[🌱 garden-drag] no-op drop (inventory→outside or scene→scene)");
       }
 
       queueMicrotask(() => persistLayout(layoutRef.current));
@@ -369,6 +570,109 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
     });
   }
 
+  /** Buy or claim an item. price=0 for golden claim, price>0 deducts coins.
+   *  Pass `triggerEl` to trigger the coin-arc animation from that element.
+   *  Coin arc fires ONLY on confirmed server success (not optimistically). */
+  function handlePurchase(itemId: string, price: number, triggerEl?: HTMLElement | null) {
+    if (purchasingRef.current) return;           // ref-backed guard — immune to stale closure
+    purchasingRef.current = itemId;
+    setPurchasingId(itemId);
+    setPurchaseError(null);
+    setAnnounceMsg("");
+
+    // Capture arc coordinates now, before the element potentially scrolls.
+    // Arc direction: balance pill → buy button (coins LEAVE the wallet → land on card).
+    const arcCoords = (price > 0 && triggerEl && coinsRef.current)
+      ? (() => {
+          const s = coinsRef.current.getBoundingClientRect();   // start: balance pill
+          const e = triggerEl.getBoundingClientRect();           // end: buy button
+          return {
+            x1: Math.round(s.left + s.width / 2),
+            y1: Math.round(s.top + s.height / 2),
+            x2: Math.round(e.left + e.width / 2),
+            y2: Math.round(e.top + e.height / 2),
+          };
+        })()
+      : null;
+
+    // NOTE: coin deduction is deferred to server success — see below.
+    // This syncs the visible balance drop with the coin arc launch (arc direction:
+    // balance pill → card, so coins visually leave the pill when the arc starts).
+    // `extraOwned` is also non-optimistic: card stays in `isBeingBought=true` during the call,
+    // giving the lock-dissolve transition time to play before the owned variant renders.
+
+    startTransition(async () => {
+      try {
+        const fd = new FormData();
+        fd.append("item_id", itemId);
+        fd.append("price", String(price));
+        await purchaseRewardAction(fd);
+
+        // Success micro-state — show "Purchased ✓" chip for 500ms BEFORE flipping card (int.7).
+        // Gives the user a clear confirm beat sequenced before the arc landing at 650ms.
+        setConfirmingId(itemId);
+        pendingTimeoutsRef.current.push(
+          window.setTimeout(() => {
+            // Card flip: move from locked→owned 500ms after confirm, so "Purchased ✓" beat plays.
+            setExtraOwned((prev) => { const n = new Set(prev); n.add(itemId); return n; });
+            setConfirmingId(null);
+            // Trigger 700ms unlock-reveal animation window on the newly-owned card.
+            setJustUnlocked((prev) => { const n = new Set(prev); n.add(itemId); return n; });
+            pendingTimeoutsRef.current.push(
+              window.setTimeout(() => {
+                setJustUnlocked((prev) => { const n = new Set(prev); n.delete(itemId); return n; });
+              }, 700)
+            );
+          }, 500)
+        );
+
+        // Arc fires on confirmed success, not before.
+        // Skip arc if the tab is hidden — no need to animate off-screen.
+        if (arcCoords && document.visibilityState === "visible") {
+          setCoinAnim(arcCoords);
+          pendingTimeoutsRef.current.push(window.setTimeout(() => setCoinAnim(null), 850));
+          // At arc landing (650ms): deduct coins + land-pulse so the tween count-down
+          // starts precisely when coins visually hit the wallet (R.cap.coin.012).
+          pendingTimeoutsRef.current.push(
+            window.setTimeout(() => {
+              if (price > 0) setLocalCoins((c) => Math.max(0, c - price));
+              const el = coinsRef.current;
+              if (!el) return;
+              el.classList.add("gdn-coin-landed");
+              pendingTimeoutsRef.current.push(
+                window.setTimeout(() => el.classList.remove("gdn-coin-landed"), 500)
+              );
+            }, 650)
+          );
+        } else {
+          // No arc (tab hidden or free item) — deduct immediately on server confirm.
+          if (price > 0) setLocalCoins((c) => Math.max(0, c - price));
+        }
+
+        const name = REWARDS.find((r) => r.id === itemId)?.name ?? "Item";
+        setAnnounceMsg(`${name} added to your garden.`);
+      } catch (e) {
+        console.error("[🌱 garden-shop] purchase FAILED", e);
+        // Rollback the optimistic coin deduction.
+        // Coin deduction is no longer optimistic — fires only on server success.
+        // No rollback needed (localCoins was never changed before the await).
+        setPurchaseError(itemId);
+        const errName = REWARDS.find((r) => r.id === itemId)?.name ?? "Item";
+        // Distinguish insufficient-funds from network/server errors.
+        const errMsg = e instanceof Error ? e.message : "";
+        const isInsufficientFunds = /insufficient|coin|balance|not enough/i.test(errMsg);
+        setAnnounceMsg(
+          isInsufficientFunds
+            ? `Not enough coins to buy ${errName}. Earn more by focusing.`
+            : `Couldn't reach the server — check your connection and try again.`
+        );
+      } finally {
+        purchasingRef.current = null;
+        setPurchasingId(null);
+      }
+    });
+  }
+
   const [tod, setTod] = useState<Tod>("day");
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -388,7 +692,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   return (
     <section className="flex flex-col items-center">
       <div
-        className="relative w-full overflow-hidden rounded-[28px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
+        className="relative w-full overflow-hidden rounded-[24px] border border-white/60 shadow-[0_30px_60px_-30px_rgba(31,77,44,0.45),inset_0_1px_0_rgba(255,255,255,0.7)]"
         data-tod={tod}
       >
         <div ref={sceneRef} className={`relative aspect-[4/3] w-full ${isEditing ? "cursor-grab" : ""}`} style={isEditing ? { touchAction: "none" } : undefined}>
@@ -462,7 +766,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 key={item.id}
                 type="button"
                 aria-label={item.name}
-                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isLantern ? "td-item-lantern" : ""} ${isPond ? "td-item-pond" : ""} ${isGolden ? "td-item-golden" : ""} ${isEditing ? "cursor-grab" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
+                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isPond ? "td-item-pond" : ""} ${isEditing ? "cursor-grab" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
                 style={{
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
@@ -602,88 +906,657 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
               animation: none !important;
             }
           }
+
+          /* ── Shop panel animations ─────────────────────────────────────── */
+
+          /* Tab-panel cross-fade on tab switch — standard easing family (transition tier) */
+          :global(.gdn-panel-enter) {
+            animation: gdnPanelFade 200ms cubic-bezier(0.4, 0, 0.2, 1) both;
+          }
+          @keyframes gdnPanelFade {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+
+          /* Card stagger pop-in — spring easing (entrance family).
+             3-layer inset shadow: dark edge ring + bright top highlight + dark bottom shadow
+             → "lifted paper" depth reading (R.gen.003). */
+          :global(.gdn-card-stagger) {
+            animation: gdnCardPop 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+            box-shadow:
+              inset 0 0 0 1px rgba(31, 25, 15, 0.13),
+              inset 0 1px 0 rgba(255, 255, 255, 0.78),
+              inset 0 2px 5px -1px rgba(31, 25, 15, 0.09);
+          }
+          @keyframes gdnCardPop {
+            from { opacity: 0; transform: scale(0.96); }
+            to   { opacity: 1; transform: scale(1); }
+          }
+
+          /* Per-card parchment grain — feTurbulence noise tile at 4% opacity.
+             Each card gets its own texture layer via ::before pseudo (overflow:hidden clips it).
+             Adds tactile paper depth without requiring extra DOM nodes (R.gen.tex.001). */
+          :global(.gdn-card-stagger)::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.038;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 120px 120px;
+          }
+
+          /* Flying-coin arc — spring easing (entrance family, matches card pop) */
+          :global(.gdn-coin-fly) {
+            animation: gdnCoinFly 0.65s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+            pointer-events: none;
+          }
+          @keyframes gdnCoinFly {
+            0%   { transform: translate(0, 0) scale(1.1) rotate(0deg); opacity: 1; }
+            45%  { transform: translate(calc(var(--dx) * 0.45), calc(var(--dy) * 0.45 - 55px)) scale(1.35) rotate(200deg); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(360deg); opacity: 0; }
+          }
+
+          /* Balance-pill scale-pulse + sparkle particles when coin lands (R.gen.011) */
+          :global(.gdn-coin-landed) {
+            animation: gdnCoinLand 400ms cubic-bezier(0.34, 1.6, 0.64, 1) both;
+          }
+          @keyframes gdnCoinLand {
+            0%   { transform: scale(1);    filter: brightness(1); }
+            30%  { transform: scale(1.22); filter: brightness(1.18); }
+            60%  { transform: scale(0.94); filter: brightness(1.06); }
+            80%  { transform: scale(1.06); filter: brightness(1); }
+            100% { transform: scale(1);    filter: brightness(1); }
+          }
+          /* Sparkle particles handled below by directional ::before / ::after rules (R.gen.011). */
+
+          /* Unlock reveal — card blooms from locked dim state to full colour.
+             Peak scale capped at 1.04 (dial-8 "subtle satisfaction", not dial-9 "wow"). */
+          :global(.gdn-unlock-reveal) {
+            animation: gdnUnlockReveal 500ms cubic-bezier(0.34, 1.4, 0.64, 1) both !important;
+          }
+          @keyframes gdnUnlockReveal {
+            0%   { transform: scale(0.72); opacity: 0.3; filter: brightness(0.45) saturate(0); }
+            55%  { transform: scale(1.04); filter: brightness(1.08) saturate(1.2); }
+            100% { transform: scale(1);    opacity: 1;   filter: brightness(1) saturate(1); }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            :global(.gdn-panel-enter),
+            :global(.gdn-card-stagger),
+            :global(.gdn-coin-fly),
+            :global(.gdn-coin-landed),
+            :global(.gdn-unlock-reveal) { animation: none !important; }
+            /* Snap tab indicator to destination instantly */
+            :global([data-tab-indicator]) { transition: none !important; }
+            :global(.gdn-sparkle-1), :global(.gdn-sparkle-2), :global(.gdn-sparkle-3), :global(.gdn-sparkle-4) { animation: none !important; }
+            /* Suppress chip hover scale under reduced-motion (mot.1.d — positive RM guard).
+               can-group-hover: variant doesn't check RM; explicit suppression needed here. */
+            :global(.gdn-card-stagger:hover .gdn-action-chip) {
+              transform: none !important;
+            }
+          }
+
+          /* ── High-contrast accessibility ──────────────────────────────── */
+
+          /* Windows High Contrast / forced-colors: tab indicator bg is overridden by OS.
+             Fall back to a CanvasText border so the active-tab cue survives. */
+          @media (forced-colors: active) {
+            :global([data-tab-indicator]) {
+              background: CanvasText;
+              forced-color-adjust: none;
+            }
+          }
+
+          /* prefers-contrast: more — strengthen card borders so structure is clear */
+          @media (prefers-contrast: more) {
+            :global(.gdn-card-stagger) {
+              border-width: 2px !important;
+              border-color: rgba(31,31,31,0.6) !important;
+            }
+          }
+
+          /* Touch hover guard is handled POSITIVELY by can-hover and can-group-hover Tailwind
+             variants (@media (hover:hover) and (pointer:fine)) on all scale/shadow/opacity
+             transforms. No negative @media(hover:none) block required — chips, drag handles,
+             and card images use can-group-hover:* so they simply don't generate rules on touch.
+             R.cap.hover.no-touch.a — positive guard approach. */
+
+          /* Coin-arc sparkle particles — ::before (up-left) + ::after (up-right)
+             Two distinct directions create a burst V-shape at landing (R.gen.011). */
+          :global(.gdn-coin-fly::before) {
+            content: "✦";
+            position: absolute;
+            font-size: 9px;
+            color: #ffd55a;
+            opacity: 0;
+            top: 0; left: 0;
+            animation: gdnSparkleL 420ms cubic-bezier(0.34, 1.4, 0.64, 1) 610ms both;
+          }
+          :global(.gdn-coin-fly::after) {
+            content: "✦";
+            position: absolute;
+            font-size: 7px;
+            color: #e6a800;
+            opacity: 0;
+            top: 0; right: 0;
+            animation: gdnSparkleR 380ms cubic-bezier(0.34, 1.4, 0.64, 1) 630ms both;
+          }
+          @keyframes gdnSparkleL {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1.2); }
+            100% { opacity: 0; transform: translate(-10px, -14px) scale(0.2); }
+          }
+          @keyframes gdnSparkleR {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(10px, -12px) scale(0.2); }
+          }
+
+          /* Additional sparkle spans (3+4) — diagonal directions for 6-sparkle V-burst */
+          :global(.gdn-sparkle-1) { opacity: 0; animation: gdnSparkle1 400ms cubic-bezier(0.34, 1.4, 0.64, 1) 615ms both; }
+          :global(.gdn-sparkle-2) { opacity: 0; animation: gdnSparkle2 360ms cubic-bezier(0.34, 1.4, 0.64, 1) 625ms both; }
+          :global(.gdn-sparkle-3) { opacity: 0; animation: gdnSparkle3 440ms cubic-bezier(0.34, 1.4, 0.64, 1) 605ms both; }
+          :global(.gdn-sparkle-4) { opacity: 0; animation: gdnSparkle4 380ms cubic-bezier(0.34, 1.4, 0.64, 1) 620ms both; }
+          @keyframes gdnSparkle1 {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1.1); }
+            100% { opacity: 0; transform: translate(-8px, -16px) scale(0.15); }
+          }
+          @keyframes gdnSparkle2 {
+            0%   { opacity: 1; transform: translate(0, 0) scale(0.9); }
+            100% { opacity: 0; transform: translate(12px, -10px) scale(0.15); }
+          }
+          @keyframes gdnSparkle3 {
+            0%   { opacity: 1; transform: translate(0, 0) scale(0.8); }
+            100% { opacity: 0; transform: translate(-12px, -8px) scale(0.1); }
+          }
+          @keyframes gdnSparkle4 {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(8px, -14px) scale(0.15); }
+          }
         `}</style>
       </div>
 
-      {/* ─────────── Inventory tray ───────────
-          Items the user owns but hasn't placed in the scene live here.
-          Visible at all times; only DRAGGABLE in edit mode (drop on scene
-          to place). Also acts as a drop-zone: drag a scene item onto the
-          tray (in edit mode) to remove it from the scene.
+      {/* ─────────── Shop + Inventory Panel ─────────────────────────────
+          Shows ALL garden items grouped in category tabs. Owned items are
+          draggable into the scene when editing. Locked items show inline
+          purchase. The outer div is also the drag-drop zone for removing
+          placed scene items (drag a scene item here to un-place it).
       */}
       <div
         ref={inventoryRef}
-        className={`mt-4 w-full overflow-hidden rounded-[22px] border bg-cream-50/85 shadow-[0_12px_28px_-20px_rgba(31,77,44,0.35),inset_0_1px_0_rgba(255,255,255,0.5)] transition-colors
+        role="region"
+        aria-label="Garden shop"
+        className={`mt-4 w-full overflow-hidden rounded-[24px] border bg-[#f9f5ed] shadow-[0_12px_28px_-20px_rgba(31,77,44,0.35),inset_0_1px_0_rgba(255,255,255,0.5)] transition-colors
           ${overInventory && isEditing
             ? "border-rose-500/70 ring-2 ring-rose-400/50"
             : isEditing
             ? "border-emerald-400/60"
             : "border-white/60"}`}
       >
-        <div className="flex items-baseline justify-between px-4 pt-3">
-          <h3 className="font-display text-base italic text-ink-900">
-            Inventory <span className="text-ink-700/70">({inventoryItems.length})</span>
-          </h3>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-ink-700/70">
-            {isEditing
-              ? overInventory
-                ? "Drop here to remove"
-                : inventoryItems.length > 0
-                  ? "Drag onto the scene to place"
-                  : "Drop scene items here to remove"
-              : "Buy items below — they land here"}
-          </p>
-        </div>
-        <div className="mt-2 px-4 pb-4">
-          {inventoryItems.length === 0 ? (
-            <p className="rounded-xl bg-ink-900/[0.04] px-3 py-4 text-center text-xs text-ink-700">
-              {ownedGardenCount === 0
-                ? "Nothing here yet. Browse the shop below to pick your first item."
-                : "Everything you own is placed in the scene. Drag an item onto this tray to put it back."}
+        {/* Parchment paper grain overlay — very subtle noise texture (R.coh.001) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[24px] opacity-[0.035]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "200px 200px" }} />
+        {/* ── Panel header ───────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between border-b border-black/[0.06] px-4 py-3">
+          <div>
+            <h3 className="font-display text-base italic text-ink-900">Your Garden</h3>
+            <p className={`mt-0.5 text-[10px] uppercase tracking-[0.18em] transition-colors
+              ${overInventory && isEditing
+                ? "text-rose-600"
+                : isEditing
+                ? "text-emerald-700"
+                : "text-ink-700/60"}`}>
+              {overInventory && isEditing
+                ? "Drop here to remove from scene"
+                : isEditing
+                ? "Drag owned items onto the scene"
+                : "Click to buy · edit mode to drag & place"}
             </p>
-          ) : (
+          </div>
+          {/* Coins balance pill — owns its own tween state; parent never re-renders during count-down */}
+          <CoinPill localCoins={localCoins} pillRef={coinsRef} />
+        </div>
+
+        {/* aria-live regions — polite for successes, assertive for errors */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {purchaseError ? "" : announceMsg}
+        </div>
+        <div aria-live="assertive" aria-atomic="true" className="sr-only">
+          {purchaseError ? announceMsg : ""}
+        </div>
+
+        {/* ── Category tab bar (roving tabindex + arrow-key nav) ─────────── */}
+        <div
+          ref={tablistRef}
+          className="relative flex gap-1.5 overflow-x-auto px-4 pb-1 pt-3"
+          role="tablist"
+          aria-label="Garden item categories"
+          style={{ scrollbarWidth: "none" }}
+          // Activation model: AUTOMATIC — arrow keys, Home, End, and click all activate immediately.
+          // (WAI-ARIA Tabs 3.2, automatic activation: selection follows focus; no separate Enter/Space needed.)
+          onKeyDown={(e) => {
+            const idx = SHOP_TABS.findIndex((t) => t.id === activeTab);
+            let next = idx;
+            if      (e.key === "ArrowRight") next = (idx + 1) % SHOP_TABS.length;
+            else if (e.key === "ArrowLeft")  next = (idx - 1 + SHOP_TABS.length) % SHOP_TABS.length;
+            else if (e.key === "Home")       next = 0;
+            else if (e.key === "End")        next = SHOP_TABS.length - 1;
+            else return;
+            e.preventDefault();
+            const nextId = SHOP_TABS[next].id;
+            setActiveTab(nextId);
+            document.getElementById(`gdntab-${nextId}`)?.focus();
+          }}
+        >
+          {/* Stamped-ink bottom-bar indicator — slides horizontally with the active tab.
+              3px bar inset 8px each side, glowing moss shadow = "leaf-unfurl" cozy motif.
+              Replaces the generic full-height pill (R.gen.tab.motif). */}
+          {indicatorStyle && (
+            <div
+              aria-hidden
+              data-tab-indicator
+              className="pointer-events-none absolute h-[3px] rounded-full bg-moss-700"
+              style={{
+                left: indicatorStyle.left + 8,
+                top: indicatorStyle.top + indicatorStyle.height - 3,
+                width: Math.max(0, indicatorStyle.width - 16),
+                transition: "left 0.3s cubic-bezier(0.4,0,0.2,1), top 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1)",
+                boxShadow: "0 0 8px rgba(29,90,31,0.60), inset 0 1px 0 rgba(255,255,255,0.25)",
+              }}
+            />
+          )}
+          {SHOP_TABS.map((tab, tabIdx) => {
+            const prog = tabProgress[tab.id];
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => { tabBtnRefs.current[tabIdx] = el; }}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`gdntab-panel-${tab.id}`}
+                id={`gdntab-${tab.id}`}
+                type="button"
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative z-[1] flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-moss-500 focus-visible:ring-offset-2
+                  ${isActive
+                    ? "border-moss-300/50 bg-moss-600/[0.08] text-moss-700"
+                    : "border-white/70 bg-white/60 text-ink-700 can-hover:hover:border-moss-300/60 can-hover:hover:bg-white"}`}
+              >
+                <span aria-hidden>{tab.emoji}</span>
+                <span>{tab.label}</span>
+                {prog && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold tabular-nums
+                      ${isActive ? "bg-moss-700/20 text-moss-700" : "bg-ink-900/10 text-ink-700"}`}
+                  >
+                    {prog.owned}/{prog.total}
+                  </span>
+                )}
+                {/* Botanical leaf pip — active tab mark (replaces generic ▾ caret, R.gen.tab.pip) */}
+                {isActive && (
+                  <span aria-hidden className="pointer-events-none absolute -bottom-[1px] left-1/2 z-[2] -translate-x-1/2 select-none">
+                    <svg aria-hidden viewBox="0 0 8 5" width="8" height="5" style={{ fill: "#1f5a1f", opacity: 0.82 }}>
+                      <path d="M4 4.5 C4 4.5 1.5 3 1.5 1.5 C1.5 0.5 2.7 0 4 0 C5.3 0 6.5 0.5 6.5 1.5 C6.5 3 4 4.5 4 4.5Z"/>
+                    </svg>
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Panel-level error state ───────────────────────────────────── */}
+        {shopError && (
+          <div
+            role="alert"
+            className="mx-4 my-4 flex items-start gap-3 rounded-xl border border-rose-200/70 bg-rose-50/80 px-4 py-3"
+          >
+            <span aria-hidden className="mt-0.5 flex-shrink-0 text-lg leading-none">🌧️</span>
+            <div>
+              <p className="text-[12px] font-semibold text-rose-800">Couldn't load shop items</p>
+              <p className="mt-0.5 text-[11px] text-rose-700/80">{shopError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Loading skeleton grid (shown while parent page streams) ────── */}
+        {loading && !shopError && (
+          <div
+            role="status"
+            aria-label="Loading garden items…"
+            className="px-4 pb-5 pt-3"
+          >
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
-              {inventoryItems.map((item) => {
-                const isBeingDragged = dragging?.id === item.id;
-                const isGolden = item.id.startsWith("garden-golden-");
+              {Array.from({ length: SKELETON_TILE_COUNT }).map((_, i) => (
+                /* Skeleton matches REAL card structure (art zone + footer) so the grid
+                   doesn't shift when live tiles mount — prevents CLS (P.shop.skel.cls.1). */
+                <div
+                  key={i}
+                  aria-hidden
+                  className="gdn-card-stagger overflow-hidden rounded-xl border border-black/[0.04] bg-cream-100/50"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                >
+                  {/* Art zone — square, matches real card aspect-square */}
+                  <div className="aspect-square animate-pulse bg-ink-900/[0.06]" />
+                  {/* Footer placeholder — h-11 ≈ name line + chip = real footer height */}
+                  <div className="h-11 animate-pulse bg-ink-900/[0.55]" style={{ animationDelay: `${i * 40 + 80}ms` }} />
+                </div>
+              ))}
+            </div>
+            <span className="sr-only">Loading garden items…</span>
+          </div>
+        )}
+
+        {/* ── Item grid (key changes on tab-switch → CSS fade-in restarts) ─── */}
+        {!loading && !shopError && (
+        <div
+          key={activeTab}
+          id={`gdntab-panel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`gdntab-${activeTab}`}
+          className="gdn-panel-enter max-h-[70vh] overflow-y-auto overscroll-contain px-4 pb-5 pt-3"
+        >
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+            {tabItems.map((item, itemIdx) => {
+              const isOwned        = ownedSet.has(item.id) || extraOwned.has(item.id);
+              const isPlaced       = item.id in localLayout;
+              const isInventory    = isOwned && !isPlaced;
+              const isGoldenItem   = item.id.startsWith("garden-golden-");
+              const isGoldenCat    = item.category === "garden-golden";
+              const isEarned       = isGoldenCat && (item.unlocks_at_minutes ?? Infinity) <= lifetimeMinutes;
+              const canAfford      = item.price === 0 || localCoins >= item.price;
+              const isBeingBought  = purchasingId === item.id;
+              const isBeingDragged = dragging?.id === item.id;
+
+              // ── OWNED (placed in scene OR in inventory) ──────────────────
+              if (isOwned) {
                 return (
                   <button
                     key={item.id}
                     type="button"
-                    aria-label={`${item.name} — inventory${isEditing ? " (drag to place)" : ""}`}
-                    title={isEditing ? `Drag ${item.name} onto the scene to place it` : item.name}
-                    className={`group relative flex aspect-square flex-col items-center justify-center rounded-lg border p-1 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500
-                      ${isGolden
-                        ? "border-amber-300 bg-gradient-to-br from-amber-100 to-amber-200/70 ring-1 ring-amber-300/60"
-                        : "bg-white/70 border-white/70"}
-                      ${isEditing ? "cursor-grab hover:bg-white" : "cursor-default"}
+                    aria-label={`${item.name}${isPlaced ? " — in scene" : isEditing ? " — drag to place" : ""}`}
+                    title={isPlaced
+                      ? `${item.name} — placed in scene`
+                      : isEditing
+                      ? `Drag ${item.name} onto the scene to place it`
+                      : item.name}
+                    className={`gdn-card-stagger ${justUnlocked.has(item.id) ? "gdn-unlock-reveal" : ""} group relative flex flex-col overflow-hidden rounded-xl border outline-none transition active:scale-[0.97] can-hover:hover:scale-[1.04] can-hover:hover:shadow-md focus-visible:ring-2 focus-visible:ring-moss-500
+                      ${isGoldenItem
+                        ? "border-coin-gold-300/70 bg-gradient-to-br from-coin-gold-50 to-coin-gold-50/80 ring-1 ring-coin-gold-300/50"
+                        : isPlaced
+                          ? "border-emerald-400/50 bg-emerald-50/70 ring-1 ring-emerald-300/40"
+                          : "border-white/80 bg-white"}
+                      ${isInventory && isEditing ? "cursor-grab" : "cursor-default"}
                       ${isBeingDragged ? "opacity-40" : ""}`}
-                    style={{ touchAction: isEditing ? "none" : undefined }}
-                    onPointerDown={(e) => handlePointerDown(e, item.id, "inventory")}
+                    style={{
+                      touchAction: isInventory && isEditing ? "none" : undefined,
+                      animationDelay: `${Math.min(itemIdx * 28, 280)}ms`,
+                    }}
+                    onPointerDown={isInventory ? (e) => handlePointerDown(e, item.id, "inventory") : undefined}
                   >
+                    {/* Art zone */}
+                    <div className="relative w-full aspect-square p-3 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={itemArtSrc(item.id)}
+                        alt=""
+                        aria-hidden
+                        draggable={false}
+                        className="h-full w-full object-contain"
+                        style={{ filter: isGoldenItem ? GOLDEN_FILTER : undefined }}
+                      />
+                      {/* Golden badge */}
+                      {isGoldenItem && (
+                        <span aria-hidden className="absolute right-0.5 top-0.5 rounded-full bg-coin-gold-500 px-1 py-0.5 text-[7px] font-bold leading-none text-ink-900 shadow-sm">
+                          ✨
+                        </span>
+                      )}
+                      {/* In-scene stamp mark — SVG sprout-stamp, not a generic pip (R.gen.006) */}
+                      {isPlaced && (
+                        <span aria-hidden className="absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-moss-600 shadow-sm ring-1 ring-moss-700/30">
+                          <svg aria-hidden viewBox="0 0 10 10" className="h-3 w-3 fill-cream-50">
+                            <path d="M5 1 C5 1 3 3 3 5.5 S4.2 8.5 5 9 C5.8 8.5 7 7 7 5.5 S5 1 5 1Z M4 5 C4 5 2.5 4.5 2 3.5" strokeWidth="0.5" stroke="rgba(255,255,255,0.4)" fill="none"/>
+                            <path d="M5 1 C5 1 3 3 3 5.5 S4.2 8.5 5 9 C5.8 8.5 7 7 7 5.5 S5 1 5 1Z" />
+                          </svg>
+                        </span>
+                      )}
+                      {/* Botanical drag handle — two-leaf sprig with stem replaces generic 2×2 dot grid.
+                          can-group-hover (not bare group-hover) so it never fires on touch. R.cap.cards.007 */}
+                      {isInventory && (
+                        <span aria-hidden className="absolute left-0.5 top-0.5 opacity-25 can-group-hover:opacity-55 transition-opacity">
+                          <svg aria-hidden viewBox="0 0 10 12" width="10" height="12" fill="none">
+                            <path d="M5 11 C5 11 2 8.5 2 6 C2 4 3.3 2.5 5 2.5 C6.7 2.5 8 4 8 6 C8 8.5 5 11 5 11Z" fill="rgba(31,25,15,0.65)"/>
+                            <path d="M5 7.5 C4 7 2.5 5.5 2.5 4 C2.5 2.5 3.7 1.5 5 2 C5 2 5 4.5 5 7.5Z" fill="rgba(31,25,15,0.42)"/>
+                            <line x1="5" y1="2" x2="5" y2="11" stroke="rgba(255,255,255,0.30)" strokeWidth="0.65" strokeLinecap="round"/>
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+                    {/* Name footer — below art, not overlaying it (R.cap.cards.011) */}
+                    <p className="w-full truncate bg-ink-900/75 px-1 py-0.5 text-center text-[10px] font-medium leading-tight text-cream-50">
+                      {item.name}
+                    </p>
+                  </button>
+                );
+              }
+
+              // ── GOLDEN — CLAIMABLE (focus milestone reached) ─────────────
+              // Golden palette token discipline: coin-gold-50 = SURFACE TINT (warm card bg), not accent.
+              // Accent set = { coin-gold-300 (highlight/ring), coin-gold-500 (badge fill), coin-gold-700 (label) }.
+              // This keeps the accent count at 3 per P.shop.gg.coh.1.a.
+              if (isGoldenCat && isEarned) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    disabled={isBeingBought}
+                    onClick={(e) => handlePurchase(item.id, 0, e.currentTarget)}
+                    aria-label={`Claim ${item.name} (milestone reached)`}
+                    title={`You've earned this! Click to claim ${item.name}.`}
+                    className="gdn-card-stagger group relative flex flex-col overflow-hidden rounded-xl border border-coin-gold-300/80 bg-gradient-to-br from-coin-gold-50 to-coin-gold-50/70 ring-1 ring-coin-gold-300/50 outline-none transition active:scale-[0.97] can-hover:hover:scale-[1.04] can-hover:hover:shadow-md can-hover:hover:border-coin-gold-500/60 focus-visible:ring-2 focus-visible:ring-moss-500 disabled:cursor-wait disabled:opacity-60"
+                    style={{ animationDelay: `${Math.min(itemIdx * 28, 280)}ms` }}
+                  >
+                    <div className="relative w-full aspect-square p-3 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={itemArtSrc(item.id)} alt="" aria-hidden draggable={false} className="h-full w-full object-contain" style={{ filter: GOLDEN_FILTER }} />
+                    </div>
+                    {/* Label footer — same structure as Buy chip for shared language (P.shop.buy.coh.1.a) */}
+                    <div className="w-full bg-ink-900/75 px-1 pt-0.5 pb-1">
+                      <p className="truncate text-center text-[10px] font-medium leading-tight text-cream-50">{item.name}</p>
+                      <div className="mt-0.5 flex justify-center">
+                        <ActionChip className={`gdn-claim-chip bg-coin-gold-500 text-ink-900 can-group-hover:bg-coin-gold-300 can-group-hover:shadow-md can-group-hover:scale-[1.04] ${isBeingBought ? "opacity-60" : ""}`}>
+                          {isBeingBought ? "…" : "Claim ✨"}
+                        </ActionChip>
+                      </div>
+                    </div>
+                  </button>
+                );
+              }
+
+              // ── GOLDEN — LOCKED (focus milestone not yet reached) ────────
+              if (isGoldenCat) {
+                const hoursNeeded = Math.ceil((item.unlocks_at_minutes ?? 0) / 60);
+                const pctDone = Math.min(100, Math.round((lifetimeMinutes / (item.unlocks_at_minutes ?? 1)) * 100));
+                return (
+                  <div
+                    key={item.id}
+                    role="img"
+                    tabIndex={0}
+                    aria-label={`${item.name} — ${pctDone}% toward ${hoursNeeded}h focus milestone`}
+                    title={`${item.name} — ${hoursNeeded}h of total focus to unlock`}
+                    className="gdn-card-stagger group relative flex flex-col overflow-hidden rounded-xl border border-coin-gold-300/70 bg-gradient-to-br from-cream-50 to-coin-gold-50/30 ring-1 ring-coin-gold-300/50 cursor-default select-none can-hover:hover:scale-[1.02] can-hover:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                    style={{ animationDelay: `${Math.min(itemIdx * 28, 280)}ms` }}
+                  >
+                    <div className="relative w-full aspect-square p-3 flex items-center justify-center">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={itemArtSrc(item.id)} alt="" aria-hidden draggable={false} className="h-full w-full object-contain opacity-25" style={{ filter: GOLDEN_FILTER }} />
+                      <div aria-hidden className="absolute inset-0 flex flex-col items-center justify-center rounded-xl">
+                        <span className="text-sm leading-none">🔒</span>
+                        <span className="mt-1 rounded-full bg-coin-gold-700/80 px-1.5 py-0.5 text-[8px] font-bold leading-none text-ink-900">
+                          {hoursNeeded}h
+                        </span>
+                      </div>
+                    </div>
+                    {/* Footer: name + focus progress */}
+                    <div className="w-full bg-ink-900/75 px-1 pt-0.5 pb-1 text-center">
+                      <p className="truncate text-[10px] font-medium leading-tight text-cream-50">{item.name}</p>
+                      {/* Focus-progress bar in footer (below art) */}
+                      <div
+                        role="progressbar"
+                        aria-valuenow={pctDone}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${pctDone}% to unlock`}
+                        className="mt-0.5 h-1.5 w-full overflow-hidden rounded-full bg-ink-900/40"
+                      >
+                        <div className="h-full rounded-full bg-coin-gold-500 transition-[width]" style={{ width: `${pctDone}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // ── PURCHASABLE — LOCKED (coin price) ────────────────────────
+              const hasError = purchaseError === item.id;
+              const isConfirming = confirmingId === item.id;
+              /* Card-as-button pattern — see 01-calibration.md "Merger documentation".
+                 The entire card is the <button>; nested <button> is invalid HTML.
+                 int.4 / mot.2 leaves are formally N/A under this documented merger. */
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  disabled={isBeingBought || isConfirming}
+                  aria-disabled={!canAfford || undefined}
+                  onClick={(e) => {
+                    if (!canAfford || isBeingBought || isConfirming) return;
+                    handlePurchase(item.id, item.price, e.currentTarget);
+                  }}
+                  aria-label={
+                    isConfirming
+                      ? `${item.name} — purchased!`
+                      : hasError
+                        ? `${item.name} — purchase failed, try again`
+                        : canAfford
+                          ? `Buy ${item.name} for ${item.price} coins`
+                          : `${item.name} — need ${item.price - localCoins} more coins`
+                  }
+                  title={
+                    canAfford
+                      ? `${item.name} — ${item.price} 🪙 · click to buy`
+                      : `${item.name} — you need ${item.price - localCoins} more 🪙`
+                  }
+                  className={`gdn-card-stagger group relative flex flex-col overflow-hidden rounded-xl border outline-none transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-moss-500
+                    ${isConfirming
+                      ? "cursor-default border-moss-300/60 bg-moss-50/50"
+                      : hasError
+                        ? "cursor-pointer border-rose-400/60 bg-rose-50/50 can-hover:hover:scale-[1.04] can-hover:hover:shadow-md"
+                        : isBeingBought
+                          ? "cursor-wait opacity-60 border-emerald-300/50 bg-emerald-50/50"
+                          : canAfford
+                            ? "cursor-pointer border-ink-500/25 bg-white can-hover:hover:scale-[1.04] can-hover:hover:shadow-md can-hover:hover:border-moss-300/60"
+                            : "cursor-not-allowed border-ink-500/15 bg-ink-900/[0.025]"}`}
+                  style={{ animationDelay: `${Math.min(itemIdx * 28, 280)}ms` }}
+                >
+                  {/* Art zone */}
+                  <div className="relative w-full aspect-square flex items-center justify-center p-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={itemArtSrc(item.id)}
                       alt=""
                       aria-hidden
                       draggable={false}
-                      className="h-full w-full object-contain"
-                      style={{ filter: isGolden ? GOLDEN_FILTER : undefined }}
+                      className={`h-full w-full object-contain transition ${canAfford ? "opacity-65 can-group-hover:opacity-90" : "opacity-25"}`}
                     />
-                    {isGolden && (
-                      <span aria-hidden className="absolute right-0 top-0 rounded-bl-lg rounded-tr-md bg-amber-500 px-1 py-0.5 text-[8px] font-bold uppercase tracking-wider text-white shadow-sm">
-                        ✨
-                      </span>
-                    )}
-                    <span className="absolute inset-x-0 bottom-0 truncate rounded-b-lg bg-ink-900/70 px-1 py-0.5 text-center text-[8px] font-medium uppercase tracking-wider text-cream-50 opacity-0 group-hover:opacity-100">
-                      {item.name}
+                    {/* Lock icon top-right — coin-gold = affordable, ink = not affordable */}
+                    <span
+                      aria-hidden
+                      className={`absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full text-[7px] leading-none transition-opacity duration-300
+                        ${isBeingBought ? "opacity-0" : "opacity-100"}
+                        ${hasError
+                          ? "bg-rose-500 text-white"
+                          : canAfford
+                            ? "bg-coin-gold-300/90 text-coin-gold-700"
+                            : "bg-ink-900/25 text-ink-900/60"}`}
+                    >
+                      {hasError ? "⚠" : "🔒"}
                     </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  </div>
+                  {/* Label footer: name + Buy CTA */}
+                  <div className="w-full bg-ink-900/75 px-1 pt-0.5 pb-1">
+                    <p className="truncate text-center text-[10px] font-medium leading-tight text-cream-50">{item.name}</p>
+                    {/* Buy chip — card-as-button merger: whole card is pressable (see 01-calibration.md).
+                        int.4 / mot.2 are N/A under this merger. "Buy" always visible (P.shop.buy.cpy.1.b).
+                        can-group-hover replaces bare group-hover: so scale never sticks on touch. */}
+                    <div className="mt-2 flex justify-center">
+                      <ActionChip className={`gdn-buy-chip tabular-nums
+                        ${isConfirming
+                          ? "bg-moss-600 text-cream-50 scale-[1.04]"
+                          : hasError
+                            ? "bg-rose-600 text-cream-50 can-group-hover:bg-rose-700 can-group-hover:shadow-md can-group-hover:scale-[1.04]"
+                            : isBeingBought
+                              ? "bg-moss-600 text-cream-50 scale-[1.04]"
+                              : canAfford
+                                ? "bg-moss-700 text-cream-50 can-group-hover:bg-moss-600 can-group-hover:shadow-md can-group-hover:scale-[1.04]"
+                                : "bg-ink-900/35 text-cream-50"}`}>
+                        {isConfirming ? "✓ Purchased" : hasError ? "Retry" : isBeingBought ? "…" : `Buy · 🪙 ${item.price}`}
+                      </ActionChip>
+                    </div>
+                    {/* Visible inline error — shown near the chip on error (P.shop.buy.int.8.b) */}
+                    {hasError && (
+                      <p className="mt-0.5 text-center text-[8px] leading-tight text-rose-200">
+                        {canAfford ? "Try again" : "Not enough coins"}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+            {/* Empty state — inline SVG character beat + character-voice copy (R.gen.007) */}
+            {tabItems.length === 0 && (
+              <div role="status" aria-label="No items in this category" className="gdn-panel-enter col-span-full flex flex-col items-center justify-center gap-3 py-8 text-center">
+                {/* Small watering-can + seedling SVG illustration */}
+                <svg aria-hidden viewBox="0 0 64 48" className="h-12 w-16 opacity-60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Pot */}
+                  <rect x="24" y="34" width="16" height="10" rx="2" fill="#8B7355" />
+                  <path d="M22 34 h20 l-2 10 H24 Z" fill="#A08B6E" />
+                  {/* Soil */}
+                  <ellipse cx="32" cy="34" rx="10" ry="3" fill="#5C4A35" />
+                  {/* Sprout stem */}
+                  <path d="M32 33 C32 28 30 24 28 22" stroke="#4a7c4a" strokeWidth="1.5" strokeLinecap="round"/>
+                  {/* Leaf left */}
+                  <path d="M28 22 C24 18 20 21 23 25 C25 27 28 26 28 22Z" fill="#5a9e5a"/>
+                  {/* Leaf right */}
+                  <path d="M32 27 C36 23 40 26 37 30 C35 32 32 31 32 27Z" fill="#4a7c4a"/>
+                  {/* Watering can body */}
+                  <rect x="4" y="20" width="18" height="12" rx="4" fill="#7AB8A0"/>
+                  {/* Can spout */}
+                  <path d="M22 24 L30 28 L28 30 L20 26Z" fill="#6AA090"/>
+                  {/* Can handle */}
+                  <path d="M4 22 C0 22 0 30 4 30" stroke="#5A9080" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                  {/* Water drops */}
+                  <circle cx="31" cy="32" r="1" fill="#7AB8A0" opacity="0.6"/>
+                  <circle cx="33" cy="30" r="0.8" fill="#7AB8A0" opacity="0.5"/>
+                  <circle cx="35" cy="33" r="0.7" fill="#7AB8A0" opacity="0.4"/>
+                </svg>
+                <div className="space-y-2">
+                  <p className="text-[12px] font-semibold text-ink-700/70">Nothing planted in this patch yet.</p>
+                  <p className="text-[11px] text-ink-700/40">Earn coins by focusing to unlock items.</p>
+                  <a
+                    href="/dashboard"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-moss-600 px-3 py-1.5 text-[11px] font-semibold text-cream-50 shadow-sm transition can-hover:hover:bg-moss-500 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-500 focus-visible:ring-offset-2"
+                  >
+                    <span aria-hidden>🌱</span> Start a focus session
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+        )}
       </div>
 
       {/* Edit-layout controls (above the stage strip so it's discoverable) */}
@@ -726,15 +1599,15 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           {todayLeaves > 0 && <span className="ml-2 font-semibold text-emerald-700">· +{todayLeaves} today</span>}
         </p>
 
-        <div className="mt-5 rounded-2xl border border-white/60 bg-gradient-to-br from-cream-50 to-brand-butter/30 p-4">
+        <div className="mt-5 rounded-[24px] border border-white/60 bg-gradient-to-br from-cream-50 to-brand-butter/30 p-4">
           <div className="flex items-baseline justify-between text-[10px] uppercase tracking-[0.22em] text-ink-700/80">
             <span>your garden</span>
             <span className="font-semibold text-ink-900">
-              {ownedGardenCount} / {totalGardenCount} items
+              {ownedGardenCount} / {TOTAL_GARDEN_ITEMS} items
             </span>
           </div>
           <div className="mt-2 flex items-center gap-[2px]">
-            {Array.from({ length: totalGardenCount }).map((_, idx) => (
+            {Array.from({ length: TOTAL_GARDEN_ITEMS }).map((_, idx) => (
               <div
                 key={idx}
                 className={`h-1.5 flex-1 rounded-full transition-colors duration-700
@@ -765,6 +1638,31 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
           one leaf grows every {MINUTES_PER_LEAF} min of focus · hover an item to lift it
         </p>
       </div>
+
+      {/* ── Flying-coin arc animation ──────────────────────────────────────
+          Fixed-position 🪙 that arcs from buy button to the balance pill.
+          CSS custom properties --dx/--dy drive the keyframe endpoint.
+          Conditionally rendered only while coinAnim is set (~650 ms).
+      */}
+      {coinAnim && (
+        <div
+          aria-hidden
+          className="gdn-coin-fly pointer-events-none fixed z-[9999] relative"
+          style={{
+            left: coinAnim.x1,
+            top: coinAnim.y1,
+            "--dx": `${coinAnim.x2 - coinAnim.x1}px`,
+            "--dy": `${coinAnim.y2 - coinAnim.y1}px`,
+          } as React.CSSProperties}
+        >
+          <span className="text-xl leading-none select-none">🪙</span>
+          {/* 4 radial sparkle spans (2 CSS pseudos + 4 spans = 6 total sparkle particles) */}
+          <span aria-hidden className="gdn-sparkle-1 pointer-events-none absolute top-0 left-0 text-[9px] leading-none select-none" style={{ color: "#ffd55a" }}>✦</span>
+          <span aria-hidden className="gdn-sparkle-2 pointer-events-none absolute top-0 right-0 text-[8px] leading-none select-none" style={{ color: "#e6a800" }}>✦</span>
+          <span aria-hidden className="gdn-sparkle-3 pointer-events-none absolute bottom-0 left-0 text-[7px] leading-none select-none" style={{ color: "#ffd55a" }}>✧</span>
+          <span aria-hidden className="gdn-sparkle-4 pointer-events-none absolute bottom-0 right-0 text-[8px] leading-none select-none" style={{ color: "#e6a800" }}>✧</span>
+        </div>
+      )}
 
       {/* ── Drag ghost ──────────────────────────────────────────────────────
           A fixed-position copy of the dragged item image that follows the

@@ -91,6 +91,7 @@ export default async function GardenPage() {
           todayMinutes={todayMinutes}
           streak={streak}
           ownedItemIds={ownedItemIds}
+          coins={settings?.coins ?? 0}
           equippedMap={settings?.equipped_map ?? null}
           savedLayout={layoutForScene}
         />
