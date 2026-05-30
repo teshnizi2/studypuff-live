@@ -419,6 +419,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   function handleScaleHandleDown(e: React.PointerEvent, itemId: string) {
     e.preventDefault();
     e.stopPropagation();
+    setSelectedId(itemId);
     const startX = e.clientX;
     const startY = e.clientY;
     const startScale = localLayout[itemId]?.scale ?? 1;
@@ -449,6 +450,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   function handleRotateHandleDown(e: React.PointerEvent, itemId: string) {
     e.preventDefault();
     e.stopPropagation();
+    setSelectedId(itemId);
     const btn = itemBtnRefs.current.get(itemId);
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
@@ -905,11 +907,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                 {isEditing && (
                   <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ${isSelected ? "ring-[3px] ring-amber-400" : isBeingDragged ? "ring-2 ring-amber-400" : "ring-2 ring-emerald-400/60"}`} />
                 )}
-                {/* ── Direct-manipulation handles (selected item only) ────────
-                    Rotation handle: top-centre — drag to spin.
-                    Scale handle:    bottom-right corner — drag out to grow.
-                    Both use stopPropagation so they don't start the move-drag. */}
-                {isSelected && isEditing && (
+                {/* ── Direct-manipulation handles ─────────────────────────────
+                    Shown on EVERY placed item while editing (hidden only during a
+                    move-drag) so resize/rotate is immediately discoverable — no
+                    tap-to-select step needed. Drag the item BODY to move; drag a
+                    handle to resize/rotate (handles stopPropagation the move). */}
+                {isEditing && !isBeingDragged && (
                   <>
                     {/* Rotation handle */}
                     <div
@@ -941,6 +944,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                         // Bottom-left: flip dx direction so dragging left = bigger
                         e.preventDefault();
                         e.stopPropagation();
+                        setSelectedId(item.id);
                         const startX = e.clientX;
                         const startY = e.clientY;
                         const startScale = localLayout[item.id]?.scale ?? 1;
@@ -964,10 +968,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                         window.addEventListener("pointerup", onUp);
                       }}
                     />
-                    {/* Size readout */}
-                    <div aria-hidden className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink-900/75 px-2 py-0.5 text-[9px] font-bold tabular-nums text-cream-50">
-                      {Math.round((entry?.scale ?? 1) * 100)}% · {entry?.rotation ?? 0}°
-                    </div>
+                    {/* Size readout — only on the active/selected item to avoid clutter */}
+                    {isSelected && (
+                      <div aria-hidden className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink-900/85 px-2 py-0.5 text-[9px] font-bold tabular-nums text-cream-50">
+                        {Math.round((entry?.scale ?? 1) * 100)}% · {entry?.rotation ?? 0}°
+                      </div>
+                    )}
                   </>
                 )}
                 {/* Lantern night glow (regular OR gold) */}
@@ -1336,7 +1342,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
               {overInventory && isEditing
                 ? "Drop here to remove from scene"
                 : isEditing
-                ? "Drag to place · tap a placed item to resize or rotate"
+                ? "Drag items to move · drag the amber corner/top handles to resize & rotate"
                 : "Click to buy · use Move items to arrange, resize & rotate"}
             </p>
           </div>
