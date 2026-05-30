@@ -898,11 +898,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   style={{
                     filter: imgFilter,
                     transform: userRotation ? `rotate(${userRotation}deg)` : undefined,
-                    transformOrigin: "50% 100%",
-                    /* mix-blend-mode: multiply makes white pixels invisible against
-                       any coloured background. White * bg_colour = bg_colour.
-                       This is the CSS fix for images exported without transparency. */
-                    mixBlendMode: "multiply"
+                    transformOrigin: "50% 100%"
                   }}
                 />
                 {/* Edit-mode selection ring */}
