@@ -253,9 +253,12 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
   // Cleanup ref for window-level drag listeners (attached on pointerdown, removed on pointerup/cancel/unmount).
   const windowDragCleanupRef = useRef<(() => void) | null>(null);
   useEffect(() => () => { windowDragCleanupRef.current?.(); }, []);
-  /** Debounce timer for persisting size/rotation changes from the control bar. */
+  /** Debounce timer for persisting size/rotation changes. */
   const transformSaveTimerRef = useRef<number | null>(null);
   useEffect(() => () => { if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current); }, []);
+  /** Map of item-id → scene button element — needed so rotation centre can be
+   *  read from the real DOM bounding box rather than computed from % values. */
+  const itemBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   // Preload all owned garden-item images into the browser cache on mount so
   // there's zero network wait when an item is dragged from inventory to scene.
@@ -407,6 +410,71 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         setSaveStatus("error");
       }
     });
+  }
+
+  /** Pointer-down on a SCALE handle (bottom-right corner of selected item).
+   *  Drag right/down → bigger; left/up → smaller. Purely additive so the first
+   *  movement isn't a jump. Uses window listeners so the pointer can leave the
+   *  handle area without losing track — same pattern as the main drag. */
+  function handleScaleHandleDown(e: React.PointerEvent, itemId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startScale = localLayout[itemId]?.scale ?? 1;
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      // (dx − dy) so dragging bottom-right corner outward = grow.
+      const newScale = clampScale(startScale + (dx - dy) / 220);
+      setLocalLayout((prev) => {
+        const next = { ...prev, [itemId]: { ...prev[itemId], scale: newScale } };
+        layoutRef.current = next;
+        return next;
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current);
+      transformSaveTimerRef.current = window.setTimeout(() => persistLayout(layoutRef.current), 300);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
+
+  /** Pointer-down on the ROTATE handle (top-centre of selected item).
+   *  Drag the handle around the item's centre to spin it. */
+  function handleRotateHandleDown(e: React.PointerEvent, itemId: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = itemBtnRefs.current.get(itemId);
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    // Rotation centre = horizontal mid, bottom of item (the foot anchor).
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.bottom;
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = ev.clientX - cx;
+      const dy = ev.clientY - cy;
+      // atan2(dx, -dy): pointing straight up from foot = 0°.
+      const angle = Math.round(Math.atan2(dx, -dy) * (180 / Math.PI));
+      setLocalLayout((prev) => {
+        const next = { ...prev, [itemId]: { ...prev[itemId], rotation: clampRot(angle) } };
+        layoutRef.current = next;
+        return next;
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current);
+      transformSaveTimerRef.current = window.setTimeout(() => persistLayout(layoutRef.current), 300);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   }
 
   /** Update scale/rotation for an item — live visual update + debounced persist
@@ -804,19 +872,21 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
             return (
               <button
                 key={item.id}
+                ref={(el) => {
+                  if (el) itemBtnRefs.current.set(item.id, el);
+                  else itemBtnRefs.current.delete(item.id);
+                }}
                 type="button"
                 aria-label={item.name}
-                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isPond ? "td-item-pond" : ""} ${isEditing ? "cursor-grab" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
+                className={`group td-item-btn absolute -translate-x-1/2 -translate-y-full border-0 bg-transparent p-0 outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isPond ? "td-item-pond" : ""} ${isEditing && !isSelected ? "cursor-grab" : isEditing ? "cursor-move" : "cursor-pointer"} ${isBeingDragged ? "td-item-dragging" : ""}`}
                 style={{
                   left: `${pos.x}%`,
                   top: `${pos.y}%`,
                   width: `${pos.size * userScale}%`,
-                  // idx is the item's rank in placedAt-sorted order:
-                  // lowest idx = placed first = behind; highest = placed last = in front.
-                  zIndex: isBeingDragged ? 999 : 10 + idx,
+                  zIndex: isBeingDragged ? 999 : isSelected ? 500 : 10 + idx,
                   touchAction: isEditing ? "none" : undefined
                 }}
-                title={isEditing ? `${item.name} — drag to move` : item.name}
+                title={isEditing ? `${item.name} — drag to move, tap to resize/rotate` : item.name}
                 onPointerDown={(e) => handlePointerDown(e, item.id, "scene")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -825,11 +895,84 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   alt={item.name}
                   draggable={false}
                   className="block h-auto w-full select-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.35)]"
-                  style={{ filter: imgFilter, transform: userRotation ? `rotate(${userRotation}deg)` : undefined, transformOrigin: "50% 100%" }}
+                  style={{
+                    filter: imgFilter,
+                    transform: userRotation ? `rotate(${userRotation}deg)` : undefined,
+                    transformOrigin: "50% 100%",
+                    /* mix-blend-mode: multiply makes white pixels invisible against
+                       any coloured background. White * bg_colour = bg_colour.
+                       This is the CSS fix for images exported without transparency. */
+                    mixBlendMode: "multiply"
+                  }}
                 />
-                {/* Edit-mode handle ring — thicker amber when selected for resize/rotate */}
+                {/* Edit-mode selection ring */}
                 {isEditing && (
-                  <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ${isSelected ? "ring-[3px] ring-amber-400" : isBeingDragged ? "ring-2 ring-amber-400" : "ring-2 ring-emerald-400/70"}`} />
+                  <div aria-hidden className={`pointer-events-none absolute inset-0 rounded-md ${isSelected ? "ring-[3px] ring-amber-400" : isBeingDragged ? "ring-2 ring-amber-400" : "ring-2 ring-emerald-400/60"}`} />
+                )}
+                {/* ── Direct-manipulation handles (selected item only) ────────
+                    Rotation handle: top-centre — drag to spin.
+                    Scale handle:    bottom-right corner — drag out to grow.
+                    Both use stopPropagation so they don't start the move-drag. */}
+                {isSelected && isEditing && (
+                  <>
+                    {/* Rotation handle */}
+                    <div
+                      aria-hidden
+                      title="Drag to rotate"
+                      className="absolute -top-7 left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 cursor-grab items-center justify-center rounded-full bg-amber-400 text-[11px] shadow-lg ring-2 ring-white active:cursor-grabbing"
+                      style={{ touchAction: "none" }}
+                      onPointerDown={(e) => handleRotateHandleDown(e, item.id)}
+                    >
+                      ↻
+                    </div>
+                    {/* Connector line: rotation handle → item top */}
+                    <div aria-hidden className="pointer-events-none absolute -top-3 left-1/2 h-3 w-0.5 -translate-x-1/2 bg-amber-400/60" />
+                    {/* Scale handle — bottom-right corner */}
+                    <div
+                      aria-hidden
+                      title="Drag to resize"
+                      className="absolute -bottom-2 -right-2 z-10 h-5 w-5 cursor-nwse-resize rounded-md bg-amber-400 shadow-lg ring-2 ring-white"
+                      style={{ touchAction: "none" }}
+                      onPointerDown={(e) => handleScaleHandleDown(e, item.id)}
+                    />
+                    {/* Scale handle — bottom-left corner */}
+                    <div
+                      aria-hidden
+                      title="Drag to resize"
+                      className="absolute -bottom-2 -left-2 z-10 h-5 w-5 cursor-nesw-resize rounded-md bg-amber-400 shadow-lg ring-2 ring-white"
+                      style={{ touchAction: "none" }}
+                      onPointerDown={(e) => {
+                        // Bottom-left: flip dx direction so dragging left = bigger
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startScale = localLayout[item.id]?.scale ?? 1;
+                        const onMove = (ev: PointerEvent) => {
+                          const dx = ev.clientX - startX;
+                          const dy = ev.clientY - startY;
+                          const newScale = clampScale(startScale + (-dx - dy) / 220);
+                          setLocalLayout((prev) => {
+                            const next = { ...prev, [item.id]: { ...prev[item.id], scale: newScale } };
+                            layoutRef.current = next;
+                            return next;
+                          });
+                        };
+                        const onUp = () => {
+                          window.removeEventListener("pointermove", onMove);
+                          window.removeEventListener("pointerup", onUp);
+                          if (transformSaveTimerRef.current) clearTimeout(transformSaveTimerRef.current);
+                          transformSaveTimerRef.current = window.setTimeout(() => persistLayout(layoutRef.current), 300);
+                        };
+                        window.addEventListener("pointermove", onMove);
+                        window.addEventListener("pointerup", onUp);
+                      }}
+                    />
+                    {/* Size readout */}
+                    <div aria-hidden className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-ink-900/75 px-2 py-0.5 text-[9px] font-bold tabular-nums text-cream-50">
+                      {Math.round((entry?.scale ?? 1) * 100)}% · {entry?.rotation ?? 0}°
+                    </div>
+                  </>
                 )}
                 {/* Lantern night glow (regular OR gold) */}
                 {isLantern && isNight && (
