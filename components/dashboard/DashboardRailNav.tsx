@@ -30,8 +30,10 @@ export function DashboardRailNav() {
       key: "tasks",
       label: "Tasks",
       icon: <ListChecks className="h-5 w-5" strokeWidth={1.75} aria-hidden />,
-      href: "/dashboard",
-      active: isHome && !activePanel
+      // ?panel=tasks signals DashboardActions to reveal the focus-first-hidden
+      // tasks sidebar (on desktop this rail item is the only opener).
+      href: "/dashboard?panel=tasks",
+      active: isHome && (!activePanel || activePanel === "tasks")
     },
     {
       key: "garden",
