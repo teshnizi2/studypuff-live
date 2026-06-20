@@ -222,7 +222,7 @@ export default async function StudyPage() {
                   Hang out between sessions
                 </h3>
                 <p className="mt-2 text-ink-700">
-                  Our Discord is the cosy in-between — share wins, ask for accountability, find a
+                  Our Discord is the cosy in-between. Share wins, ask for accountability, find a
                   study buddy in your timezone.
                 </p>
               </div>

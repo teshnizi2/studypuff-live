@@ -57,7 +57,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact · 3-workday response"
         title="Workshops, scholarship requests, press, partnerships, or just a kind note."
-        subtitle="Email us at info@studypuff.com or send a message below — we'll get back to you within three workdays."
+        subtitle="Email us at info@studypuff.com or send a message below. We'll get back to you within three workdays."
         accent="sky"
       />
 
@@ -73,7 +73,7 @@ export default function ContactPage() {
                     Thanks, {form.name.split(" ")[0] || "friend"}!
                   </h2>
                   <p className="max-w-md text-ink-700">
-                    Your message landed safely. We&apos;ll write back within three workdays —
+                    Your message landed safely. We&apos;ll write back within three workdays,
                     usually much sooner.
                   </p>
                   <button

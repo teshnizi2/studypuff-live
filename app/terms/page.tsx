@@ -46,7 +46,7 @@ export default function TermsPage() {
           these Terms of Service by posting updates and/or changes to our website.
         </p>
 
-        <H2>Section 1 — Online store terms</H2>
+        <H2>Section 1 : Online store terms</H2>
         <p>
           By agreeing to these Terms of Service, you represent that you are at least the age of
           majority in your state or province of residence, or that you are the age of majority in
@@ -61,7 +61,7 @@ export default function TermsPage() {
           of your Services.
         </p>
 
-        <H2>Section 2 — General conditions</H2>
+        <H2>Section 2 : General conditions</H2>
         <p>We reserve the right to refuse Service to anyone for any reason at any time.</p>
         <p>
           You understand that your content (not including credit card information), may be
@@ -75,7 +75,7 @@ export default function TermsPage() {
           through which the Service is provided, without express written permission by us.
         </p>
 
-        <H2>Section 3 — Accuracy, completeness and timeliness of information</H2>
+        <H2>Section 3 : Accuracy, completeness and timeliness of information</H2>
         <p>
           We are not responsible if information made available on this site is not accurate,
           complete or current. The material on this site is provided for general information only
@@ -90,7 +90,7 @@ export default function TermsPage() {
           our site.
         </p>
 
-        <H2>Section 4 — Modifications to the service and prices</H2>
+        <H2>Section 4 : Modifications to the service and prices</H2>
         <p>Prices for our products are subject to change without notice.</p>
         <p>
           We reserve the right at any time to modify or discontinue the Service (or any part or
@@ -99,7 +99,7 @@ export default function TermsPage() {
           Service.
         </p>
 
-        <H2>Section 5 — Accuracy of billing and account information</H2>
+        <H2>Section 5 : Accuracy of billing and account information</H2>
         <p>
           We reserve the right to refuse any order you place with us. We may, in our sole
           discretion, limit or cancel quantities purchased per person, per household or per order.
@@ -108,7 +108,7 @@ export default function TermsPage() {
           information so that we can complete your transactions and contact you as needed.
         </p>
 
-        <H2>Section 6 — Optional tools</H2>
+        <H2>Section 6 : Optional tools</H2>
         <p>
           We may provide you with access to third-party tools over which we neither monitor nor have
           any control nor input. You acknowledge and agree that we provide access to such tools
@@ -116,7 +116,7 @@ export default function TermsPage() {
           or conditions of any kind and without any endorsement.
         </p>
 
-        <H2>Section 7 — Third-party links</H2>
+        <H2>Section 7 : Third-party links</H2>
         <p>
           Certain content, products and Services available via our Service may include materials
           from third-parties. Third-party links on this site may direct you to third-party websites
@@ -125,7 +125,7 @@ export default function TermsPage() {
           responsibility for any third-party materials or websites.
         </p>
 
-        <H2>Section 8 — User comments, feedback and other submissions</H2>
+        <H2>Section 8 : User comments, feedback and other submissions</H2>
         <p>
           If you send creative ideas, suggestions, proposals, plans, or other materials, whether
           online, by email, by postal mail, or otherwise (collectively, &lsquo;comments&rsquo;), you
@@ -141,13 +141,13 @@ export default function TermsPage() {
           or obscene material, or contain any computer virus or other malware.
         </p>
 
-        <H2>Section 9 — Personal information</H2>
+        <H2>Section 9 : Personal information</H2>
         <p>
           Your submission of personal information through the store is governed by our{" "}
           <a href="/privacy" className="underline underline-offset-4">Privacy Policy</a>.
         </p>
 
-        <H2>Section 10 — Errors, inaccuracies and omissions</H2>
+        <H2>Section 10 : Errors, inaccuracies and omissions</H2>
         <p>
           Occasionally there may be information on our site or in the Service that contains
           typographical errors, inaccuracies or omissions that may relate to product descriptions,
@@ -157,7 +157,7 @@ export default function TermsPage() {
           any time without prior notice.
         </p>
 
-        <H2>Section 11 — Prohibited uses</H2>
+        <H2>Section 11 : Prohibited uses</H2>
         <p>
           In addition to other prohibitions as set forth in the Terms of Service, you are prohibited
           from using the site or its content: (a) for any unlawful purpose; (b) to solicit others to
@@ -173,7 +173,7 @@ export default function TermsPage() {
           features of the Service or any related website.
         </p>
 
-        <H2>Section 12 — Disclaimer of warranties; limitation of liability</H2>
+        <H2>Section 12 : Disclaimer of warranties; limitation of liability</H2>
         <p>
           We do not guarantee, represent or warrant that your use of our Service will be
           uninterrupted, timely, secure or error-free. We do not warrant that the results that may
@@ -193,7 +193,7 @@ export default function TermsPage() {
           damages of any kind.
         </p>
 
-        <H2>Section 13 — Indemnification</H2>
+        <H2>Section 13 : Indemnification</H2>
         <p>
           You agree to indemnify, defend and hold harmless StudyPuff® and our parent, subsidiaries,
           affiliates, partners, officers, directors, agents, contractors, licensors, Service
@@ -203,7 +203,7 @@ export default function TermsPage() {
           rights of a third-party.
         </p>
 
-        <H2>Section 14 — Severability</H2>
+        <H2>Section 14 : Severability</H2>
         <p>
           In the event that any provision of these Terms of Service is determined to be unlawful,
           void or unenforceable, such provision shall nonetheless be enforceable to the fullest
@@ -211,7 +211,7 @@ export default function TermsPage() {
           severed from these Terms of Service.
         </p>
 
-        <H2>Section 15 — Termination</H2>
+        <H2>Section 15 : Termination</H2>
         <p>
           The obligations and liabilities of the parties incurred prior to the termination date
           shall survive the termination of this agreement for all purposes. These Terms of Service
@@ -220,7 +220,7 @@ export default function TermsPage() {
           or when you cease using our site.
         </p>
 
-        <H2>Section 16 — Entire agreement</H2>
+        <H2>Section 16 : Entire agreement</H2>
         <p>
           The failure of us to exercise or enforce any right or provision of these Terms of Service
           shall not constitute a waiver of such right or provision. These Terms of Service and any
@@ -228,20 +228,20 @@ export default function TermsPage() {
           constitute the entire agreement and understanding between you and us.
         </p>
 
-        <H2>Section 17 — Governing law</H2>
+        <H2>Section 17 : Governing law</H2>
         <p>
           These Terms of Service and any separate agreements whereby we provide you Services shall
           be governed by and construed in accordance with the laws of the Netherlands.
         </p>
 
-        <H2>Section 18 — Changes to terms of service</H2>
+        <H2>Section 18 : Changes to terms of service</H2>
         <p>
           You can review the most current version of the Terms of Service at any time at this page.
           We reserve the right, at our sole discretion, to update, change or replace any part of
           these Terms of Service by posting updates and changes to our website.
         </p>
 
-        <H2>Section 19 — Contact information</H2>
+        <H2>Section 19 : Contact information</H2>
         <p>
           Questions about the Terms of Service should be sent to us at{" "}
           <a href="mailto:info@studypuff.com" className="underline underline-offset-4">

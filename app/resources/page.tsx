@@ -141,7 +141,7 @@ export default function ResourcesPage() {
               Paid workshops go deeper, faster.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-ink-700">
-              Our cohorts take these free tools and build a full practice around them — with peer
+              Our cohorts take these free tools and build a full practice around them, with peer
               accountability and coach feedback.
             </p>
             <div className="mt-6 flex justify-center gap-3">

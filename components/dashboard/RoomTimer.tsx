@@ -353,7 +353,7 @@ export function RoomTimer({
               ? currentTopic.name
               : currentTask
                 ? currentTask.text
-                : "General study — pick a topic in Tasks"}
+                : "General study. Pick a topic in Tasks"}
         </p>
       </div>
 

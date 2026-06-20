@@ -7,7 +7,7 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "StudyPuff® — A cozy study app + community for students",
+    default: "StudyPuff®: a cozy study app and community for students",
     template: "%s · StudyPuff®"
   },
   description:
@@ -17,14 +17,14 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "StudyPuff® Academy",
     url: siteUrl,
-    title: "StudyPuff® — A cozy study app + community for students",
+    title: "StudyPuff®: a cozy study app and community for students",
     description:
       "Workshops, livestreams, and tools for students who want to study well without burning out.",
     images: [{ url: "/studypuff-hero.png" }]
   },
   twitter: {
     card: "summary_large_image",
-    title: "StudyPuff® — A cozy study app + community for students",
+    title: "StudyPuff®: a cozy study app and community for students",
     description:
       "Workshops, livestreams, and tools for students who want to study well without burning out.",
     images: ["/studypuff-hero.png"]

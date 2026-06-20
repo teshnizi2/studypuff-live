@@ -10,7 +10,7 @@ export default function StorePage() {
     <PageShell>
       <PageHero
         eyebrow="StudyPuff® Store · Coming soon"
-        title="Cozy study merch — coming soon."
+        title="Cozy study merch: coming soon."
         subtitle="Planners, stickers, notebooks, and more. Drop your email below to be first in when the digital doors open."
         accent="peach"
       />

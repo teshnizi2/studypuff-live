@@ -40,11 +40,11 @@ const CATEGORY_LABEL: Record<RewardCategory, string> = {
 };
 
 const CATEGORY_HINT: Record<RewardCategory, string> = {
-  "garden-map": "Different worlds to grow in. Equip one to swap the whole scene — your items move with you.",
-  "garden-golden": "Not for sale. Earn each one by spending focused time — your lifetime focus is the only currency.",
-  "garden-structures": "The big pieces — cottages, bridges, lanterns. Each one anchors a corner of your scene.",
+  "garden-map": "Different worlds to grow in. Equip one to swap the whole scene. Your items move with you.",
+  "garden-golden": "Not for sale. Earn each one by spending focused time. Your lifetime focus is the only currency.",
+  "garden-structures": "The big pieces: cottages, bridges, lanterns. Each one anchors a corner of your scene.",
   "garden-plants": "Flowers, vegetables, ponds. They fill the ground rows and feed the cozy.",
-  "garden-critters": "Little characters and oddities — gnomes, snails, fairy rings. Hover or click them in the scene.",
+  "garden-critters": "Little characters and oddities: gnomes, snails, fairy rings. Hover or click them in the scene.",
   sound: "Plays in the background while a focus session runs.",
   theme: "Re-skins your dashboard until you swap it out.",
   accessory: "Worn by the sheep in the timer."
@@ -128,7 +128,7 @@ export function GardenShop(p: GardenShopProps) {
           </div>
         </div>
         <p className="mt-3 text-xs text-ink-700">
-          Earn 1 coin for every minute you focus — and coins only land when you finish a session, so see it through. Each garden item drops into your scene the moment you buy it; sounds, themes, and accessories restyle the rest of your dashboard.
+          Earn 1 coin for every minute you focus. Coins only land when you finish a session, so see it through. Each garden item drops into your scene the moment you buy it. Sounds, themes, and accessories restyle the rest of your dashboard.
         </p>
       </section>
 

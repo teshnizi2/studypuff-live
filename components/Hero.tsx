@@ -105,7 +105,7 @@ export default function Hero() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/studypuff-hero-md.png"
-                alt="StudyPuff® sheep mascot — open the app"
+                alt="StudyPuff® sheep mascot, open the app"
                 width={800}
                 height={800}
                 className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition duration-300 ease-out group-hover:-translate-y-1.5 group-hover:rotate-[-2deg] group-active:scale-[0.98]"

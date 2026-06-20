@@ -161,7 +161,7 @@ export const REWARDS: Reward[] = [
 
   // ───────────────────── GARDEN — JAPANESE / CHERRY-BLOSSOM ─────────────────────
   { id: "garden-cherry-tree",    name: "Cherry blossom tree", category: "garden-plants",    price: 620,  rarity: "rare", emoji: "🌸", description: "A full canopy of soft pink blooms. Petals drift when the wind blows." },
-  { id: "garden-torii",          name: "Torii gate",           category: "garden-structures", price: 800,  rarity: "epic", emoji: "⛩️", description: "A bold vermillion arch — every step through it feels like a new beginning." },
+  { id: "garden-torii",          name: "Torii gate",           category: "garden-structures", price: 800,  rarity: "epic", emoji: "⛩️", description: "A bold vermillion arch. Every step through it feels like a new beginning." },
   { id: "garden-stone-lantern",  name: "Stone lantern",        category: "garden-structures", price: 240,  rarity: "uncommon", emoji: "🪔", description: "A mossy granite lantern that glows warm amber at dusk." },
   { id: "garden-koi-pond",       name: "Koi pond",             category: "garden-plants",    price: 480,  rarity: "rare", emoji: "🐟", description: "Orange and white koi circle under lily pads in clear turquoise water." },
   { id: "garden-tea-house",      name: "Tea house",            category: "garden-structures", price: 1000, rarity: "epic", emoji: "🫖", description: "A pagoda-roofed tea house with paper screens and a wooden porch." },

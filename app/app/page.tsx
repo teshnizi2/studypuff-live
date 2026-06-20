@@ -17,7 +17,7 @@ const FEATURES: { Icon: LucideIcon; title: string; body: string; tone: string }[
   {
     Icon: Timer,
     title: "A timer that keeps you honest",
-    body: "No pause, no stop button. Pick a task, press start, and see it through — coins only land when you finish, so the focus actually happens.",
+    body: "No pause, no stop button. Pick a task, press start, and see it through. Coins only land when you finish, so the focus actually happens.",
     tone: "bg-brand-mint text-emerald-800"
   },
   {
@@ -35,26 +35,26 @@ const FEATURES: { Icon: LucideIcon; title: string; body: string; tone: string }[
   {
     Icon: Sprout,
     title: "Grow a garden that's yours",
-    body: "Drop cottages, koi ponds, lanterns and gnomes wherever you like — resize and angle each one. A whole little world that fills in as your hours add up.",
+    body: "Drop cottages, koi ponds, lanterns and gnomes wherever you like, resize and angle each one. A whole little world that fills in as your hours add up.",
     tone: "bg-brand-mint text-emerald-800"
   },
   {
     Icon: Music,
     title: "Ambient soundscapes",
-    body: "Soft rain, ocean waves, a cosy café, a crackling fireplace, brown noise — set the mood and let it carry the session.",
+    body: "Soft rain, ocean waves, a cosy café, a crackling fireplace, brown noise. Set the mood and let it carry the session.",
     tone: "bg-brand-lilac text-violet-800"
   },
   {
     Icon: Users,
     title: "Study rooms with friends",
-    body: "Share a room code and study together in real time — a shared timer everyone follows, plus a chat to cheer each other on.",
+    body: "Share a room code and study together in real time. A shared timer everyone follows, plus a chat to cheer each other on.",
     tone: "bg-brand-pink text-rose-700"
   }
 ];
 
 const STEPS: { n: string; title: string; body: string }[] = [
   { n: "1", title: "Pick a task, press start", body: "Choose what you're working on and start the clock. Your sheep settles in with you." },
-  { n: "2", title: "Stay with it", body: "There's no pause — finish the block to bank your coins. A gentle commitment that makes the focus real." },
+  { n: "2", title: "Stay with it", body: "There's no pause. Finish the block to bank your coins. A gentle commitment that makes the focus real." },
   { n: "3", title: "Grow your garden", body: "Spend coins on collectible pieces and arrange a cozy world that grows with every hour you put in." }
 ];
 
@@ -104,7 +104,7 @@ export default function AppLandingPage() {
             </h1>
             <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-ink-700">
               Set your focus timer, pick a task, press start. Earn coins for every minute you stay,
-              grow a garden you actually own, and drop into study rooms with friends — a calmer way
+              grow a garden you actually own, and drop into study rooms with friends. A calmer way
               to get your hours in, free and in your browser.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -116,7 +116,7 @@ export default function AppLandingPage() {
               </Link>
             </div>
             <p className="mt-4 text-xs text-ink-700">
-              No card, no catch. Works in any modern browser — desktop or phone.
+              No card, no catch. Works in any modern browser, desktop or phone.
             </p>
           </Reveal>
 
@@ -187,7 +187,7 @@ export default function AppLandingPage() {
                 <p className="mb-2 text-xs uppercase tracking-[0.25em] text-emerald-800/70">A garden worth growing</p>
                 <h2 className="display-heading text-2xl text-ink-900 sm:text-3xl">70+ pieces to collect, from cosy to legendary.</h2>
                 <p className="mx-auto mt-3 max-w-xl text-sm text-ink-700">
-                  Cottages, koi ponds, pagodas, gnomes and glowing crystal trees — placed, resized and angled exactly how you like.
+                  Cottages, koi ponds, pagodas, gnomes and glowing crystal trees, placed, resized and angled exactly how you like.
                 </p>
               </div>
               <div className="mt-8 grid grid-cols-4 gap-3 sm:grid-cols-8">

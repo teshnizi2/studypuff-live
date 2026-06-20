@@ -82,7 +82,7 @@ export default async function GardenPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-ink-700/80">Your garden</p>
           <h1 className="mt-1 font-display text-3xl italic text-ink-900 md:text-4xl">Tend it with every focused minute.</h1>
           <p className="mt-1 text-sm text-ink-700">
-            Your tree grows a leaf every 25 minutes of focus. Spend coins below to add cottages, ponds, lanterns and more — they appear in your scene right away.
+            Your tree grows a leaf every 25 minutes of focus. Spend coins below to add cottages, ponds, lanterns and more. They appear in your scene right away.
           </p>
         </header>
 
