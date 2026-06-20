@@ -770,7 +770,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
         setAnnounceMsg(
           isInsufficientFunds
             ? `Not enough coins to buy ${errName}. Earn more by focusing.`
-            : `Couldn't reach the server — check your connection and try again.`
+            : `Couldn't reach the server. Check your connection and try again.`
         );
       } finally {
         purchasingRef.current = null;
@@ -1511,7 +1511,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                     type="button"
                     aria-label={`${item.name}${isPlaced ? ", in scene" : isEditing ? ", drag to place" : ""}`}
                     title={isPlaced
-                      ? `${item.name} — placed in scene`
+                      ? `${item.name}, placed in scene`
                       : isEditing
                       ? `Drag ${item.name} onto the scene to place it`
                       : item.name}
@@ -1669,17 +1669,17 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   }}
                   aria-label={
                     isConfirming
-                      ? `${item.name} — purchased!`
+                      ? `${item.name}, purchased!`
                       : hasError
-                        ? `${item.name} — purchase failed, try again`
+                        ? `${item.name}, purchase failed, try again`
                         : canAfford
                           ? `Buy ${item.name} for ${item.price} coins`
-                          : `${item.name} — need ${item.price - localCoins} more coins`
+                          : `${item.name}, need ${item.price - localCoins} more coins`
                   }
                   title={
                     canAfford
-                      ? `${item.name} — ${item.price} 🪙 · click to buy`
-                      : `${item.name} — you need ${item.price - localCoins} more 🪙`
+                      ? `${item.name}, ${item.price} 🪙 · click to buy`
+                      : `${item.name}. You need ${item.price - localCoins} more 🪙`
                   }
                   className={`gdn-card-stagger group relative flex flex-col overflow-hidden rounded-xl border outline-none transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-moss-500
                     ${isConfirming

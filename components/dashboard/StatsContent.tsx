@@ -333,8 +333,8 @@ function AlmanacHero({
   const rendered = useMemo(() => decorateHero(hero.text), [hero.text]);
 
   return (
-    <section className="rounded-3xl border border-ink-900/10 bg-[#f8f3ea] p-4 shadow-soft sm:p-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/70">
+    <section className="rounded-3xl border border-ink-900/10 bg-[#f8f3ea] p-4 shadow-soft">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700/70">
         The quiet almanac
       </p>
       <p className="mt-2 font-display text-[19px] italic leading-snug text-ink-900 sm:text-[22px]">
@@ -353,7 +353,7 @@ const HERO_HIGHLIGHTS: { match: RegExp; tone: string }[] = [
   { match: /\bcalm anchor\b/, tone: "bg-[#c6dceb]" },
   { match: /\bkeep showing up\b/, tone: "bg-[#c7e2c7]" },
   { match: /\breal rhythm\b/, tone: "bg-[#fbe9a5]" },
-  { match: /\bquiet start\b/, tone: "bg-[#d9cdea]" }
+  { match: /\bquiet start\b/, tone: "bg-brand-lilac" }
 ];
 
 function decorateHero(text: string): React.ReactNode {
@@ -515,7 +515,7 @@ function StudyMeadow({
             {rowLabels.map((r, i) => (
               <span
                 key={r}
-                className="h-[14px] text-[9px] leading-[14px] text-ink-700/70"
+                className="h-[14px] text-[10px] leading-[14px] text-ink-700/70"
                 // Show every other label to keep it quiet.
                 style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
               >
@@ -677,7 +677,7 @@ function StreakRing({
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <p className="font-display text-2xl leading-none text-ink-900">{live}</p>
-          <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-ink-700/70">
+          <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-ink-700/70">
             day streak
           </p>
         </div>
@@ -742,7 +742,7 @@ function Evidence({
   return (
     <div className="mt-8">
       <div className="h-px w-full bg-ink-900/10" aria-hidden />
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/70">
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700/70">
         The evidence
       </p>
 
@@ -759,11 +759,11 @@ function Evidence({
             above, so this compact donut only appears in the panel variant. */}
         {showTopicsDonut && (
           <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-4">
-            <h3 className="font-display text-[15px] text-ink-900">Top topics</h3>
+            <h3 className="font-display text-[16px] text-ink-900">Top topics</h3>
             {topTopics.length === 0 ? (
               <p className="mt-4 text-sm text-ink-700/70">No focus sessions yet. Start one from the timer.</p>
             ) : (
-              <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+              <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
                 <TopicDonut data={topTopics} />
                 <ul className="flex-1 space-y-2.5">
                   {topTopics.map(([name, mins], idx) => (
@@ -785,7 +785,7 @@ function Evidence({
 
         {/* Recent sessions */}
         <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-4">
-          <h3 className="font-display text-[15px] text-ink-900">Recent sessions</h3>
+          <h3 className="font-display text-[16px] text-ink-900">Recent sessions</h3>
           {recent.length === 0 ? (
             <p className="mt-4 text-sm text-ink-700/70">Nothing here yet.</p>
           ) : (
@@ -824,7 +824,7 @@ function Kpi({ label, value, note }: { label: string; value: string; note: strin
     <div className="rounded-2xl border border-ink-900/10 bg-cream-50/60 px-4 py-3">
       <dt className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-700/70">{label}</dt>
       <dd className="mt-1 truncate font-display text-lg text-ink-900">{value}</dd>
-      <dd className="mt-0.5 truncate text-[11px] text-ink-700/65">{note}</dd>
+      <dd className="mt-0.5 truncate text-[11px] text-ink-700/70">{note}</dd>
     </div>
   );
 }
@@ -870,7 +870,7 @@ function TopicDonut({ data }: { data: [string, number][] }) {
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <p className="font-display text-xl text-ink-900">{total}</p>
-        <p className="text-[10px] uppercase tracking-[0.22em] text-ink-700">min total</p>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-ink-700">min total</p>
       </div>
     </div>
   );
