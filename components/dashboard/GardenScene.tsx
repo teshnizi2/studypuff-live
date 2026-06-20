@@ -888,7 +888,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   zIndex: isBeingDragged ? 999 : isSelected ? 500 : 10 + idx,
                   touchAction: isEditing ? "none" : undefined
                 }}
-                title={isEditing ? `${item.name} — drag to move, tap to resize/rotate` : item.name}
+                title={isEditing ? `${item.name}. Drag to move, tap to resize or rotate` : item.name}
                 onPointerDown={(e) => handlePointerDown(e, item.id, "scene")}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1509,7 +1509,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                   <button
                     key={item.id}
                     type="button"
-                    aria-label={`${item.name}${isPlaced ? " — in scene" : isEditing ? " — drag to place" : ""}`}
+                    aria-label={`${item.name}${isPlaced ? ", in scene" : isEditing ? ", drag to place" : ""}`}
                     title={isPlaced
                       ? `${item.name} — placed in scene`
                       : isEditing
@@ -1617,8 +1617,8 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
                     key={item.id}
                     role="img"
                     tabIndex={0}
-                    aria-label={`${item.name} — ${pctDone}% toward ${hoursNeeded}h focus milestone`}
-                    title={`${item.name} — ${hoursNeeded}h of total focus to unlock`}
+                    aria-label={`${item.name}, ${pctDone}% toward ${hoursNeeded}h focus milestone`}
+                    title={`${item.name}, ${hoursNeeded}h of total focus to unlock`}
                     className="gdn-card-stagger group relative flex flex-col overflow-hidden rounded-xl border border-coin-gold-300/70 bg-gradient-to-br from-cream-50 to-coin-gold-50/30 ring-1 ring-coin-gold-300/50 cursor-default select-none can-hover:hover:scale-[1.02] can-hover:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
                     style={{ animationDelay: `${Math.min(itemIdx * 28, 280)}ms` }}
                   >
@@ -1830,7 +1830,7 @@ export function GardenScene({ lifetimeMinutes, todayMinutes, streak, ownedItemId
 
       {/* Stage + progress strip */}
       <div className="mt-7 w-full max-w-[640px] text-center">
-        <p className="font-display text-2xl italic text-ink-900">{stage.name}.</p>
+        <p className="font-display text-xl italic text-ink-900">{stage.name}.</p>
         <p className="mt-1 text-[11px] uppercase tracking-[0.28em] text-ink-700/75">
           {leafCount} {leafCount === 1 ? "leaf" : "leaves"}
           {streak > 0 && <span className="ml-2">· {streak}-day streak</span>}

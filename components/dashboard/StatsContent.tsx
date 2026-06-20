@@ -225,7 +225,7 @@ export function StatsContent(p: StatsContentProps) {
       <StudyMeadow grid={grid} todayIso={p.todayIso} activeDays={activeDays} windowDays={windowDays} />
 
       {/* 5 + 6 ─ Streak ring + consistency tiles ──────────────────────────── */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,260px)_1fr]">
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,240px)_1fr]">
         <StreakRing live={live} longest={longest} studiedToday={p.todayMinutes > 0} />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <ConsistencyTile
@@ -277,7 +277,7 @@ export function StatsContent(p: StatsContentProps) {
       <div className="text-ink-900">
         {spine}
         {evidence}
-        <p className="mt-5 text-xs text-ink-700/80">
+        <p className="mt-4 text-xs text-ink-700/80">
           Want the bigger view.{" "}
           <Link href="/dashboard/stats" className="underline underline-offset-4">
             Open the full stats page
@@ -302,7 +302,7 @@ export function StatsContent(p: StatsContentProps) {
 
       {/* Two-up: the two worst stretch offenders. Each short bar chart now lives
           in a half-width column on desktop and stacks on narrow screens. */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <WeekdayRhythm weekdays={weekdays} />
         <SessionLengths lengths={lengths} records={records} />
       </div>
@@ -333,14 +333,14 @@ function AlmanacHero({
   const rendered = useMemo(() => decorateHero(hero.text), [hero.text]);
 
   return (
-    <section className="rounded-3xl border border-ink-900/10 bg-[#f8f3ea] p-6 shadow-soft sm:p-7">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/55">
+    <section className="rounded-3xl border border-ink-900/10 bg-[#f8f3ea] p-4 shadow-soft sm:p-5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/70">
         The quiet almanac
       </p>
-      <p className="mt-3 font-display text-2xl italic leading-snug text-ink-900 sm:text-[28px]">
+      <p className="mt-2 font-display text-[19px] italic leading-snug text-ink-900 sm:text-[22px]">
         {rendered}
       </p>
-      <p className="mt-3 text-sm text-ink-700/85">{hero.subline}</p>
+      <p className="mt-2 text-sm text-ink-700/85">{hero.subline}</p>
     </section>
   );
 }
@@ -410,7 +410,7 @@ function InsightChip({
       className={`rounded-3xl border border-white/60 bg-gradient-to-br ${tone} p-4 shadow-[0_12px_30px_-20px_rgba(31,77,44,0.5),inset_0_1px_0_rgba(255,255,255,0.5)]`}
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700/80">{label}</p>
-      <p className="mt-1.5 truncate font-display text-2xl leading-none text-ink-900">{value}</p>
+      <p className="mt-1.5 truncate font-display text-lg leading-none text-ink-900">{value}</p>
       <p className="mt-1.5 font-display text-xs italic text-ink-700/85">{note}</p>
     </div>
   );
@@ -450,11 +450,11 @@ function WhenYouFocus({
     ".";
 
   return (
-    <section className="mt-5 rounded-3xl border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
-      <h3 className="font-display text-xl text-ink-900">When you focus</h3>
-      <div className="mt-5 grid grid-cols-8 items-end gap-2" style={{ height: 120 }} aria-hidden>
+    <section className="mt-4 rounded-3xl border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
+      <h3 className="font-display text-[16px] text-ink-900">When you focus</h3>
+      <div className="mt-4 grid grid-cols-8 items-end gap-2" style={{ height: 88 }} aria-hidden>
         {hist.map((b, i) => {
-          const h = b.minutes === 0 ? 4 : Math.max(8, Math.round((b.minutes / max) * 96));
+          const h = b.minutes === 0 ? 3 : Math.max(6, Math.round((b.minutes / max) * 68));
           const isPeak = confident && i === peakIdx && b.minutes > 0;
           return (
             <div key={b.label} className="flex h-full flex-col items-center justify-end gap-1.5">
@@ -500,9 +500,9 @@ function StudyMeadow({
   const rowLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <section className="mt-5 rounded-3xl border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
+    <section className="mt-4 rounded-3xl border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="font-display text-xl text-ink-900">When you showed up</h3>
+        <h3 className="font-display text-[16px] text-ink-900">When you showed up</h3>
         <span className="text-xs text-ink-700/70">last {windowDays} days</span>
       </div>
 
@@ -515,7 +515,7 @@ function StudyMeadow({
             {rowLabels.map((r, i) => (
               <span
                 key={r}
-                className="h-[14px] text-[9px] leading-[14px] text-ink-700/55"
+                className="h-[14px] text-[9px] leading-[14px] text-ink-700/70"
                 // Show every other label to keep it quiet.
                 style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
               >
@@ -561,7 +561,7 @@ function StudyMeadow({
 
       {/* Legend + footer line */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-700/60">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-ink-700/70">
           <span>Rest</span>
           <span className="flex items-center gap-1" aria-hidden>
             {[0, 1, 2, 3, 4].map((l) => (
@@ -641,10 +641,10 @@ function StreakRing({
   longest: number;
   studiedToday: boolean;
 }) {
-  const radius = 52;
-  const stroke = 12;
-  const cx = 70;
-  const cy = 70;
+  const radius = 44;
+  const stroke = 10;
+  const cx = 60;
+  const cy = 60;
   const circumference = 2 * Math.PI * radius;
   const denom = Math.max(longest, live, 1);
   const frac = Math.min(1, live / denom);
@@ -658,9 +658,9 @@ function StreakRing({
         : "A fresh row starts whenever you are ready. No streak needed.";
 
   return (
-    <section className="flex flex-col items-center justify-center rounded-3xl border border-ink-900/10 bg-cream-50 p-5 text-center shadow-soft">
-      <div className="relative h-[140px] w-[140px]">
-        <svg viewBox="0 0 140 140" className="h-full w-full" aria-hidden>
+    <section className="flex flex-col items-center justify-center rounded-3xl border border-ink-900/10 bg-cream-50 p-4 text-center shadow-soft">
+      <div className="relative h-[120px] w-[120px]">
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
           <circle cx={cx} cy={cy} r={radius} fill="none" stroke="#c7e2c7" strokeWidth={stroke} />
           <circle
             cx={cx}
@@ -676,15 +676,15 @@ function StreakRing({
           />
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <p className="font-display text-4xl leading-none text-ink-900">{live}</p>
+          <p className="font-display text-2xl leading-none text-ink-900">{live}</p>
           <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-ink-700/70">
-            {live === 1 ? "day streak" : "day streak"}
+            day streak
           </p>
         </div>
       </div>
       <p className="mt-3 font-display text-sm italic text-ink-700/85">{stateLine}</p>
       {longest > 0 && (
-        <p className="mt-1 text-[11px] text-ink-700/60">
+        <p className="mt-1 text-[11px] text-ink-700/70">
           Your longest stretch so far is {longest} {longest === 1 ? "day" : "days"}.
         </p>
       )}
@@ -710,7 +710,7 @@ function ConsistencyTile({
       className={`flex flex-col justify-center rounded-3xl border border-white/60 bg-gradient-to-br ${tone} p-4 shadow-[0_12px_30px_-20px_rgba(31,77,44,0.5),inset_0_1px_0_rgba(255,255,255,0.5)]`}
     >
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-700/80">{label}</p>
-      <p className="mt-1.5 font-display text-2xl leading-none text-ink-900">{value}</p>
+      <p className="mt-1.5 font-display text-lg leading-none text-ink-900">{value}</p>
       <p className="mt-1.5 font-display text-xs italic text-ink-700/85">{note}</p>
     </div>
   );
@@ -742,7 +742,7 @@ function Evidence({
   return (
     <div className="mt-8">
       <div className="h-px w-full bg-ink-900/10" aria-hidden />
-      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/55">
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-700/70">
         The evidence
       </p>
 
@@ -754,12 +754,12 @@ function Evidence({
         <Kpi label="Top topic" value={topTopics[0]?.[0] ?? "None yet"} note={topTopics[0] ? `${topTopics[0][1]} min` : "start a session"} />
       </dl>
 
-      <div className={`mt-4 grid gap-5 ${showTopicsDonut ? "lg:grid-cols-2" : ""}`}>
+      <div className={`mt-4 grid gap-4 ${showTopicsDonut ? "lg:grid-cols-2" : ""}`}>
         {/* Top topics donut. The full page already shows the complete breakdown
             above, so this compact donut only appears in the panel variant. */}
         {showTopicsDonut && (
-          <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-5">
-            <h3 className="font-display text-lg text-ink-900">Top topics</h3>
+          <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-4">
+            <h3 className="font-display text-[15px] text-ink-900">Top topics</h3>
             {topTopics.length === 0 ? (
               <p className="mt-4 text-sm text-ink-700/70">No focus sessions yet. Start one from the timer.</p>
             ) : (
@@ -784,8 +784,8 @@ function Evidence({
         )}
 
         {/* Recent sessions */}
-        <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-5">
-          <h3 className="font-display text-lg text-ink-900">Recent sessions</h3>
+        <section className="rounded-3xl border border-ink-900/10 bg-cream-50/60 p-4">
+          <h3 className="font-display text-[15px] text-ink-900">Recent sessions</h3>
           {recent.length === 0 ? (
             <p className="mt-4 text-sm text-ink-700/70">Nothing here yet.</p>
           ) : (
@@ -833,10 +833,10 @@ function TopicDonut({ data }: { data: [string, number][] }) {
   const total = data.reduce((a, [, m]) => a + m, 0);
   if (total === 0) return null;
 
-  const radius = 56;
-  const stroke = 18;
-  const cx = 72;
-  const cy = 72;
+  const radius = 46;
+  const stroke = 14;
+  const cx = 60;
+  const cy = 60;
   const circumference = 2 * Math.PI * radius;
 
   let offset = 0;
@@ -863,13 +863,13 @@ function TopicDonut({ data }: { data: [string, number][] }) {
   });
 
   return (
-    <div className="relative h-[144px] w-[144px] shrink-0">
-      <svg viewBox="0 0 144 144" className="h-full w-full" aria-hidden>
+    <div className="relative h-[120px] w-[120px] shrink-0">
+      <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
         <circle cx={cx} cy={cy} r={radius} fill="none" stroke="rgba(31,77,44,0.08)" strokeWidth={stroke} />
         {arcs}
       </svg>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <p className="font-display text-2xl text-ink-900">{total}</p>
+        <p className="font-display text-xl text-ink-900">{total}</p>
         <p className="text-[10px] uppercase tracking-[0.22em] text-ink-700">min total</p>
       </div>
     </div>
@@ -920,11 +920,11 @@ function WeekdayRhythm({ weekdays }: { weekdays: WeekdayTotal[] }) {
     ".";
 
   return (
-    <section className="flex h-full flex-col rounded-3xl border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
-      <h3 className="font-display text-xl text-ink-900">Which days you show up</h3>
-      <div className="mt-5 grid grid-cols-7 items-end gap-2" style={{ height: 120 }} aria-hidden>
+    <section className="flex h-full flex-col rounded-3xl border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
+      <h3 className="font-display text-[16px] text-ink-900">Which days you show up</h3>
+      <div className="mt-4 grid grid-cols-7 items-end gap-2" style={{ height: 88 }} aria-hidden>
         {weekdays.map((d, i) => {
-          const h = d.minutes === 0 ? 4 : Math.max(8, Math.round((d.minutes / max) * 96));
+          const h = d.minutes === 0 ? 3 : Math.max(6, Math.round((d.minutes / max) * 68));
           const isPeak = i === peakIdx && d.minutes > 0;
           return (
             <div key={d.label} className="flex h-full flex-col items-center justify-end gap-1.5">
@@ -974,9 +974,9 @@ function SessionLengths({ lengths, records }: { lengths: LengthBucket[]; records
     ".";
 
   return (
-    <section className="flex h-full flex-col rounded-3xl border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
-      <h3 className="font-display text-xl text-ink-900">How your sessions run</h3>
-      <ul className="mt-5 space-y-3" aria-hidden>
+    <section className="flex h-full flex-col rounded-3xl border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
+      <h3 className="font-display text-[16px] text-ink-900">How your sessions run</h3>
+      <ul className="mt-4 space-y-3" aria-hidden>
         {lengths.map((b) => {
           const w = b.count === 0 ? 0 : Math.max(6, Math.round((b.count / max) * 100));
           return (
@@ -1014,14 +1014,14 @@ function QuietRecords({ records }: { records: PersonalRecords }) {
   ];
 
   return (
-    <section className="mt-5">
-      <h3 className="font-display text-xl text-ink-900">Quiet records</h3>
+    <section className="mt-4">
+      <h3 className="font-display text-[16px] text-ink-900">Quiet records</h3>
       <p className="mt-1 text-sm text-ink-700/75">Kept from your own study, nothing borrowed.</p>
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map((c) => (
-          <div key={c.label} className={`rounded-2xl border border-ink-900/10 ${c.tone} p-4 shadow-soft`}>
+          <div key={c.label} className={`rounded-2xl border border-ink-900/10 ${c.tone} p-3 shadow-soft`}>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-700">{c.label}</p>
-            <p className="mt-1.5 font-display text-xl text-ink-900">{c.value}</p>
+            <p className="mt-1.5 font-display text-base text-ink-900">{c.value}</p>
           </div>
         ))}
       </div>
@@ -1047,9 +1047,9 @@ function EverythingYouStudied({ topics }: { topics: [string, number][] }) {
   const max = Math.max(1, ...topics.map(([, m]) => m));
 
   return (
-    <section className="mt-5 rounded-3xl border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
+    <section className="mt-4 rounded-3xl border border-ink-900/10 bg-cream-50 p-4 shadow-soft">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="font-display text-xl text-ink-900">Everything you studied</h3>
+        <h3 className="font-display text-[16px] text-ink-900">Everything you studied</h3>
         {total > 0 && <span className="text-xs text-ink-700/70">{fmt(total)} in all</span>}
       </div>
       {topics.length === 0 ? (
@@ -1064,7 +1064,7 @@ function EverythingYouStudied({ topics }: { topics: [string, number][] }) {
                 <div className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="truncate pr-2 text-ink-900">{name}</span>
                   <span className="shrink-0 tabular-nums text-ink-700">
-                    {fmt(mins)} <span className="text-ink-700/55">{share}%</span>
+                    {fmt(mins)} <span className="text-ink-700/70">{share}%</span>
                   </span>
                 </div>
                 <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-ink-900/[0.06]" aria-hidden>

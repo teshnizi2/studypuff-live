@@ -208,7 +208,7 @@ export function RoomChat({
   return (
     <div className="flex h-full min-h-0 flex-col rounded-[28px] border border-ink-900/10 bg-cream-50 shadow-soft">
       <header className="flex items-center justify-between border-b border-ink-900/10 px-6 py-4">
-        <h2 className="font-display text-2xl text-ink-900">Chat</h2>
+        <h2 className="font-display text-xl text-ink-900">Chat</h2>
         <span className="text-xs text-ink-700">
           {messages.filter((m) => !m.deleted_at).length} message
           {messages.filter((m) => !m.deleted_at).length === 1 ? "" : "s"}
@@ -226,7 +226,7 @@ export function RoomChat({
             {messages.map((msg) => {
               const author = msg.user_id ? memberMap.get(msg.user_id) : null;
               const name =
-                author?.display_name || author?.username || (msg.user_id ? "Former member" : "—");
+                author?.display_name || author?.username || (msg.user_id ? "Former member" : "Unknown");
               const isMine = msg.user_id === currentUserId;
               const canDelete =
                 !msg.deleted_at && (msg.user_id === currentUserId || isOwner);
@@ -295,7 +295,7 @@ export function RoomChat({
                 : chatClosed && !isOwner
                   ? "Chat is closed by the owner."
                   : chatClosed && isOwner
-                    ? "Chat is closed — only you can post."
+                    ? "Chat is closed. Only you can post."
                     : "Type a message…"
             }
             maxLength={2000}
