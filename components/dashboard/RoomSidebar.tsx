@@ -80,7 +80,7 @@ export function RoomSidebar({ room, initialMessages, currentUserId }: Props) {
         type="button"
         onClick={() => setCollapsed(false)}
         className="fixed right-4 bottom-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/55 bg-cream-50/85 px-4 py-2.5 text-sm font-semibold text-ink-900 shadow-[0_18px_40px_-24px_rgba(31,77,44,0.5)] backdrop-blur-md transition hover:-translate-y-0.5 lg:right-6 lg:bottom-6"
-        aria-label={`Open room — ${room.name}`}
+        aria-label={`Open room, ${room.name}`}
       >
         <MessageCircle className="h-4 w-4 text-emerald-700" strokeWidth={1.75} aria-hidden />
         <span className="hidden truncate sm:inline">{room.name}</span>

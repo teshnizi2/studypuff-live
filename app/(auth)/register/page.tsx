@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import { SubmitButton } from "@/components/auth/SubmitButton";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { registerAction, signInWithGoogleAction } from "../actions";
 
 export default function RegisterPage({
@@ -63,17 +64,7 @@ export default function RegisterPage({
                 placeholder="you@example.com"
               />
             </label>
-            <label className="block text-sm font-semibold text-ink-900">
-              Password
-              <input
-                required
-                minLength={12}
-                type="password"
-                name="password"
-                className="mt-2 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-3 font-serif"
-                placeholder="At least 12 characters"
-              />
-            </label>
+            <PasswordField required minLength={12} autoComplete="new-password" />
             <SubmitButton>Create account</SubmitButton>
           </form>
 

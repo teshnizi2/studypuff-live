@@ -110,7 +110,7 @@ export async function getAdminOverview() {
     const target = profilesById.get(log.target_user_id || "");
     return {
       ...log,
-      actorLabel: actor?.display_name || actor?.email || log.actor_id || "—",
+      actorLabel: actor?.display_name || actor?.email || log.actor_id || "None",
       targetLabel: target?.display_name || target?.email || log.target_user_id || null
     };
   });
@@ -271,7 +271,7 @@ export async function getRecentChatMessages(limit = 100) {
     ...m,
     authorLabel:
       (m.user_id && (profileMap.get(m.user_id)?.display_name || profileMap.get(m.user_id)?.email)) ||
-      "—",
+      "None",
     authorId: m.user_id,
     roomLabel: roomMap.get(m.room_id)?.name || "(deleted room)",
     roomCode: roomMap.get(m.room_id)?.code || ""

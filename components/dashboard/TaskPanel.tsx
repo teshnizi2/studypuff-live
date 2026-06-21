@@ -328,7 +328,7 @@ export function TaskPanel(p: Props) {
       <div className="flex flex-col gap-5">
         {topics.length === 0 && untopiced.length === 0 ? (
           <p className="px-1 text-sm italic text-ink-700">
-            No topics yet — start with one below, like <em>&ldquo;English Lit.&rdquo;</em>
+            No topics yet. Start with one below, like <em>&ldquo;English Lit.&rdquo;</em>
           </p>
         ) : (
           <>
@@ -730,7 +730,7 @@ function TaskRow({
         <button
           type="button"
           onClick={onCyclePriority}
-          aria-label={`Cycle priority — ${PRIORITY_LABEL[task.priority]}`}
+          aria-label={`Cycle priority, ${PRIORITY_LABEL[task.priority]}`}
           title={PRIORITY_LABEL[task.priority]}
           className="shrink-0"
         >
@@ -843,7 +843,7 @@ function TaskRow({
                 (e.target as HTMLTextAreaElement).blur();
               }
             }}
-            placeholder="notes — anything you want to remember"
+            placeholder="notes, anything you want to remember"
             rows={notesDraft ? Math.min(8, Math.max(2, notesDraft.split("\n").length)) : 2}
             className="w-full resize-y rounded-lg border border-ink-900/10 bg-cream-50 px-2.5 py-2 text-xs leading-relaxed text-ink-900 outline-none placeholder:italic placeholder:text-ink-700/55 focus:border-emerald-700/35 focus:ring-1 focus:ring-emerald-700/20"
           />

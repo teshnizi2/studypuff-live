@@ -76,7 +76,7 @@ export async function DashboardShell({
             <Link
               href="/dashboard/garden"
               className="group hidden items-center gap-1.5 rounded-full border border-amber-300/60 bg-gradient-to-b from-brand-butter to-[#f1d585] px-3.5 py-1.5 text-sm font-semibold text-ink-900 shadow-[0_6px_16px_-8px_rgba(176,134,38,0.65),inset_0_1px_0_rgba(255,255,255,0.7)] transition hover:-translate-y-0.5 hover:shadow-[0_11px_22px_-8px_rgba(176,134,38,0.8),inset_0_1px_0_rgba(255,255,255,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70 sm:inline-flex"
-              aria-label={`${coins} coins — open garden + shop`}
+              aria-label={`${coins} coins, open garden and shop`}
             >
               <svg
                 aria-hidden
@@ -116,16 +116,16 @@ export async function DashboardShell({
         className={
           fullBleed
             ? "w-full lg:flex-1 lg:min-h-0 lg:overflow-hidden"
-            : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:px-10 2xl:px-14 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
+            : "mx-auto w-full max-w-[1600px] px-6 py-8 lg:pl-[104px] lg:pr-10 2xl:pl-[104px] 2xl:pr-14 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
         }
       >
         {!title && <h1 className="sr-only">StudyPuff® dashboard</h1>}
         {title || subtitle ? (
-          <div className="mb-8">
+          <div className="mb-6">
             {title && (
-              <h1 className="font-display text-3xl text-ink-900 md:text-4xl">{title}</h1>
+              <h1 className="font-display text-2xl text-ink-900">{title}</h1>
             )}
-            {subtitle && <p className="mt-2 max-w-2xl text-ink-700">{subtitle}</p>}
+            {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-ink-700">{subtitle}</p>}
           </div>
         ) : null}
         {children}

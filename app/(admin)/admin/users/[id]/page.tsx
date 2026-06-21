@@ -53,9 +53,9 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
             <dl className="mt-4 grid gap-2 text-sm text-cream-200 sm:grid-cols-2">
               <Field label="Joined" value={new Date(profile.created_at).toLocaleString()} />
               <Field label="Last seen" value={profile.last_seen_at ? new Date(profile.last_seen_at).toLocaleString() : "never"} />
-              <Field label="Study field" value={profile.study_field || "—"} />
-              <Field label="School" value={profile.school || "—"} />
-              <Field label="City" value={profile.city || "—"} />
+              <Field label="Study field" value={profile.study_field || "Not set"} />
+              <Field label="School" value={profile.school || "Not set"} />
+              <Field label="City" value={profile.city || "Not set"} />
               <Field label="User id" value={profile.id} />
             </dl>
           </div>
@@ -79,7 +79,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
         <h2 className="font-display text-3xl">Admin controls</h2>
         {!canHardDelete && (
           <p className="mt-3 text-sm text-cream-200">
-            Hard delete is disabled — set <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> in Vercel.
+            Hard delete is disabled. Set <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> in Vercel.
           </p>
         )}
         <div className="mt-5 grid gap-3 md:grid-cols-3">

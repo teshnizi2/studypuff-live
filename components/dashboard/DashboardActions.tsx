@@ -259,6 +259,18 @@ export function DashboardActions(props: Props) {
     const p = searchParams.get("panel");
     if (p === "rooms" || p === "settings" || p === "stats" || p === "profile") setOpen(p);
     else setOpen(null);
+    // The rail's "Tasks" item navigates here with ?panel=tasks to REVEAL the
+    // focus-first-hidden tasks sidebar. On desktop this was previously impossible
+    // (the only "Show tasks" button is lg:hidden), so leaving the dashboard and
+    // clicking "Tasks" never brought the panel back. Reveal it, then strip the
+    // param so the URL stays clean and a later re-click re-triggers.
+    if (p === "tasks") {
+      setSidebarHiddenPersist(false);
+      const u = new URLSearchParams(searchParams.toString());
+      u.delete("panel");
+      const qs = u.toString();
+      router.replace(pathname + (qs ? "?" + qs : ""), { scroll: false });
+    }
   }, [searchParams]);
 
   const close = () => {
@@ -652,7 +664,7 @@ export function DashboardActions(props: Props) {
           open={open === "stats"}
           onClose={close}
           title="Your stats"
-          description="Quiet pride. Two weeks at a glance."
+          description="Quiet pride. The shape of your last ten weeks."
           size="lg"
         >
           <StatsContent {...props.stats} />

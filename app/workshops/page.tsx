@@ -156,7 +156,7 @@ export default function WorkshopsPage() {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-ink-700">
               Every cohort has scholarship seats. If the price is a problem, just write to us via
-              the contact form — no judgement, no application essay.
+              the contact form, no judgement, no application essay.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <a

@@ -29,7 +29,7 @@ export function StudyingNow() {
 
   // SSR placeholder — keep the surrounding layout from jumping
   if (n === null) {
-    return <span aria-hidden>—</span>;
+    return <span aria-hidden>·</span>;
   }
 
   return (

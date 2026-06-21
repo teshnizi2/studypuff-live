@@ -267,7 +267,7 @@ export function TimerCircle({
       {/* Commit-or-finish controls — no pause, no stop. Coins bank ONLY when a
           session completes; giving up early forfeits just this session's coins
           (your saved balance is never touched). */}
-      <div className="mt-6 flex min-h-[96px] flex-col items-center justify-center gap-3">
+      <div className="mt-5 flex min-h-[96px] flex-col items-center justify-center gap-3">
         {!running ? (
           <>
             <button
@@ -280,7 +280,7 @@ export function TimerCircle({
               <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
             </button>
             <p className="max-w-[260px] text-center text-[10px] uppercase tracking-[0.18em] text-ink-700/60">
-              Once you start, see it through — coins only land when you finish.
+              Once you start, see it through. Coins only land when you finish.
             </p>
           </>
         ) : confirmAbandon ? (
@@ -308,7 +308,7 @@ export function TimerCircle({
         ) : (
           <>
             <div
-              aria-label="Focusing — no pausing"
+              aria-label="Focusing, no pausing"
               className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)]"
             >
               <span aria-hidden className="absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/25 animate-halo" />
@@ -326,7 +326,7 @@ export function TimerCircle({
       </div>
 
       {/* Today's gauge */}
-      <div className="mt-6 w-full max-w-[300px]">
+      <div className="mt-5 w-full max-w-[300px]">
         <div className="flex items-baseline justify-between text-[11px] uppercase tracking-[0.28em] text-ink-700">
           <span>today</span>
           <span>

@@ -102,7 +102,7 @@ export default function Testimonials() {
                 &ldquo;{FEATURED.quote}&rdquo;
               </blockquote>
               <figcaption className="text-xs uppercase tracking-[0.22em] text-ink-700">
-                — Anonymous, via Discord
+                Anonymous, via Discord
               </figcaption>
             </figure>
           </Reveal>
