@@ -9,7 +9,6 @@ export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
-    cookieOptions: { name: "sb-spp" },
     cookies: {
       getAll() {
         return request.cookies.getAll();

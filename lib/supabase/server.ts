@@ -10,7 +10,6 @@ export function createSupabaseServerClient() {
   const cookieStore = cookies();
 
   return createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
-    cookieOptions: { name: "sb-spp" },
     cookies: {
       getAll() {
         return cookieStore.getAll();
