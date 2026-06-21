@@ -124,7 +124,7 @@ export default function ResourcesPage() {
                   </span>
                   <h3 className="mt-2 font-display text-2xl text-ink-900">Join the Discord</h3>
                   <p className="text-sm text-ink-900/80">
-                    Hang out with other StudyPuffs between livestreams. Share wins, ask for
+                    Hang out with other StudyPuff®s between livestreams. Share wins, ask for
                     accountability, find a study buddy.
                   </p>
                 </div>
@@ -141,7 +141,7 @@ export default function ResourcesPage() {
               Paid workshops go deeper, faster.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-ink-700">
-              Our cohorts take these free tools and build a full practice around them — with peer
+              Our cohorts take these free tools and build a full practice around them, with peer
               accountability and coach feedback.
             </p>
             <div className="mt-6 flex justify-center gap-3">

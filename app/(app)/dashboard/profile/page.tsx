@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   return (
     <DashboardShell
       title="Your profile"
-      subtitle="Tell other StudyPuff learners who you are. All fields are optional."
+      subtitle="Tell other StudyPuff® learners who you are. All fields are optional."
       profile={profile}
     >
       <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">

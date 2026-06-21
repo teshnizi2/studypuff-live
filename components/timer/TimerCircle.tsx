@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { RotateCcw, Play, Pause } from "lucide-react";
+import { Play } from "lucide-react";
 import type { StudyMode } from "@/lib/supabase/database.types";
 import { TimePicker } from "./TimePicker";
 import { InlineSoundChooser } from "@/components/dashboard/InlineSoundChooser";
@@ -55,6 +55,10 @@ export function TimerCircle({
   onSelectSound
 }: Props) {
   const [mode, setMode] = useState<StudyMode>("focus");
+  const [celebrate, setCelebrate] = useState(false);
+  // Commit-or-forfeit: there is no pause/stop. `confirmAbandon` gates the only
+  // exit — giving up early, which forfeits the in-progress session's coins.
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
   const [totalSeconds, setTotalSeconds] = useState(focusMinutes * 60);
   const [remaining, setRemaining] = useState(focusMinutes * 60);
   const tickRef = useRef<NodeJS.Timeout | null>(null);
@@ -113,10 +117,17 @@ export function TimerCircle({
     }
     onComplete(fd).catch(() => {});
     chime();
+    // A quiet, on-brand reward: a few leaves unfurl when a FOCUS block lands
+    // (never on breaks — the celebration marks earned focus, not a pause).
+    if (mode === "focus") {
+      setCelebrate(true);
+      window.setTimeout(() => setCelebrate(false), 1300);
+    }
   }, [mode, taskId, topicId, tasks, topics, totalSeconds, onComplete, onRunningChange]);
 
-  const reset = () => { onRunningChange(false); setRemaining(totalSeconds); };
-  const skip  = () => { setRemaining(0); handleComplete(); };
+  // Giving up resets the clock WITHOUT calling handleComplete, so nothing is
+  // logged and this session's coins are forfeited. Saved balance is untouched.
+  const abandon = () => { onRunningChange(false); setRemaining(totalSeconds); setConfirmAbandon(false); };
 
   const setPreset = (m: StudyMode, mins: number) => {
     setMode(m);
@@ -154,19 +165,42 @@ export function TimerCircle({
 
   return (
     <div className="relative flex flex-col items-center text-ink-900">
+      {/* Screen-reader timer announcement. Text only changes per minute (and
+          on play/pause), so aria-live fires at a sane cadence, not per-second. */}
+      <p className="sr-only" role="timer" aria-live="polite">
+        {running
+          ? `${mode} session, ${mm} minute${mm === 1 ? "" : "s"} remaining`
+          : `${mode} timer ready, ${mm} minute${mm === 1 ? "" : "s"}`}
+      </p>
+
       {/* Sheep ring — floating, no card */}
       <div className="relative">
+        {celebrate && <Celebration />}
+        {/* Always-on soft halo for depth; a second breathing layer blooms
+            when the timer runs (doubles as a calm breathing cue). */}
+        <div aria-hidden className="absolute inset-0 -z-10 rounded-full halo-sage blur-2xl" />
         <div
           aria-hidden
-          className={`absolute inset-0 -z-10 rounded-full halo-sage blur-2xl ${running ? "animate-halo" : ""}`}
+          className={`absolute inset-[-6%] -z-10 rounded-full halo-sage blur-3xl transition-opacity duration-700 ${
+            running ? "animate-halo opacity-100" : "opacity-0"
+          }`}
         />
         <div className="relative h-[240px] w-[240px] sm:h-[260px] sm:w-[260px]">
           <svg viewBox="0 0 320 320" className="absolute inset-0 h-full w-full">
             <defs>
               <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor="#3a8a4c" />
+                <stop offset="0%"   stopColor="#5fbf6f" />
+                <stop offset="55%"  stopColor="#3a8a4c" />
                 <stop offset="100%" stopColor="#1a4d2a" />
               </linearGradient>
+              {/* Soft glow for the progress head spark. */}
+              <filter id="head-glow" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="4" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
             <circle cx={160} cy={160} r={radius} fill="none"
               stroke="rgba(31,77,44,0.10)" strokeWidth={12} />
@@ -175,7 +209,13 @@ export function TimerCircle({
               strokeDasharray={circumference} strokeDashoffset={dashOffset}
               transform="rotate(-90 160 160)"
               style={{ transition: running ? "none" : "stroke-dashoffset 0.5s ease" }} />
-            <circle cx={dotX} cy={dotY} r={9} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
+            {/* Glowing progress head — a soft bloom under a crisp dot. */}
+            {progress > 0.001 && (
+              <g filter="url(#head-glow)">
+                <circle cx={dotX} cy={dotY} r={10} fill="#a8e6b0" opacity={0.95} />
+                <circle cx={dotX} cy={dotY} r={6.5} fill="#fff" stroke="#1a4d2a" strokeWidth={2.5} />
+              </g>
+            )}
           </svg>
           <div className="absolute inset-[18%] flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#6ea866] to-[#4a7044] shadow-[inset_0_4px_14px_rgba(0,0,0,0.20)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -210,11 +250,13 @@ export function TimerCircle({
             <button
               type="button"
               onClick={() => setPreset(p.id, p.mins)}
+              disabled={running}
+              title={running ? "Finish or give up this session before changing length" : undefined}
               className={`font-display italic transition draw-underline ${
                 activePresetId === p.id
                   ? "font-semibold text-ink-900"
                   : "text-ink-700 hover:text-ink-900"
-              }`}
+              } ${running ? "cursor-not-allowed opacity-50" : ""}`}
             >
               {p.label} <span className="text-ink-700/60">· {p.mins}m</span>
             </button>
@@ -222,43 +264,69 @@ export function TimerCircle({
         ))}
       </div>
 
-      {/* Play / pause — the only solid focal element */}
-      <div className="mt-6 flex items-center gap-5">
-        <button
-          type="button"
-          onClick={reset}
-          aria-label="Reset" title="Reset"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-ink-900/60 transition hover:bg-cream-50/55 hover:text-ink-900 active:scale-95"
-        >
-          <RotateCcw className="h-4 w-4" strokeWidth={1.75} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onRunningChange(!running)}
-          aria-label={running ? "Pause" : "Start"}
-          className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
-        >
-          <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
-          {running ? (
-            <Pause className="h-7 w-7 fill-current" strokeWidth={0} />
-          ) : (
-            <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={skip}
-          aria-label="Skip" title="Skip · log session"
-          className="font-display text-xs italic uppercase tracking-[0.22em] text-ink-700 transition hover:text-ink-900"
-        >
-          skip
-        </button>
+      {/* Commit-or-finish controls — no pause, no stop. Coins bank ONLY when a
+          session completes; giving up early forfeits just this session's coins
+          (your saved balance is never touched). */}
+      <div className="mt-5 flex min-h-[96px] flex-col items-center justify-center gap-3">
+        {!running ? (
+          <>
+            <button
+              type="button"
+              onClick={() => { setConfirmAbandon(false); onRunningChange(true); }}
+              aria-label="Start focus session"
+              className="group relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)] transition hover:-translate-y-0.5 hover:bg-ink-700 active:translate-y-0 active:scale-[0.96]"
+            >
+              <span aria-hidden className="pointer-events-none absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/0 transition group-hover:ring-emerald-700/20" />
+              <Play className="ml-0.5 h-7 w-7 fill-current" strokeWidth={0} />
+            </button>
+            <p className="max-w-[260px] text-center text-[10px] uppercase tracking-[0.18em] text-ink-700/60">
+              Once you start, see it through. Coins only land when you finish.
+            </p>
+          </>
+        ) : confirmAbandon ? (
+          <div className="flex flex-col items-center gap-2.5">
+            <p className="text-center font-display text-sm italic text-ink-900">
+              Give up now? You&apos;ll lose this session&apos;s coins.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={abandon}
+                className="rounded-full bg-rose-600 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-cream-50 transition hover:bg-rose-700 active:scale-95"
+              >
+                Give up
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmAbandon(false)}
+                className="rounded-full border border-ink-900/20 bg-cream-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-900 transition hover:border-ink-900/40 active:scale-95"
+              >
+                Keep going
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              aria-label="Focusing, no pausing"
+              className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink-900 text-cream-50 shadow-[0_24px_55px_-18px_rgba(31,77,44,0.55)]"
+            >
+              <span aria-hidden className="absolute inset-[-6px] rounded-full ring-1 ring-emerald-700/25 animate-halo" />
+              <span aria-hidden className="h-3 w-3 rounded-full bg-emerald-400 animate-breathe" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setConfirmAbandon(true)}
+              className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ink-700/55 underline-offset-4 transition hover:text-rose-600 hover:underline"
+            >
+              Give up session
+            </button>
+          </>
+        )}
       </div>
 
       {/* Today's gauge */}
-      <div className="mt-6 w-full max-w-[300px]">
+      <div className="mt-5 w-full max-w-[300px]">
         <div className="flex items-baseline justify-between text-[11px] uppercase tracking-[0.28em] text-ink-700">
           <span>today</span>
           <span>
@@ -327,6 +395,46 @@ function WeeklySparkline({ data }: { data: { date: string; minutes: number }[] }
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// A brief, gentle leaf flourish around the ring when a focus block completes.
+// Eight leaves fan upward-and-out, fade as they go. Uses the shared
+// `animate-leaf-burst` keyframe (reduced-motion-safe via the global override).
+function Celebration() {
+  const leaves = Array.from({ length: 8 }, (_, i) => {
+    const ang = ((-110 + i * 30) * Math.PI) / 180;
+    const dist = 78 + (i % 3) * 20;
+    return {
+      lx: Math.round(Math.cos(ang) * dist),
+      ly: Math.round(Math.sin(ang) * dist - 24),
+      lr: (i * 53) % 360,
+      delay: i * 35,
+      hue: i % 2 ? "#3a8a4c" : "#5fbf6f"
+    };
+  });
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+      {leaves.map((l, i) => (
+        <span
+          key={i}
+          className="animate-leaf-burst absolute"
+          style={{
+            ["--lx" as string]: `${l.lx}px`,
+            ["--ly" as string]: `${l.ly}px`,
+            ["--lr" as string]: `${l.lr}deg`,
+            animationDelay: `${l.delay}ms`
+          }}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5 drop-shadow-[0_2px_3px_rgba(26,77,42,0.25)]">
+            <path
+              d="M12 2C7 6 4.5 10.5 4.5 15.5c0 3.3 2.2 5.8 7.5 5.8 0-5.5-1.8-9.5-1.8-9.5s3.6 2.8 5.6 7.6c2.3-3.9 2.4-11.6-3.8-17.4Z"
+              fill={l.hue}
+            />
+          </svg>
+        </span>
+      ))}
     </div>
   );
 }

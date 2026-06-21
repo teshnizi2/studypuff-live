@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 import { SubmitButton } from "@/components/auth/SubmitButton";
+import { PasswordField } from "@/components/auth/PasswordField";
 import { registerAction, signInWithGoogleAction } from "../actions";
 
 export default function RegisterPage({
@@ -17,7 +18,7 @@ export default function RegisterPage({
           </p>
           <h1 className="mt-3 font-display text-4xl text-ink-900">Create your account</h1>
           <p className="mt-3 text-ink-700">
-            Your StudyPuff workspace keeps timer sessions, tasks, and settings synced.
+            Your StudyPuff® workspace keeps timer sessions, tasks, and settings synced.
           </p>
 
           {searchParams?.message && (
@@ -63,17 +64,7 @@ export default function RegisterPage({
                 placeholder="you@example.com"
               />
             </label>
-            <label className="block text-sm font-semibold text-ink-900">
-              Password
-              <input
-                required
-                minLength={12}
-                type="password"
-                name="password"
-                className="mt-2 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-3 font-serif"
-                placeholder="At least 12 characters"
-              />
-            </label>
+            <PasswordField required minLength={12} autoComplete="new-password" />
             <SubmitButton>Create account</SubmitButton>
           </form>
 

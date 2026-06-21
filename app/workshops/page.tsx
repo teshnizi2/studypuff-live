@@ -36,7 +36,7 @@ const TIERS: Tier[] = [
     ctaExternal: true
   },
   {
-    name: "StudyPuff Academy",
+    name: "StudyPuff® Academy",
     price: "€40",
     cadence: "8-week series",
     tagline:
@@ -54,7 +54,7 @@ const TIERS: Tier[] = [
     ctaExternal: true
   },
   {
-    name: "StudyPuff Toolkit",
+    name: "StudyPuff® Toolkit",
     badge: "Single session · Starter",
     price: "€10",
     cadence: "2-hour workshop",
@@ -77,7 +77,7 @@ export default function WorkshopsPage() {
       <PageHero
         eyebrow="Workshops · cohorts of 30 max"
         title="Workshops that change how you study."
-        subtitle="Choose the amount of support you need: one focused workshop, a foundation session, or our structured StudyPuff Academy series."
+        subtitle="Choose the amount of support you need: one focused workshop, a foundation session, or our structured StudyPuff® Academy series."
         accent="butter"
       />
 
@@ -156,7 +156,7 @@ export default function WorkshopsPage() {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-ink-700">
               Every cohort has scholarship seats. If the price is a problem, just write to us via
-              the contact form — no judgement, no application essay.
+              the contact form, no judgement, no application essay.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <a

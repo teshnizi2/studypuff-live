@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { StudyMode, TaskPriority } from "@/lib/supabase/database.types";
+import { REWARDS } from "@/lib/app-data/rewards";
 
 function stringValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -304,9 +305,14 @@ export async function addStudySessionAction(formData: FormData) {
     focus_score: numberValue(formData, "focus_score", 0) || null
   });
 
-  // Reward coins for focus sessions: 1 coin per minute focused, capped at 90
+  // Reward coins for focus sessions: 1 coin per focused minute. Cap at 180
+  // (the longest single session) — the old 90 cap quietly punished long sits.
+  // Coins only land when a session COMPLETES: the client never logs partial or
+  // abandoned sessions, and room sessions are additionally capped to the time
+  // the user was actually present (see RoomTimer). So `minutes` here is already
+  // "earned" focus time; we just guard against an implausibly long single value.
   if (mode === "focus" && minutes > 0) {
-    const coinsEarned = Math.min(minutes, 90);
+    const coinsEarned = Math.min(minutes, 180);
     await supabase.rpc("award_focus_coins", {
       p_minutes: minutes,
       p_coins: coinsEarned
@@ -317,6 +323,47 @@ export async function addStudySessionAction(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/stats");
   revalidatePath("/dashboard/rewards");
+}
+
+/** Claim a free golden trophy item once the user has reached its unlock
+ *  threshold (lifetime focused minutes). No coins are spent. Inserts a row
+ *  in user_purchases at price 0 — after that the item behaves like any
+ *  other owned item in inventory. */
+export async function claimGoldenItemAction(formData: FormData) {
+  const { user } = await requireUser();
+  const itemId = stringValue(formData, "item_id");
+  if (!itemId || !itemId.startsWith("garden-golden-")) {
+    throw new Error("Invalid trophy item id.");
+  }
+
+  // Look up the reward to learn its unlock threshold.
+  const reward = REWARDS.find((r) => r.id === itemId);
+  if (!reward || reward.category !== "garden-golden") {
+    throw new Error("Unknown trophy item.");
+  }
+  const threshold = reward.unlocks_at_minutes ?? Number.POSITIVE_INFINITY;
+
+  const supabase = createSupabaseServerClient();
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("lifetime_focus_minutes")
+    .eq("user_id", user.id)
+    .single();
+  const minutes = settings?.lifetime_focus_minutes ?? 0;
+  if (minutes < threshold) {
+    throw new Error(`Need ${threshold - minutes} more focused minutes to claim this trophy.`);
+  }
+
+  // Idempotent insert: ignore duplicate-key errors (already claimed).
+  const { error } = await supabase
+    .from("user_purchases")
+    .insert({ user_id: user.id, item_id: itemId, price_paid: 0 });
+  if (error && !/duplicate|unique/i.test(error.message)) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/dashboard/garden");
+  revalidatePath("/dashboard");
 }
 
 export async function purchaseRewardAction(formData: FormData) {
@@ -333,13 +380,15 @@ export async function purchaseRewardAction(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/rewards");
+  revalidatePath("/dashboard/garden");
   revalidatePath("/dashboard");
 }
 
-const COLUMN_FOR_CATEGORY: Record<string, "equipped_sound" | "equipped_theme" | "equipped_accessory"> = {
+const COLUMN_FOR_CATEGORY: Record<string, "equipped_sound" | "equipped_theme" | "equipped_accessory" | "equipped_map"> = {
   sound: "equipped_sound",
   theme: "equipped_theme",
-  accessory: "equipped_accessory"
+  accessory: "equipped_accessory",
+  "garden-map": "equipped_map"
 };
 
 export async function equipRewardAction(formData: FormData) {
@@ -366,6 +415,47 @@ export async function equipRewardAction(formData: FormData) {
   revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard/timer");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/garden");
+}
+
+/** Garden item-placement persistence — accepts a JSON layout map and stores
+ *  it as user_settings.garden_layout. Caller posts the full layout (not a diff)
+ *  so the column always reflects the current state. */
+export async function saveGardenLayoutAction(formData: FormData) {
+  const { user } = await requireUser();
+  const raw = stringValue(formData, "layout");
+  if (!raw) throw new Error("Missing layout.");
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { throw new Error("Invalid layout JSON."); }
+  if (!parsed || typeof parsed !== "object") throw new Error("Layout must be an object.");
+
+  // Sanitize: accept {x, y, placedAt?, scale?, rotation?}. placedAt is a unix-ms
+  // timestamp for z-ordering (last-touched renders on top); scale + rotation are
+  // the per-item resize/rotate the user sets in edit mode. Strip unknown fields
+  // and clamp scale/rotation to safe bounds so a tampered payload can't explode.
+  const clean: Record<string, { x: number; y: number; placedAt?: number; scale?: number; rotation?: number }> = {};
+  for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+    if (!k.startsWith("garden-")) continue;
+    if (!v || typeof v !== "object") continue;
+    const { x, y, placedAt, scale, rotation } = v as { x?: unknown; y?: unknown; placedAt?: unknown; scale?: unknown; rotation?: unknown };
+    if (typeof x !== "number" || typeof y !== "number") continue;
+    if (x < -10 || x > 110 || y < -10 || y > 110) continue;
+    clean[k] = { x, y };
+    if (typeof placedAt === "number" && placedAt > 0) clean[k].placedAt = placedAt;
+    if (typeof scale === "number" && Number.isFinite(scale)) clean[k].scale = Math.max(0.4, Math.min(2.6, scale));
+    if (typeof rotation === "number" && Number.isFinite(rotation)) clean[k].rotation = Math.max(-180, Math.min(180, rotation));
+  }
+
+  const supabase = createSupabaseServerClient();
+  await supabase.from("user_settings").update({ garden_layout: clean }).eq("user_id", user.id);
+  revalidatePath("/dashboard/garden");
+}
+
+export async function resetGardenLayoutAction() {
+  const { user } = await requireUser();
+  const supabase = createSupabaseServerClient();
+  await supabase.from("user_settings").update({ garden_layout: {} }).eq("user_id", user.id);
+  revalidatePath("/dashboard/garden");
 }
 
 export async function unequipRewardAction(formData: FormData) {
@@ -383,4 +473,5 @@ export async function unequipRewardAction(formData: FormData) {
   revalidatePath("/dashboard/rewards");
   revalidatePath("/dashboard/timer");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/garden");
 }

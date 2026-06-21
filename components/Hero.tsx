@@ -49,7 +49,7 @@ export default function Hero() {
           </Reveal>
           <Reveal delay={200}>
             <p className="mt-6 max-w-[48ch] text-lg leading-relaxed text-ink-700">
-              StudyPuff is the home for students who want to improve their performance, without
+              StudyPuff® is the home for students who want to improve their performance, without
               burning out. Join a workshop, drop into a free livestream, or use one of our free
               templates.
             </p>
@@ -100,12 +100,12 @@ export default function Hero() {
             <Link
               href="/dashboard"
               className="group relative block focus-visible:outline-none"
-              aria-label="Open the StudyPuff app"
+              aria-label="Open the StudyPuff® app"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/studypuff-hero-md.png"
-                alt="StudyPuff sheep mascot — open the app"
+                alt="StudyPuff® sheep mascot, open the app"
                 width={800}
                 height={800}
                 className="h-auto w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.12)] transition duration-300 ease-out group-hover:-translate-y-1.5 group-hover:rotate-[-2deg] group-active:scale-[0.98]"

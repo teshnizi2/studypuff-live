@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PanelLeftOpen } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { ListChecks } from "lucide-react";
 import { Dialog } from "./Dialog";
+import { AmbientScene } from "./AmbientScene";
 import { TimerCircle } from "@/components/timer/TimerCircle";
 import { TaskPanel } from "./TaskPanel";
 import { LeavesAccent } from "./LeavesAccent";
-import { GrowthTree } from "./GrowthTree";
 import { RoomTimer } from "./RoomTimer";
 import { SoundDock, type TimerSoundMode } from "./SoundDock";
 import { AmbientPlayer } from "@/components/timer/AmbientPlayer";
 import { StatsContent, type StatsContentProps } from "./StatsContent";
-import { RewardsContent, type RewardsContentProps } from "./RewardsContent";
 import { PROFILE_OPEN_EVENT } from "./HeaderAvatarButton";
 import { HEADER_OPEN_ROOMS, HEADER_OPEN_STATS, HEADER_OPEN_SETTINGS, HEADER_OPEN_GARDEN } from "./HeaderActions";
 import {
@@ -96,7 +96,6 @@ type Props = {
   /** Lifetime focus minutes by task id (last 90 days). */
   minutesByTask?: Record<string, number>;
   stats?: Omit<StatsContentProps, "onCloseHref">;
-  rewards?: RewardsContentProps;
   /** When true, the right-edge garden rail is suppressed so the
       RoomSidebar can take that space. Garden falls back to the inline
       under-timer position it uses on mobile. */
@@ -127,7 +126,9 @@ export function DashboardActions(props: Props) {
   const [currentTopicId, setCurrentTopicId] = useState<string>("");
   const [running, setRunning] = useState(false);
   const [timerMode, setTimerMode] = useState<TimerSoundMode>("focus");
-  const [sidebarHidden, setSidebarHidden] = useState(false);
+  // Focus-first: the tasks panel starts hidden so the dashboard opens on a
+  // calm timer-only view. Opened on demand from the FocusRail.
+  const [sidebarHidden, setSidebarHidden] = useState(true);
   // Sound playback is independent from the timer — user can preview a sound
   // even while the timer is paused. Auto-syncs ON when timer starts.
   const [soundPlaying, setSoundPlaying] = useState(false);
@@ -137,12 +138,13 @@ export function DashboardActions(props: Props) {
     else setSoundPlaying(false);
   }, [running]);
 
-  // Restore sidebar hidden state from localStorage so focus mode persists.
+  // Restore the tasks-panel preference. Default is hidden (focus-first); only
+  // an explicit "show" preference overrides it.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (window.localStorage.getItem("studypuff:sidebar-hidden") === "true") {
-        setSidebarHidden(true);
+      if (window.localStorage.getItem("studypuff:sidebar-hidden") === "false") {
+        setSidebarHidden(false);
       }
     } catch { /* ignore */ }
   }, []);
@@ -244,7 +246,41 @@ export function DashboardActions(props: Props) {
   };
 
   const sound = soundsByMode[timerMode];
-  const close = () => setOpen(null);
+
+  // Open the matching modal when the URL has ?panel=X. The rail (in the
+  // dashboard layout) sets this param when its panel-opener items are
+  // clicked, so the rail works on every sub-route — on home, clicking
+  // "Stats" pops the stats modal; from /dashboard/garden, the rail link
+  // navigates here AND pops the modal.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const p = searchParams.get("panel");
+    if (p === "rooms" || p === "settings" || p === "stats" || p === "profile") setOpen(p);
+    else setOpen(null);
+    // The rail's "Tasks" item navigates here with ?panel=tasks to REVEAL the
+    // focus-first-hidden tasks sidebar. On desktop this was previously impossible
+    // (the only "Show tasks" button is lg:hidden), so leaving the dashboard and
+    // clicking "Tasks" never brought the panel back. Reveal it, then strip the
+    // param so the URL stays clean and a later re-click re-triggers.
+    if (p === "tasks") {
+      setSidebarHiddenPersist(false);
+      const u = new URLSearchParams(searchParams.toString());
+      u.delete("panel");
+      const qs = u.toString();
+      router.replace(pathname + (qs ? "?" + qs : ""), { scroll: false });
+    }
+  }, [searchParams]);
+
+  const close = () => {
+    setOpen(null);
+    // Strip the panel param without reloading or scrolling.
+    const u = new URLSearchParams(searchParams.toString());
+    u.delete("panel");
+    const qs = u.toString();
+    router.replace(pathname + (qs ? "?" + qs : ""), { scroll: false });
+  };
 
   const handleSelectTask = (taskId: string, topicId: string) => {
     setCurrentTaskId(taskId);
@@ -269,15 +305,26 @@ export function DashboardActions(props: Props) {
           Mobile:
             Stacks naturally — sidebar above, then timer, then garden — since
             the rails fall back to inline rendering below the lg breakpoint. */}
-      <div className="bg-paper-grain relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
+      {/* Living time-of-day garden — fixed, behind everything. The garden
+          grows with focus minutes (persistent, never punitive). */}
+      <AmbientScene
+        todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
+        lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
+      />
+
+      <div className="relative pb-12 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden lg:pb-0">
         <LeavesAccent />
 
-        {/* Sidebar — desktop only, fixed flush to the left edge of the viewport.
-            Slides off when hidden; the column the timer occupies never changes. */}
+        {/* The dashboard rail now lives in app/(app)/dashboard/layout.tsx so
+            every sub-route gets it. We just listen here for the ?panel=KEY
+            param it sets when its panel-openers are clicked. */}
+
+        {/* Tasks panel — slides in beside the rail when opened. Hidden by
+            default so the timer owns a calm, near-empty space. */}
         <aside
           aria-label="Topics & tasks"
-          className={`fixed left-0 top-[100px] z-20 hidden h-[calc(100vh-120px)] w-[300px] overflow-y-auto px-5 pb-10 pt-2 transition-transform duration-300 ease-out lg:block ${
-            sidebarHidden ? "-translate-x-full" : "translate-x-0"
+          className={`glass-panel fixed left-[92px] top-[108px] z-20 hidden h-[calc(100vh-128px)] w-[330px] overflow-y-auto rounded-[26px] px-5 pb-10 pt-4 transition-all duration-300 ease-[cubic-bezier(0.2,0.7,0,1)] lg:block ${
+            sidebarHidden ? "pointer-events-none -translate-x-[460px] opacity-0" : "translate-x-0 opacity-100"
           }`}
         >
           <TaskPanel
@@ -337,7 +384,7 @@ export function DashboardActions(props: Props) {
             if the timer + gauge + sparkline + chooser stack exceeds the
             available height, it scrolls internally. The page itself
             never scrolls. */}
-        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pt-10 lg:pb-8">
+        <div className="flex justify-center pt-6 lg:flex-1 lg:min-h-0 lg:items-start lg:overflow-y-auto lg:pl-[100px] lg:pt-10 lg:pb-8">
           <div className="journal-rise jrise-2">
             {props.activeRoomTimer ? (
               <RoomTimer
@@ -393,20 +440,19 @@ export function DashboardActions(props: Props) {
           </div>
         </div>
 
-        {/* Inline mobile garden removed — open via header "Garden" tab. */}
+        {/* Inline mobile garden removed — open via the Garden panel. */}
       </div>
 
-      {/* "Show tasks" tab — only visible when sidebar is hidden, anchored
-          to the left edge so the timer keeps the spotlight during focus. */}
+      {/* Tasks access on mobile (the slim rail is lg-only). */}
       {sidebarHidden && (
         <button
           type="button"
           onClick={() => setSidebarHiddenPersist(false)}
           aria-label="Show tasks"
           title="Show tasks"
-          className="fixed left-4 top-32 z-30 flex items-center gap-2 rounded-full bg-cream-50/85 px-3 py-2 text-xs font-display italic text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur-md transition hover:-translate-y-0.5"
+          className="fixed bottom-4 left-4 z-30 flex items-center gap-2 rounded-full bg-cream-50/90 px-3 py-2 text-xs font-display italic text-ink-900 shadow-soft ring-1 ring-ink-900/10 backdrop-blur-md transition hover:-translate-y-0.5 lg:hidden"
         >
-          <PanelLeftOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+          <ListChecks className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
           Tasks
         </button>
       )}
@@ -436,7 +482,7 @@ export function DashboardActions(props: Props) {
             required
             maxLength={8}
             placeholder="A1B2C3"
-            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm uppercase tracking-[0.3em]"
+            className="flex-1 rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm uppercase tracking-[0.3em]"
           />
           <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
             Join
@@ -452,7 +498,7 @@ export function DashboardActions(props: Props) {
             required
             maxLength={80}
             placeholder="Calculus crunch"
-            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm"
           />
           <input
             name="focus_minutes"
@@ -461,7 +507,7 @@ export function DashboardActions(props: Props) {
             max={180}
             defaultValue={25}
             aria-label="Focus minutes"
-            className="rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-2.5 text-sm"
+            className="rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-4 py-2.5 text-sm"
           />
           <button type="submit" className="btn-primary px-4 py-2.5 text-sm">
             Create
@@ -479,9 +525,9 @@ export function DashboardActions(props: Props) {
                     key={r.id}
                     className="flex items-center justify-between gap-3 rounded-2xl bg-cream-100 px-4 py-2.5 text-sm"
                   >
-                    <span className="flex flex-1 items-center gap-3 text-ink-900">
-                      <span className="font-semibold">{r.name}</span>
-                      <span className="font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
+                    <span className="flex min-w-0 flex-1 items-center gap-3 text-ink-900">
+                      <span className="truncate font-semibold">{r.name}</span>
+                      <span className="shrink-0 font-mono text-xs tracking-[0.3em] text-ink-700">{r.code}</span>
                     </span>
                     {r.owner_id !== props.userId && (
                       <form action={leaveRoomAction}>
@@ -537,7 +583,7 @@ export function DashboardActions(props: Props) {
         open={open === "profile"}
         onClose={close}
         title="Profile"
-        description="What other StudyPuffs see when you join their room."
+        description="What other StudyPuff®s see when you join their room."
         size="lg"
       >
         <div className="flex items-start gap-4">
@@ -603,7 +649,7 @@ export function DashboardActions(props: Props) {
               maxLength={500}
               rows={3}
               placeholder="A short blurb about you (max 500 chars)"
-              className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+              className="mt-1 w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
             />
           </label>
           <button type="submit" className="btn-primary w-fit text-sm">
@@ -618,43 +664,15 @@ export function DashboardActions(props: Props) {
           open={open === "stats"}
           onClose={close}
           title="Your stats"
-          description="Quiet pride. Two weeks at a glance."
+          description="Quiet pride. The shape of your last ten weeks."
           size="lg"
         >
           <StatsContent {...props.stats} />
         </Dialog>
       )}
 
-      {/* Rewards dialog */}
-      {props.rewards && (
-        <Dialog
-          open={open === "rewards"}
-          onClose={close}
-          title="Rewards"
-          description="Earn coins by finishing focus sessions. Spend them on tiny upgrades."
-          size="lg"
-        >
-          <RewardsContent {...props.rewards} />
-        </Dialog>
-      )}
-
-      {/* Garden dialog — replaces the always-visible right rail. */}
-      <Dialog
-        open={open === "garden"}
-        onClose={close}
-        title="Your garden"
-        description="A new leaf for every 25 minutes of focus."
-        size="md"
-      >
-        <div className="flex justify-center py-2">
-          <GrowthTree
-            lifetimeMinutes={props.stats?.lifetimeMinutes ?? 0}
-            todayMinutes={props.stats?.todayMinutes ?? props.todayMinutes}
-            tasksDone={props.tasks.filter((t) => t.done).length}
-            streak={props.stats?.streak ?? 0}
-          />
-        </div>
-      </Dialog>
+      {/* Garden + Shop modals removed — both moved to /dashboard/garden as
+          a real page. The rail's "Garden" entry navigates there directly. */}
     </>
   );
 }
@@ -683,7 +701,7 @@ function Field({
         defaultValue={defaultValue}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
       />
     </label>
   );
@@ -706,7 +724,7 @@ function NumField({
         type="number"
         min="1"
         defaultValue={defaultValue}
-        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
+        className="mt-1 block w-full rounded-2xl border border-ink-900/15 bg-cream-100 transition focus:border-emerald-700/50 focus:outline-none focus:ring-2 focus:ring-emerald-700/25 px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-900"
       />
     </label>
   );

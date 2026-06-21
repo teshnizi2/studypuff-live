@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyPuff – Class Detail</title>
+  <title>StudyPuff® – Class Detail</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
     .detail-wrap {
@@ -158,8 +158,8 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-logo">
-    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
-    <span>StudyPuff</span>
+    <img src="../assets/sheep.svg" alt="StudyPuff® sheep">
+    <span>StudyPuff®</span>
   </div>
   <nav>
     <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
@@ -224,13 +224,13 @@
   const nameInput = document.getElementById('classNameInput');
   nameInput.value = cls.name || '';
   document.getElementById('pageTitle').textContent = cls.name || 'Class';
-  document.title = `StudyPuff – ${cls.name || 'Class'}`;
+  document.title = `StudyPuff® – ${cls.name || 'Class'}`;
 
   nameInput.addEventListener('input', () => {
     cls.name = nameInput.value;
     save();
     document.getElementById('pageTitle').textContent = cls.name || 'Class';
-    document.title = `StudyPuff – ${cls.name || 'Class'}`;
+    document.title = `StudyPuff® – ${cls.name || 'Class'}`;
   });
 
   function calcAvg() {

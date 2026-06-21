@@ -12,7 +12,7 @@ export default async function AdminSchedulePage() {
   return (
     <AdminShell
       title="Livestream schedule"
-      subtitle="Edit the entries shown on /study and the home page. Changes are immediate — no redeploy."
+      subtitle="Edit the entries shown on /study and the home page. Changes are immediate, no redeploy needed."
     >
       {/* Existing rows */}
       <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">

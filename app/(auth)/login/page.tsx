@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PasswordField } from "@/components/auth/PasswordField";
 import PageShell from "@/components/PageShell";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { loginAction, signInWithGoogleAction } from "../actions";
@@ -17,7 +18,7 @@ export default function LoginPage({
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-ink-700">
             Welcome back
           </p>
-          <h1 className="mt-3 font-display text-4xl text-ink-900">Log in to StudyPuff</h1>
+          <h1 className="mt-3 font-display text-4xl text-ink-900">Log in to StudyPuff®</h1>
           <p className="mt-3 text-ink-700">
             Continue to your timer, tasks, sessions, and study dashboard.
           </p>
@@ -58,16 +59,7 @@ export default function LoginPage({
                 placeholder="you@example.com  or  @username"
               />
             </label>
-            <label className="block text-sm font-semibold text-ink-900">
-              Password
-              <input
-                required
-                type="password"
-                name="password"
-                className="mt-2 w-full rounded-2xl border border-ink-900/15 bg-cream-100 px-4 py-3 font-serif"
-                placeholder="At least 12 characters"
-              />
-            </label>
+            <PasswordField required autoComplete="current-password" placeholder="Your password" />
             <div className="text-right">
               <Link
                 href="/forgot-password"

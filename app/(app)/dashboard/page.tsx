@@ -37,8 +37,11 @@ export default async function DashboardPage() {
   const supabase = createSupabaseServerClient();
 
   const today = new Date();
-  const fourteenDaysAgo = new Date(today);
-  fourteenDaysAgo.setDate(today.getDate() - 13);
+  // Widen the stats window to ~10 weeks (70 days) so the Stats tab's meadow,
+  // hour histogram, and streak scans have enough history. The existing 7-day /
+  // 14-day rollups below still read from the same `recent` array unchanged.
+  const statsWindowStart = new Date(today);
+  statsWindowStart.setDate(today.getDate() - 69);
 
   const [
     { data: settings },
@@ -64,7 +67,7 @@ export default async function DashboardPage() {
       .from("study_sessions")
       .select("id, minutes, mode, studied_on, created_at, topic_name, task_name, focus_score")
       .eq("user_id", user.id)
-      .gte("studied_on", isoDate(fourteenDaysAgo))
+      .gte("studied_on", isoDate(statsWindowStart))
       .order("created_at", { ascending: false }),
     supabase.from("user_purchases").select("item_id").eq("user_id", user.id)
   ]);
@@ -135,7 +138,7 @@ export default async function DashboardPage() {
   const goalPct = Math.min(100, Math.round((todayMinutesStat / dailyGoal) * 100));
 
   return (
-    <DashboardShell profile={profile} bg="green" fullBleed>
+    <DashboardShell profile={profile} bg="scene" fullBleed>
       <div className="w-full">
         <DashboardActions
           inRoom={!!activeRoom}
@@ -227,15 +230,19 @@ export default async function DashboardPage() {
             last7,
             topTopics,
             recent,
-            todayIso
-          }}
-          rewards={{
-            coins: settings?.coins ?? 0,
-            lifetimeMinutes,
-            ownedItemIds: (purchases || []).map((p) => p.item_id),
-            equippedSound: settings?.equipped_sound ?? null,
-            equippedTheme: settings?.equipped_theme ?? null,
-            equippedAccessory: settings?.equipped_accessory ?? null
+            todayIso,
+            // Full ~70-day window of focus-relevant sessions. StatsContent
+            // computes the meadow / hour histogram / streaks client-side from
+            // this using the browser's local time.
+            sessions: recent.map((s) => ({
+              id: s.id,
+              minutes: s.minutes,
+              mode: s.mode,
+              studied_on: s.studied_on,
+              created_at: s.created_at,
+              topic_name: s.topic_name,
+              focus_score: s.focus_score
+            }))
           }}
         />
         {activeRoom && (

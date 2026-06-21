@@ -11,13 +11,13 @@ export default async function SettingsPage() {
   return (
     <DashboardShell
       title="Settings"
-      subtitle="Tune your StudyPuff defaults for focus sessions, breaks, and profile display."
+      subtitle="Tune your StudyPuff® defaults for focus sessions, breaks, and profile display."
       profile={profile}
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
-          <h2 className="font-display text-3xl text-ink-900">Profile</h2>
-          <form action={updateProfileAction} className="mt-5 space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
+          <h2 className="font-display text-xl text-ink-900">Profile</h2>
+          <form action={updateProfileAction} className="mt-4 space-y-4">
             <label className="block text-sm font-semibold text-ink-900">
               Display name
               <input
@@ -33,9 +33,9 @@ export default async function SettingsPage() {
           </form>
         </section>
 
-        <section className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-6 shadow-soft">
-          <h2 className="font-display text-3xl text-ink-900">Timer preferences</h2>
-          <form action={updateSettingsAction} className="mt-5 grid gap-4">
+        <section className="rounded-[28px] border border-ink-900/10 bg-cream-50 p-5 shadow-soft">
+          <h2 className="font-display text-xl text-ink-900">Timer preferences</h2>
+          <form action={updateSettingsAction} className="mt-4 grid gap-4">
             <NumberField name="focus_minutes" label="Focus minutes" defaultValue={settings?.focus_minutes || 25} />
             <NumberField name="short_break_minutes" label="Short break minutes" defaultValue={settings?.short_break_minutes || 5} />
             <NumberField name="long_break_minutes" label="Long break minutes" defaultValue={settings?.long_break_minutes || 20} />

@@ -26,6 +26,22 @@ const config: Config = {
           mint: "#c7e2c7",
           sky: "#c6dceb",
           lilac: "#d9cdea"
+        },
+        /** Garden shop palette tokens — moss (active-tab green) + coin-gold (currency accent).
+         *  Defined separately from Tailwind's default emerald/amber so designs are auditable.
+         *  coin-gold-50 is a SURFACE TINT (card/background warmth), not an accent.
+         *  Accent set = { coin-gold-300, coin-gold-500, coin-gold-700 }. */
+        moss: {
+          300: "#7dbf7d",
+          500: "#3d8b3d",
+          600: "#2d6e2d",
+          700: "#1f5a1f",
+        },
+        "coin-gold": {
+          50:  "#fff9e6",
+          300: "#ffd55a",
+          500: "#e6a800",
+          700: "#b07800",
         }
       },
       fontFamily: {
@@ -76,7 +92,19 @@ const config: Config = {
       }
     }
   },
-  plugins: []
+  plugins: [
+    // can-hover: fires ONLY on pointer-capable devices (hover:hover + pointer:fine).
+    // Use instead of hover: for scale/shadow transforms so they never stick on touch.
+    // R.cap.hover.no-touch — positive guard approach.
+    //
+    // can-group-hover: same positive hover guard but for GROUP children (replaces bare group-hover:
+    // on chips, drag handles, and other child elements inside a can-hover parent).
+    // Generated CSS: @media (hover: hover) and (pointer: fine) { .group:hover & { ... } }
+    require("tailwindcss/plugin")(({ addVariant }: { addVariant: (name: string, definition: string) => void }) => {
+      addVariant("can-hover", "@media (hover: hover) and (pointer: fine)");
+      addVariant("can-group-hover", "@media (hover: hover) and (pointer: fine) { .group:hover & }");
+    }),
+  ]
 };
 
 export default config;

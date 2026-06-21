@@ -410,8 +410,215 @@ html::-webkit-scrollbar-thumb:hover { background: #bdb7ae; }
   background-repeat: no-repeat;
 }
 
+/* ── AmbientScene — living garden world ───────────────────────── */
+
+/* Per-time-of-day bloom tints. The SKY is bespoke per tod (set below); the
+   bloom tokens tint the drifting light blooms to match the hour. The lower
+   half of every sky stays LIGHT so dark ink content keeps ≥4.5:1 contrast. */
+.amb-scene { background: #c5dbb0; }
+html[data-tod="dawn"]  { --bloomc: rgba(255,221,189,0.6);  --bloomc2: rgba(243,180,160,0.30); }
+html[data-tod="day"]   { --bloomc: rgba(255,255,255,0.6);  --bloomc2: rgba(124,170,120,0.30); }
+html[data-tod="dusk"]  { --bloomc: rgba(255,200,150,0.55); --bloomc2: rgba(214,120,90,0.28); }
+html[data-tod="night"] { --bloomc: rgba(206,220,255,0.5);  --bloomc2: rgba(90,120,150,0.30); }
+
+.amb-sky {
+  position: absolute;
+  inset: -8% -8% 0 -8%;
+  animation: amb-drift 110s ease-in-out infinite alternate;
+  will-change: transform;
+  transition: background 1.8s ease;
+}
+
+/* Pause every scene animation while the tab is hidden — CSS animations are
+   NOT throttled in background tabs, so this saves battery during a focus
+   session the user has tabbed away from. */
+.amb-scene[data-hidden="true"] * { animation-play-state: paused !important; }
+/* Bespoke skies — top carries the hour's mood, lower half lightens to seat
+   the (dark-ink) content with comfortable contrast at every time of day. */
+html[data-tod="dawn"] .amb-sky {
+  background:
+    radial-gradient(60% 45% at 26% 14%, rgba(255,224,196,0.85), transparent 70%),
+    linear-gradient(180deg, #f7d3b6 0%, #f3dcc9 20%, #ece3cf 42%, #dde6c4 70%, #cfe0b6 100%);
+}
+html[data-tod="day"] .amb-sky {
+  background:
+    radial-gradient(55% 42% at 78% 16%, rgba(255,255,255,0.7), transparent 70%),
+    linear-gradient(180deg, #cfe7ea 0%, #dceee2 28%, #dbeacd 58%, #c8ddb2 100%);
+}
+html[data-tod="dusk"] .amb-sky {
+  background:
+    radial-gradient(64% 48% at 24% 16%, rgba(255,200,150,0.8), transparent 72%),
+    linear-gradient(180deg, #f3c79c 0%, #f0d3b0 20%, #e8dcc2 44%, #d4dcb0 74%, #c6d6a4 100%);
+}
+html[data-tod="night"] .amb-sky {
+  background:
+    radial-gradient(40% 30% at 80% 12%, rgba(206,220,255,0.45), transparent 70%),
+    linear-gradient(180deg, #2b3d56 0%, #46606e 12%, #84998f 30%, #b6c7b2 50%, #bdccb4 100%);
+}
+
+@keyframes amb-drift {
+  from { transform: translate3d(-1%, -0.6%, 0) scale(1.05); }
+  to   { transform: translate3d(1%, 0.6%, 0) scale(1.08); }
+}
+
+/* Celestial layer — moon + stars, night only. */
+.amb-celestial { position: absolute; inset: 0; opacity: 0; transition: opacity 1.8s ease; }
+html[data-tod="night"] .amb-celestial { opacity: 1; }
+.amb-moon {
+  position: absolute; top: 7%; right: 13%;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #fdfbf0, #e7ecd6 62%, #cdd6c4 100%);
+  box-shadow: 0 0 38px 10px rgba(247,250,230,0.45);
+}
+.amb-stars {
+  position: absolute; inset: 0 0 55% 0;
+  background-image:
+    radial-gradient(1.4px 1.4px at 18% 22%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1.2px 1.2px at 32% 12%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 54% 28%, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.2px 1.2px at 67% 9%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.3px 1.3px at 88% 24%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.1px 1.1px at 44% 6%, rgba(255,255,255,0.6), transparent);
+  animation: amb-twinkle 5.5s ease-in-out infinite;
+}
+@keyframes amb-twinkle { 0%,100%{opacity:0.55;} 50%{opacity:1;} }
+
+/* Drifting light blooms. */
+.amb-bloom { position: absolute; border-radius: 50%; filter: blur(64px); opacity: 0.6; will-change: transform; }
+.amb-bloom-a {
+  width: 48vw; height: 48vw; left: 6%; top: 2%;
+  background: radial-gradient(closest-side, var(--bloomc, rgba(255,255,255,0.55)), transparent 70%);
+  animation: amb-float-a 64s ease-in-out infinite alternate;
+}
+.amb-bloom-b {
+  width: 40vw; height: 40vw; right: 4%; top: 22%;
+  background: radial-gradient(closest-side, var(--bloomc2, rgba(124,170,120,0.3)), transparent 70%);
+  animation: amb-float-b 80s ease-in-out infinite alternate;
+}
+@keyframes amb-float-a { from{transform:translate3d(0,0,0);} to{transform:translate3d(6%,8%,0);} }
+@keyframes amb-float-b { from{transform:translate3d(0,0,0);} to{transform:translate3d(-7%,-5%,0);} }
+
+/* Faint pollen motes drifting up. */
+.amb-motes {
+  position: absolute; inset: -20% 0 30% 0;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 30%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.6px 1.6px at 38% 70%, rgba(255,255,255,0.45), transparent),
+    radial-gradient(1.6px 1.6px at 64% 20%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.6px 1.6px at 84% 56%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.6px 1.6px at 50% 90%, rgba(255,255,255,0.4), transparent);
+  background-size: 100% 50%;
+  opacity: 0.55;
+  animation: amb-motes 46s linear infinite;
+  will-change: transform;
+}
+@keyframes amb-motes { from{transform:translateY(0);} to{transform:translateY(-25%);} }
+
+/* Meadow — bespoke flat-illustration garden along the bottom. */
+.amb-meadow { position: absolute; left: 0; right: 0; bottom: 0; height: 46vh; }
+
+/* The illustrated garden image, anchored to the bottom and faded into the
+   sky at the top so the time-of-day gradient blends over it seamlessly. */
+.amb-meadow-img {
+  position: absolute;
+  inset: 0;
+  background: url("/garden-meadow.webp") bottom center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 30%, #000 100%);
+}
+/* Gentle per-time-of-day wash so the warm meadow harmonizes with each sky.
+   Kept light (screen/soft blends) so it never darkens the area under the
+   today/week text — contrast stays safe, the clearing scrim does the rest. */
+.amb-meadow-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: inherit;
+  mask-image: inherit;
+  background: transparent;
+  mix-blend-mode: soft-light;
+  transition: background 1.8s ease;
+}
+html[data-tod="dawn"]  .amb-meadow-img::after { background: rgba(255, 196, 158, 0.35); }
+html[data-tod="day"]   .amb-meadow-img::after { background: transparent; }
+html[data-tod="dusk"]  .amb-meadow-img::after { background: rgba(240, 158, 92, 0.40); mix-blend-mode: overlay; }
+html[data-tod="night"] .amb-meadow-img::after { background: rgba(120, 150, 200, 0.45); mix-blend-mode: soft-light; }
+
+/* Generative flowers — bob gently; count grows with focus minutes. */
+.amb-flower {
+  position: absolute;
+  width: calc(13px * var(--fs, 1)); height: calc(13px * var(--fs, 1));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #fff 0 22%, transparent 24%),
+    var(--fc, #f4b8c4);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.35);
+  transform-origin: bottom center;
+  animation: amb-flower-bob 5s ease-in-out infinite;
+  animation-delay: var(--fd, 0s);
+}
+.amb-flower::after {
+  content: ""; position: absolute; left: 50%; top: 100%;
+  width: 2px; height: calc(14px * var(--fs, 1));
+  transform: translateX(-50%);
+  background: #3c6b3f;
+}
+@keyframes amb-flower-bob { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+
+/* Film grain — paper texture (no banding). */
+.amb-grain { position: absolute; inset: 0; }
+.amb-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+/* Soft light "clearing" behind the content column — a sunlit/moonlit pool
+   that seats the timer (depth + focal pull) AND lifts local background
+   luminance so content stays readable over the meadow at every time of day. */
+.amb-clearing {
+  position: absolute;
+  left: 52%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: min(86vw, 880px);
+  height: min(82vh, 800px);
+  background: radial-gradient(closest-side, rgba(253,251,247,0.42), rgba(253,251,247,0.14) 46%, transparent 72%);
+}
+
+/* Centre-weighted vignette to seat the timer. */
+.amb-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 95% at 50% 38%, transparent 42%, rgba(31,45,30,0.12) 100%);
+}
+
+/* Responsive meadow — on phones the framing trees would dominate, so shrink
+   them and pull them mostly off-edge, and lower the meadow band. */
+@media (max-width: 767px) {
+  .amb-meadow { height: 34vh; }
+  .amb-clearing { width: 96vw; height: 70vh; }
+}
+
+/* Glass surface helper — premium low-blur frosted panel with a light edge. */
+.glass-panel {
+  background: rgba(253, 251, 247, 0.72);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 18px 40px -28px rgba(31,77,44,0.45);
+}
+
 /* Honour user's reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
+  .amb-sky, .amb-bloom, .amb-motes, .animate-halo,
+  .amb-flower, .amb-stars,
+  .animate-breathe, .animate-leaf-sway, .animate-pulse-ring, .eq-bar,
+  .animate-drift, .animate-drift-slow { animation: none !important; }
+
   .animate-float,
   .animate-bobble,
   .animate-wiggle,

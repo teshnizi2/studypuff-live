@@ -30,7 +30,7 @@ const STEPS = [
   {
     n: "03",
     title: "Work in rounds",
-    body: "Structured focus rounds, using the StudyPuff app, timer, cozy company, and guidance."
+    body: "Structured focus rounds, using the StudyPuff® app, timer, cozy company, and guidance."
   },
   {
     n: "04",
@@ -222,7 +222,7 @@ export default async function StudyPage() {
                   Hang out between sessions
                 </h3>
                 <p className="mt-2 text-ink-700">
-                  Our Discord is the cosy in-between — share wins, ask for accountability, find a
+                  Our Discord is the cosy in-between. Share wins, ask for accountability, find a
                   study buddy in your timezone.
                 </p>
               </div>
@@ -246,7 +246,7 @@ export default async function StudyPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/studypuff-logo-v3.png"
-              alt="StudyPuff Academy"
+              alt="StudyPuff® Academy"
               className="h-full w-full animate-bobble object-contain"
             />
           </div>

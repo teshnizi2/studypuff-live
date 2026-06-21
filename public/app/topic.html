@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyPuff – Topic</title>
+  <title>StudyPuff® – Topic</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
     /* ── Topic header ─────────────────────────── */
@@ -315,8 +315,8 @@
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-logo">
-    <img src="../assets/sheep.svg" alt="StudyPuff sheep">
-    <span>StudyPuff</span>
+    <img src="../assets/sheep.svg" alt="StudyPuff® sheep">
+    <span>StudyPuff®</span>
   </div>
   <nav>
     <a href="index.html"><span class="nav-icon">⏱</span> Timer</a>
@@ -408,12 +408,12 @@
 
   const titleInput = document.getElementById('topicTitleInput');
   titleInput.value = topic.name || '';
-  document.title   = `StudyPuff – ${topic.name || 'Topic'}`;
+  document.title   = `StudyPuff® – ${topic.name || 'Topic'}`;
 
   titleInput.addEventListener('input', (e) => {
     topic.name = e.target.value;
     save();
-    document.title = `StudyPuff – ${topic.name || 'Topic'}`;
+    document.title = `StudyPuff® – ${topic.name || 'Topic'}`;
   });
 
   function save() {

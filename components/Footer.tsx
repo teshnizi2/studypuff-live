@@ -23,7 +23,7 @@ const COLUMNS = [
     title: "Learn",
     items: [
       { label: "Study with us", href: "/study" },
-      { label: "StudyPuff App", href: "/dashboard" },
+      { label: "StudyPuff® App", href: "/dashboard" },
       { label: "Workshops", href: "/workshops" },
       { label: "Free Resources", href: "/resources" },
       { label: "Store", href: "/store" }
@@ -53,7 +53,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="font-display text-2xl text-ink-900">
-              StudyPuff
+              StudyPuff®
             </Link>
             <p className="mt-3 max-w-xs text-sm text-ink-700">
               Science-based study workshops, free livestreams, and a kinder way to do
@@ -98,7 +98,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-ink-900/10 pt-6 text-sm text-ink-700 sm:flex-row sm:items-center">
-          <p>© {year}, StudyPuff Academy</p>
+          <p>© {year}, StudyPuff® Academy</p>
           <p>Made with care · Leiden</p>
         </div>
       </div>

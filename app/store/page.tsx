@@ -9,8 +9,8 @@ export default function StorePage() {
   return (
     <PageShell>
       <PageHero
-        eyebrow="StudyPuff Store · Coming soon"
-        title="Cozy study merch — coming soon."
+        eyebrow="StudyPuff® Store · Coming soon"
+        title="Cozy study merch: coming soon."
         subtitle="Planners, stickers, notebooks, and more. Drop your email below to be first in when the digital doors open."
         accent="peach"
       />
@@ -45,7 +45,7 @@ export default function StorePage() {
                 In the meantime, the freebies are open.
               </h2>
               <p className="mt-2 text-sm text-ink-700">
-                Templates, printables, and the StudyPuff app are free to use today.
+                Templates, printables, and the StudyPuff® app are free to use today.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 sm:flex-nowrap">
